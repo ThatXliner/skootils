@@ -1,15 +1,15 @@
-# Contributing
+# Contributing Python code
 
 Hello! :wave: Thanks for taking the time to contribute.
 
 There are many ways you can contribute :smile:
 
- - [Pull Request](#pr)
-   - 🩹 Submit an obvious fix (e.g. typo)
-   - :memo: Work on a bug
- - [Submit an Issue](#issue)
-   - :sparkles: Request a feature
-   - :bug: Report a bug
+- [Pull Request](#pr)
+  - 🩹 Submit an obvious fix (e.g. typo)
+  - :memo: Work on a bug
+- [Submit an Issue](#issue)
+  - :sparkles: Request a feature
+  - :bug: Report a bug
 
 Remember to follow the [code of conduct](./CODE_OF_CONDUCT.md)
 
@@ -33,12 +33,12 @@ $ poetry run pytest
 
 <h2 id="pr">Pull Request contributing guide</h2>
 
-Doing the following will *increase your chances* of your pull request to be accepted :+1:
+Doing the following will _increase your chances_ of your pull request to be accepted :+1:
 
- - Describe other considered solutions
- - Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) or [Gitmoji](https://gitmoji.dev) commit style
- - For all code-related changes follow the [code style](#cs). Write [tests](#test-guide) if applicable
- - Link to the related issue. If there is none, please [make one](#issue) *or* maybe [the issue is obvious](#minor-pr).
+- Describe other considered solutions
+- Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) or [Gitmoji](https://gitmoji.dev) commit style
+- For all code-related changes follow the [code style](#cs). Write [tests](#test-guide) if applicable
+- Link to the related issue. If there is none, please [make one](#issue) _or_ maybe [the issue is obvious](#minor-pr).
 
 <h3 id="minor-pr">Fixing an obvious issue</h3>
 
@@ -51,17 +51,16 @@ If you're making somewhat bigger code changes please write tests if they don't e
 If you're fixing a bug :bug:, please remember link to the applicable issue describing the bug like this (if it exists):
 
 ```md
- - #issue-number
+- #issue-number
 ```
 
 like
 
 ```md
- - #42
+- #42
 ```
 
 If you're changing/adding documentation, the above isn't required.
-
 
 ### Test guide
 
@@ -105,6 +104,7 @@ $ poe format
 ```
 
 or
+
 ```
 $ shed learnatvcs/**.py
 ```
@@ -121,12 +121,12 @@ Try to follow [my recommended code style](https://github.com/ThatXliner/Signific
 
 Please remember to fill out all the forms when making an issue :+1:. This includes but is not limited to
 
- - Describe the issue
- - Reproduction steps
- - System information (e.g. Python version)
+- Describe the issue
+- Reproduction steps
+- System information (e.g. Python version)
 
 Or if it's a feature request :sparkles: (also not limited to)
 
- - Describe the feature
- - Why the feature cannot exist without changes to code
- - What the new feature might be useful for
+- Describe the feature
+- Why the feature cannot exist without changes to code
+- What the new feature might be useful for
