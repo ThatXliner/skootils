@@ -1,0 +1,41 @@
+{
+  "0 debug pnpm:scope": {
+    "selected": 1
+  },
+  "1 debug pnpm:package-manifest": {
+    "initial": {},
+    "prefix": "/Users/bryanhu/Library/pnpm/store/v3/tmp/dlx-73441"
+  },
+  "2 debug pnpm:context": {
+    "currentLockfileExists": false,
+    "storeDir": "/Users/bryanhu/Library/pnpm/store/v3",
+    "virtualStoreDir": "/Users/bryanhu/Library/pnpm/store/v3/tmp/dlx-73441/node_modules/.pnpm"
+  },
+  "3 debug pnpm:stage": {
+    "prefix": "/Users/bryanhu/Library/pnpm/store/v3/tmp/dlx-73441",
+    "stage": "resolution_started"
+  },
+  "4 error pnpm": {
+    "code": "ERR_PNPM_FETCH_404",
+    "hint": "--help is not in the npm registry, or you have no permission to fetch it.\n\nNo authorization header was set for the request.",
+    "request": {
+      "url": "https://registry.npmjs.org/--help"
+    },
+    "response": {
+      "size": 0
+    },
+    "pkgName": "--help",
+    "spec": {
+      "fetchSpec": "latest",
+      "name": "--help",
+      "type": "tag"
+    },
+    "pkgsStack": [],
+    "err": {
+      "name": "pnpm",
+      "message": "GET https://registry.npmjs.org/--help: Not Found - 404",
+      "code": "ERR_PNPM_FETCH_404",
+      "stack": "pnpm: GET https://registry.npmjs.org/--help: Not Found - 404\n    at RetryOperation._fn (/Users/bryanhu/Library/pnpm/global/5/.pnpm/pnpm@7.1.2/node_modules/pnpm/dist/pnpx.cjs:79416:19)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+[tool.poetry]
+name = "powerschool"
+description = "A browser-automation-based API for PowerSchool"
+authors = ["Bryan Hu <bryan.hu.2020@gmail.com>"]
+version = "0.1.0"
+
+readme = "README.md"
+license = "GPL-3.0-or-later"
+
+classifiers = [
+    # Get the list of trove classifiers here: https://pypi.org/classifiers/
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Natural Language :: English",
+]
+homepage = "https://github.com/ThatXliner/powerschool"
+# keywords = ["awesome", "project"]  # Maximum of 5 keywords
+
+[tool.poetry.dependencies]
+python = "^3.8"
+data49 = "^0.3.0"
+pandas = "^1.4.0"
+sympy = "^1.10.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+black = "^21.5b0"
+mypy = "^0.812"
+isort = "^5.8.0"
+pylint = "^2.8.2"
+toml = "^0.10.2"
+hypothesis = "^6.12.0"
+shed = "^0.5.3"
+pytest-cov = "^2.11.1"
+pytest-clarity = "^1.0.1"
+
+[tool.poe.tasks]
+# Code linting
+mypy   = {cmd = "mypy powerschool --strict", help = "Run MyPy on codebase"}
+pylint = {cmd = "pylint powerschool --fail-under=8", help = "Run Pylint on codebase"}
+check_black = {"cmd" = "black powerschool --check"}
+check_isort = {"cmd" = "isort powerschool --check --profile=black"}
+style    = ["check_black", "check_isort"]
+codebase = ["pylint", "mypy"]
+    [tool.poe.tasks.docs]
+    cmd = "sphinx-build docs build"
+    help = "Build documentation"
+
+    [tool.poe.tasks.format]
+    cmd = "shed"
+    help = "Format code"
+
+    [tool.poe.tasks.lint]
+    sequence = ["style", "codebase"]
+    help = "Lint codebase"
+
+    [tool.poe.tasks.test]
+    cmd = "pytest -vvv --cov=powerschool"
+    help = "Simply run test suite"
+
+    [tool.poe.tasks.ci]
+    cmd = "pytest -vvv --cov=powerschool --cov-report=xml"
+    help = "This workflow is for Github Actions"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
