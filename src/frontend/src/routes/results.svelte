@@ -137,3 +137,9 @@
 		</div>
 	</div>
 {/if}
+
+<style lang="postcss">
+	:global([data-highlight='true']) {
+		@apply btn btn-warning btn-sm;
+	}
+</style>
