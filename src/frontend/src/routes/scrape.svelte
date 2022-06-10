@@ -10,6 +10,7 @@
 	let tasks: { finished: boolean | null | [number, number]; name: string }[] = [];
 
 	onMount(() => {
+		window.sessionStorage.removeItem('output'); // Don't use old data when failed
 		command = new Command('scrape', [
 			'-um',
 			'learnatvcs',

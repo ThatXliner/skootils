@@ -39,6 +39,7 @@ MONTHS = [
 
 @define(frozen=True)
 class Date:
+    # TODO: B day support
     month: int
     day: int
     DATE_RE: ClassVar[re.Pattern[str]] = re.compile(
@@ -102,9 +103,8 @@ class Date:
 # FIXME: Restructure (again, ugh) to be similar to lesson plan strucure?
 # or keep it like this: the space-optimized way, at the cost of information
 # (or in this case, the lack of knowledge of information loss)
-RawOutput = dict[Date, dict[str, str]]
-# RawOutput = dict[Date, dict[str, Optional[str]]]
-
+RawOutput = dict[Optional[Date], dict[str, str]]
+LINK_CSS = ".book_toc a,.book_toc strong"
 # TODO: not class
 @define
 class Bot:  # TODO: CACHE
@@ -187,26 +187,21 @@ class Bot:  # TODO: CACHE
                     cur_task += 1
                     continue
                 ### ...go to that day's lesson plans... ###
-                dates_found = {
-                    Date.from_str(date["innerText"]): date
-                    for date in browser.query_selector_all(
-                        ".book_toc a,.book_toc strong"
-                    )
+                date2link = {
+                    Date.from_str(date["innerText"]): date.get("href")
+                    for date in browser.query_selector_all(LINK_CSS)
                 }
                 if tasks[cur_task]["finished"] is False:
                     tasks[cur_task]["finished"] = None
                     print(json.dumps(tasks))
-                for date in for_dates or [list(dates_found)[-1]]:
-                    if date not in output:
-                        output[date] = {}  # or should we use a list?
-                    # elif for_dates is None and None not in output:
-                    #     output[None] = {}
+                for date in for_dates or [list(date2link)[-1]]:
+                    day_key = date if for_dates is not None else None
+                    if day_key not in output:
+                        output[day_key] = {}  # or should we use a list?
                     chosen = [
-                        link_title
-                        for link_title in dates_found
-                        # TODO: Ok but like what if the date given in param
-                        # was b day
-                        if link_title == date
+                        date2link[link_date]
+                        for link_date in date2link
+                        if link_date == date
                     ]
                     if len(chosen) > 1:
                         tasks[cur_task][
@@ -222,12 +217,11 @@ class Bot:  # TODO: CACHE
                         print(json.dumps(tasks))
                         # output[date][class_name] = None
                         continue
-                    # TODO: If the element is not clickable (cannot see)
-                    # because the window is too small, we should
-                    # scroll to the element first
+                    if chosen[0] is not None:
+                        browser.go(to=chosen[0])
                     ### ...and scrape it ###
                     content = browser.css("section#region-main > div[role='main']")
-                    output[date if for_dates is not None else None][class_name] = str(
+                    output[day_key][class_name] = str(
                         highlight(
                             process_data.clean_html(
                                 process_data.to_soup(content["innerHTML"])

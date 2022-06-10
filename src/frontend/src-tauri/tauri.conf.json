@@ -17,7 +17,7 @@
 				"scope": [
 					{
 						"name": "scrape",
-						"cmd": "/Users/bryanhu/projects/skootils/src/learnatvcs/.venv/bin/python",
+						"cmd": "../../learnatvcs/.venv/bin/python",
 						"args": ["-um", "learnatvcs", { "validator": "(null|\\[.*?\\])" }]
 					}
 				]
