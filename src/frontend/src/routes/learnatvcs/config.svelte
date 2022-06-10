@@ -79,7 +79,7 @@
 	{/if}
 	<a
 		class="my-5 btn btn-primary"
-		href="/scrape"
+		href="/learnatvcs/scrape"
 		class:btn-disabled={dateType == 'custom' && dateList.length == 0}>Alright, let's go</a
 	>
 </main>

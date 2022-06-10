@@ -59,7 +59,6 @@
 				{/if}
 			</div>
 			<div class="navbar-end">
-				<!-- TODO: Use home icon -->
 				<a class="btn btn-neutral" href="/"
 					><svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -80,7 +79,6 @@
 		</div>
 	</div>
 	<div class="flex max-w-screen">
-		<!-- Class selection. TODO: make it fixed -->
 		<ul class="min-w-fit min-h-screen bg-base-200 menu p-4">
 			<!-- <li class="menu-title"><span>View lesson plan</span></li> -->
 			{#each Object.keys(output[selectedDate]) as key}
@@ -96,7 +94,7 @@
 			{/each}
 		</ul>
 		<!-- TODO: figure best, most optimal format -->
-		<div class="block ml-3 mt-2 w-full scroll-smooth">
+		<div class="block ml-3 mt-2 w-full">
 			<!-- <div class="my-2 py-4 bg-base-200 flex justify-evenly flex-wrap rounded-box">
 				<Card
 					title="Lesson plans"
@@ -139,7 +137,10 @@
 {/if}
 
 <style lang="postcss">
-	:global([data-highlight='true']) {
+	#plans :global([data-highlight='true']) {
 		@apply btn btn-warning btn-sm;
+	}
+	#plans :global(a::after) {
+		content: url("data:image/svg+xml,%3Csvg width='1.25em' height='1.25em' fill='currentColor' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z'/%3E%3Cpath d='M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z'/%3E%3C/svg%3E%0A");
 	}
 </style>

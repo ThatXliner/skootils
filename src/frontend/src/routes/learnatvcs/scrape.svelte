@@ -18,7 +18,7 @@
 		]);
 		command.on('close', (data) => {
 			console.log(`command finished with code ${data.code} and signal ${data.signal}`);
-			window.location.assign('/results');
+			window.location.assign('/learnatvcs/results');
 		});
 		command.on('error', (error) => console.error(`command error: "${error}"`));
 		command.stdout.on('data', (line) => {
