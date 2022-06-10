@@ -3,24 +3,8 @@
     windows_subsystem = "windows"
 )]
 
-use blake3::hash;
-
-use std::fs;
-use std::path::PathBuf;
-
 use tauri::{Menu, MenuItem, Submenu};
-#[tauri::command]
-fn get_from_cache(cache_dir: String, config: String) -> Result<String, String> {
-    let mut cache = PathBuf::from(cache_dir);
-    cache.push(String::from(hash(config.as_bytes()).to_hex().as_str()));
-    fs::read_to_string(cache.as_path()).or(Err("Non existent cache".into()))
-}
-#[tauri::command]
-fn set_cache(cache_dir: String, config: String, contents: String) {
-    let mut cache = PathBuf::from(cache_dir);
-    cache.push(String::from(hash(config.as_bytes()).to_hex().as_str()));
-    fs::write(cache.as_path(), contents).expect("Could not write to cache")
-}
+
 fn main() {
     // TODO: Better menu
     let menu = Menu::new()
@@ -57,7 +41,6 @@ fn main() {
         }));
     tauri::Builder::default()
         .menu(menu)
-        .invoke_handler(tauri::generate_handler![get_from_cache, set_cache])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
