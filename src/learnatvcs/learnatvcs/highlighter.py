@@ -1,4 +1,5 @@
 """Highlight date and assignments"""
+# TODO: AI
 import re
 
 from bs4 import BeautifulSoup

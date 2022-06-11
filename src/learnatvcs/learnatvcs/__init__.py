@@ -78,7 +78,6 @@ class Date:
 # or keep it like this: the space-optimized way, at the cost of information
 # (or in this case, the lack of knowledge of information loss)
 RawOutput = dict[Optional[str], dict[str, str]]
-LINK_CSS = ".book_toc a,.book_toc strong"
 
 
 def _lesson_plan_pipeline(contents: str) -> str:
@@ -150,7 +149,7 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
             ### ...go to that day's lesson plans... ###
             date2link = {
                 Date.from_str(date["innerText"]): date.get("href")
-                for date in browser.query_selector_all(LINK_CSS)
+                for date in browser.query_selector_all(".book_toc a,.book_toc strong")
             }
             if tasks[cur_task]["finished"] is False:
                 tasks[cur_task]["finished"] = None

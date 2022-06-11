@@ -175,7 +175,7 @@ toml = ["tomli"]
 
 [[package]]
 name = "data49"
-version = "0.4.0"
+version = "0.4.1"
 description = "A gold rush-themed data mining library"
 category = "main"
 optional = false
@@ -452,7 +452,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 name = "platformdirs"
 version = "2.5.2"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -938,7 +938,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b8432526ae9f670329f982270e39069efe4d05b241ee4ec12b33ba415e5e1fbc"
+content-hash = "71fc3724601da026207fb51df2f1f960438e64e392632620e373774d9d084249"
 
 [metadata.files]
 astroid = [

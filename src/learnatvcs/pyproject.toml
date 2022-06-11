@@ -24,6 +24,7 @@ interprog = { path = "../../../interprog", develop = true }
 summarize = { path = "../summarize", develop = true }
 attrs = "^21.4.0"
 beautifulsoup4 = "^4.11.1"
+platformdirs = "^2.5.2"
 
 [tool.poetry.scripts]
 learnatvcs = "learnatvcs.__main__:main"
