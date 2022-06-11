@@ -1,9 +1,7 @@
 """Awesome lesson plan utilities"""
-
-
 import json
 import re
-from typing import ClassVar, Optional
+from typing import NamedTuple, Optional
 
 from attrs import define
 from data49 import web
@@ -16,62 +14,105 @@ from .highlighter import highlight
 HEADLESS = False  # TODO: get it to work with headless
 
 
-MONTHS = [
-    "Janurary",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-]
+MONTH2INT: dict[str, int] = {
+    "jan": 1,
+    "feb": 2,
+    "mar": 3,
+    "apr": 4,
+    "may": 5,
+    "jun": 6,
+    "jul": 7,
+    "aug": 8,
+    "sep": 9,
+    "oct": 10,
+    "nov": 11,
+    "dec": 12,
+}
+
+DATE_RE: re.Pattern[str] = re.compile(
+    r"(?P<month>[a-z]+) (?P<day>\d+)", flags=re.IGNORECASE
+)
 
 
-@define(frozen=True)
-class Date:
-    # TODO: B day support
+class Date(NamedTuple):
     month: int
     day: int
-    DATE_RE: ClassVar[re.Pattern[str]] = re.compile(
-        r"(?P<amonth>[a-z]+) (?P<aday>\d+)(?:/(?P<bmonth>[a-z]+)?[ ]?(?P<bday>\d+))?",
-        flags=re.IGNORECASE,
-    )
-
-    MONTH2INT: ClassVar[dict[str, int]] = {
-        "jan": 1,
-        "feb": 2,
-        "mar": 3,
-        "apr": 4,
-        "may": 5,
-        "jun": 6,
-        "jul": 7,
-        "aug": 8,
-        "sep": 9,
-        "oct": 10,
-        "nov": 11,
-        "dec": 12,
-    }
 
     @classmethod
     def from_str(cls, x: str) -> "Date":
         """Transform x into a Date"""
 
         def normalize_month(x: str) -> int:
-            return cls.MONTH2INT[x.lower()[:3]]
+            return MONTH2INT[x.lower()[:3]]
 
-        # TODO: A day/B day config. Use data from powerschool module
-        match = cls.DATE_RE.search(x)
+        match = DATE_RE.search(x)
         if not match:
             raise ValueError(f"No date found for {x}")
-        return cls(month=normalize_month(match["amonth"]), day=int(match["aday"]))
+
+        return cls(month=normalize_month(match["month"]), day=int(match["day"]))
 
     def __str__(self) -> str:
+        MONTHS = [
+            "Janurary",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ]
         return f"{MONTHS[self.month-1]} {self.day}"
+
+
+CLASS_DAY_RE: re.Pattern[str] = re.compile(
+    r"(?P<amonth>[a-z]+) (?P<aday>\d+)(?:/(?P<bmonth>[a-z]+)?[ ]?(?P<bday>\d+))?",
+    flags=re.IGNORECASE,
+)
+
+
+@define(frozen=True)
+class ClassDay:
+    a_day: Date
+    b_day: Optional[Date] = None
+
+    def __hash__(self) -> int:
+        return hash((self.a_day, self.b_day))
+
+    def __str__(self) -> str:
+        return str(self.a_day)  # TODO: Use PowerSchool
+
+    def __eq__(self, other):  # type: ignore
+        if isinstance(other, ClassDay):  # type: ignore
+            return (self.a_day, self.b_day) == (other.a_day, other.b_day)
+        if isinstance(other, Date):  # type: ignore
+            return other in {self.a_day, self.b_day}
+        return NotImplemented
+
+    @classmethod
+    def from_str(cls, x: str) -> "ClassDay":
+        """Transform x into a ClassDay"""
+
+        def normalize_month(x: str) -> int:
+            return MONTH2INT[x.lower()[:3]]
+
+        match = CLASS_DAY_RE.search(x)
+        if not match:
+            raise ValueError(f"No date found for {x}")
+        a_month = normalize_month(match["amonth"])
+        return cls(
+            a_day=Date(month=a_month, day=int(match["aday"])),
+            b_day=Date(
+                month=normalize_month(match["bmonth"]) if match["bmonth"] else a_month,
+                day=int(match["bday"]),
+            )
+            if match["bday"]
+            else None,  # If "bday" doesn't exist, it's a C day
+        )
 
 
 # FIXME: Restructure (again, ugh) to be similar to lesson plan strucure?
@@ -148,7 +189,7 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
                 continue
             ### ...go to that day's lesson plans... ###
             date2link = {
-                Date.from_str(date["innerText"]): date.get("href")
+                ClassDay.from_str(date["innerText"]): date.get("href")
                 for date in browser.query_selector_all(".book_toc a,.book_toc strong")
             }
             if tasks[cur_task]["finished"] is False:
