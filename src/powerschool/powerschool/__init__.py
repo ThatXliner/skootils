@@ -89,8 +89,8 @@ class PowerSchool:
         # TODO: Figure offset... and like make it user-friendly
         # def teachers(self) -> Dict[str, Dict[str, str]]:
         with Browser(self.url) as driver:
-            driver.query_selector("#fieldAccount").send_keys(self.username)
-            driver.query_selector("#fieldPassword").send_keys(self.password)
+            driver.query_selector("#fieldAccount").type(self.username)
+            driver.query_selector("#fieldPassword").type(self.password)
             driver.query_selector("#btn-enter-sign-in").click()
             driver.wait(
                 until=expected_conditions.visibility_of_element_located(
