@@ -22,9 +22,7 @@ python = "^3.9"
 data49 = { path = "../../../data49", develop = true }
 interprog = { path = "../../../interprog", develop = true }
 summarize = { path = "../summarize", develop = true }
-thefuzz = "^0.19.0"
 attrs = "^21.4.0"
-loguru = "^0.6.0"
 beautifulsoup4 = "^4.11.1"
 
 [tool.poetry.scripts]

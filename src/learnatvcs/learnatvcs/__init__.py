@@ -1,6 +1,6 @@
 """Awesome lesson plan utilities"""
 
-import functools
+
 import json
 import re
 from typing import ClassVar, Optional
@@ -14,11 +14,6 @@ from learnatvcs import process as process_data
 from .highlighter import highlight
 
 HEADLESS = False  # TODO: get it to work with headless
-
-
-@functools.lru_cache()
-def _clean(x: str) -> str:
-    return str(process_data.clean_html(process_data.to_soup(x)))
 
 
 MONTHS = [
@@ -79,164 +74,124 @@ class Date:
         return f"{MONTHS[self.month-1]} {self.day}"
 
 
-#
-# @define
-# class LessonPlan:
-#     class_name: str
-#     # class_name: Class
-#     day: Date
-#     content: BeautifulSoup = field(converter=process_data.to_soup)
-#
-#     @property
-#     @functools.lru_cache()
-#     def summary(self) -> str:
-#         # XXX: this is waay too oversimplified. lmao
-#         return ai(process_data.extract_useful(self.content))
-#
-#     def extract_assignments(self):
-#         ...
-#
-#     def highlight_dates(self):
-#         ...
-
-
 # FIXME: Restructure (again, ugh) to be similar to lesson plan strucure?
 # or keep it like this: the space-optimized way, at the cost of information
 # (or in this case, the lack of knowledge of information loss)
-RawOutput = dict[Optional[Date], dict[str, str]]
+RawOutput = dict[Optional[str], dict[str, str]]
 LINK_CSS = ".book_toc a,.book_toc strong"
-# TODO: not class
-@define
-class Bot:  # TODO: CACHE
-    # prog: interprog.ProgressReporter = interprog.MockProgressReporter()
-    # browser: web.Browser = field(default)
-    # TODO: parallelize
-    # def get_lesson_plans(self, **kwargs) -> list[LessonPlan]:
-    #     raw_data = self.run(**kwargs)
-    #     return [
-    #         LessonPlan(class_name, date, content)
-    #         for date, contents in raw_data.items()
-    #         for class_name, content in contents.items()
-    #     ]
 
-    def get_json(self, **kwargs) -> str:
-        raw_data = self.run(**kwargs)
-        # TODO: also highlight contents
-        return json.dumps({str(date): content for date, content in raw_data.items()})
 
-    def run(self, for_dates: Optional[list[Date]] = None) -> RawOutput:
-        """Get raw scrape data"""
-        # TODO: Choose quarters
-        output: RawOutput = {}
-        tasks = [
-            {"finished": False, "name": "Log in"},
-        ]
-        print(json.dumps(tasks))
-        # self.prog.assign(interprog.tasks.Status("Log in"))
+def _lesson_plan_pipeline(contents: str) -> str:
+    return str(highlight(process_data.clean_html(process_data.to_soup(contents))))
 
-        with web.Browser(
-            "https://learn.vcs.net/",
-            driver=web.get_browser(
-                headless=HEADLESS,
-                arguments=(
-                    "user-data-dir=/Users/bryanhu/projects/skootils/src/learnatvcs/selenium",
-                ),
+
+# class Spider:
+#     def start(self, for_dates):
+#         self.target_dates = for_dates
+#
+def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
+    """Get raw scrape data"""
+    # TODO: Choose quarters
+    output: RawOutput = {}
+    tasks = [
+        {"finished": False, "name": "Log in"},
+    ]
+    print(json.dumps(tasks))
+    # self.prog.assign(interprog.tasks.Status("Log in"))
+
+    with web.Browser(
+        "https://learn.vcs.net/",
+        driver=web.get_browser(
+            headless=HEADLESS,
+            arguments=(
+                "user-data-dir=/Users/bryanhu/projects/skootils/src/learnatvcs/selenium",
             ),
-        ) as browser:
-            tasks[0]["finished"] = None
-            print(json.dumps(tasks))
-            ### Log in ###
-            browser.query_selector(".login-btn").click()
-            browser.query_selector(
-                "div.potentialidp:nth-child(1) > a:nth-child(1)"
-            ).click()
-            tasks[0]["finished"] = True
-            print(json.dumps(tasks))
-            ### For every class... ###
-            # TODO: Assert #side-panel-button exists and not "which account"
-            # for future auto setup
-            browser.query_selector("#side-panel-button").click()
-            raw_links = browser.query_selector_all(
-                "#inst6206 > div > div > ul > li > div > a"
-            )[2:-1]
-            links = [link["href"] for link in raw_links]
-            class_names = [link["title"] for link in raw_links]
-            tasks.extend(
-                [
-                    {
-                        "finished": [0, len(for_dates)]
-                        if for_dates and len(for_dates) > 1
-                        else False,
-                        "name": f"Scrape {name}",  # XXX: or just `name`? "Scrape" seems a bit excessive
-                    }
-                    for name in class_names
-                ]
-            )
-            print(json.dumps(tasks))
-            cur_task = 1
-            for link, class_name in zip(links, class_names):
-                browser.go(to=link)
-                try:
-                    browser.query_selector('a[title^="Lesson"]').click()
-                    browser.query_selector_all(".activity.book.modtype_book a")[
-                        -1
-                    ].click()
-                except (selenium.common.exceptions.NoSuchElementException, IndexError):
-                    tasks[cur_task]["finished"] = "No lesson plans"
-                    print(json.dumps(tasks))
-                    cur_task += 1
-                    continue
-                ### ...go to that day's lesson plans... ###
-                date2link = {
-                    Date.from_str(date["innerText"]): date.get("href")
-                    for date in browser.query_selector_all(LINK_CSS)
+        ),
+    ) as browser:
+        tasks[0]["finished"] = None
+        print(json.dumps(tasks))
+        ### Log in ###
+        browser.query_selector(".login-btn").click()
+        browser.query_selector("div.potentialidp:nth-child(1) > a:nth-child(1)").click()
+        tasks[0]["finished"] = True
+        print(json.dumps(tasks))
+        ### For every class... ###
+        # TODO: Assert #side-panel-button exists and not "which account"
+        # for future auto setup
+        browser.query_selector("#side-panel-button").click()
+        raw_links = browser.query_selector_all(
+            "#inst6206 > div > div > ul > li > div > a"
+        )[2:-1]
+        links = [link["href"] for link in raw_links]
+        class_names = [link["title"] for link in raw_links]
+        tasks.extend(
+            [
+                {
+                    "finished": [0, len(for_dates)]
+                    if for_dates and len(for_dates) > 1
+                    else False,
+                    "name": f"Scrape {name}",  # XXX: or just `name`? "Scrape" seems a bit excessive
                 }
-                if tasks[cur_task]["finished"] is False:
-                    tasks[cur_task]["finished"] = None
-                    print(json.dumps(tasks))
-                for date in for_dates or [list(date2link)[-1]]:
-                    day_key = date if for_dates is not None else None
-                    if day_key not in output:
-                        output[day_key] = {}  # or should we use a list?
-                    chosen = [
-                        date2link[link_date]
-                        for link_date in date2link
-                        if link_date == date
-                    ]
-                    if len(chosen) > 1:
-                        tasks[cur_task][
-                            "finished"
-                        ] = f"Ambigous lesson plan dates for date {date}"
-                        cur_task += 1
-                        print(json.dumps(tasks))
-                        # output[date][class_name] = None
-                        continue
-                    if len(chosen) == 0:
-                        tasks[cur_task]["finished"] = f"No lesson plans for {date}"
-                        cur_task += 1
-                        print(json.dumps(tasks))
-                        # output[date][class_name] = None
-                        continue
-                    if chosen[0] is not None:
-                        browser.go(to=chosen[0])
-                    ### ...and scrape it ###
-                    content = browser.css("section#region-main > div[role='main']")
-                    output[day_key][class_name] = str(
-                        highlight(
-                            process_data.clean_html(
-                                process_data.to_soup(content["innerHTML"])
-                            )
-                        )
-                    )
-                    if tasks[cur_task]["finished"] is None:
-                        tasks[cur_task]["finished"] = True
-                    else:
-                        tasks[cur_task]["finished"][0] += 1
-                    print(json.dumps(tasks))
-                tasks[cur_task]["finished"] = True
+                for name in class_names
+            ]
+        )
+        print(json.dumps(tasks))
+        cur_task = 1
+        for link, class_name in zip(links, class_names):
+            browser.go(to=link)
+            try:
+                browser.query_selector('a[title^="Lesson"]').click()
+                browser.query_selector_all(".activity.book.modtype_book a")[-1].click()
+            except (selenium.common.exceptions.NoSuchElementException, IndexError):
+                tasks[cur_task]["finished"] = "No lesson plans"
                 print(json.dumps(tasks))
                 cur_task += 1
-        return output
+                continue
+            ### ...go to that day's lesson plans... ###
+            date2link = {
+                Date.from_str(date["innerText"]): date.get("href")
+                for date in browser.query_selector_all(LINK_CSS)
+            }
+            if tasks[cur_task]["finished"] is False:
+                tasks[cur_task]["finished"] = None
+                print(json.dumps(tasks))
+            for date in for_dates or [list(date2link)[-1]]:
+                day_key = str(date) if for_dates is not None else None
+                if day_key not in output:
+                    output[day_key] = {}  # or should we use a list?
+                chosen = [
+                    date2link[link_date] for link_date in date2link if link_date == date
+                ]
+                if len(chosen) > 1:
+                    tasks[cur_task][
+                        "finished"
+                    ] = f"Ambigous lesson plan dates for date {date}"
+                    cur_task += 1
+                    print(json.dumps(tasks))
+                    # output[date][class_name] = None
+                    continue
+                if len(chosen) == 0:
+                    tasks[cur_task]["finished"] = f"No lesson plans for {date}"
+                    cur_task += 1
+                    print(json.dumps(tasks))
+                    # output[date][class_name] = None
+                    continue
+                if chosen[0] is not None:
+                    browser.go(to=chosen[0])
+                ### ...and scrape it ###
+                content = browser.css("section#region-main > div[role='main']")
+                output[day_key][class_name] = _lesson_plan_pipeline(
+                    content["innerHTML"]
+                )
+                if tasks[cur_task]["finished"] is None:
+                    tasks[cur_task]["finished"] = True
+                else:
+                    tasks[cur_task]["finished"][0] += 1
+                print(json.dumps(tasks))
+            tasks[cur_task]["finished"] = True
+            print(json.dumps(tasks))
+            cur_task += 1
+    return output
 
 
 __version__ = "0.1.0"
