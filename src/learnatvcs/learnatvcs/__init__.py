@@ -122,6 +122,7 @@ RawOutput = dict[Optional[str], dict[str, str]]
 
 
 def _lesson_plan_pipeline(contents: str) -> str:
+    # TODO Give highlighting function what date is 'today'
     return str(highlight(process_data.clean_html(process_data.to_soup(contents))))
 
 
@@ -203,18 +204,16 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
                     date2link[link_date] for link_date in date2link if link_date == date
                 ]
                 if len(chosen) > 1:
-                    tasks[cur_task][
-                        "finished"
-                    ] = f"Ambigous lesson plan dates for date {date}"
-                    cur_task += 1
-                    print(json.dumps(tasks))
-                    # output[date][class_name] = None
-                    continue
+                    # Should never happen
+                    assert False, f"Ambigous lesson plan dates for date {date}"
                 if len(chosen) == 0:
-                    tasks[cur_task]["finished"] = f"No lesson plans for {date}"
-                    cur_task += 1
+                    # output[day_key][class_name] = None
+                    # output[day_key][class_name] = f"No lesson plans for {date}"
+                    if tasks[cur_task]["finished"] is None:
+                        tasks[cur_task]["finished"] = True
+                    else:
+                        tasks[cur_task]["finished"][0] += 1
                     print(json.dumps(tasks))
-                    # output[date][class_name] = None
                     continue
                 if chosen[0] is not None:
                     browser.go(to=chosen[0])
