@@ -1,5 +1,6 @@
 <script lang="ts">
 	import DateInput from '$lib/DateInput.svelte';
+	import HomeButton from '$lib/HomeButton.svelte';
 
 	let dateType: 'latest' | 'custom' = 'latest';
 	let dateList: string[] = [];
@@ -10,9 +11,10 @@
 	}
 </script>
 
-<main class="ml-3">
+<main class="ml-3 mt-2">
+	<HomeButton />
 	<!-- XXX: should we center all of this? -->
-	<div class="mt-2 mx-auto w-3/4">
+	<div class="mx-auto w-3/4">
 		<h1 class="text-center text-4xl font-bold my-3">Scrape lesson plans</h1>
 		<p class="leading-relaxed text-xl">
 			This tool was literally build to scrape learn@vcs lesson plans for their assignments. Now,

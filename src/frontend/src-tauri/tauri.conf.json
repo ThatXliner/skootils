@@ -16,9 +16,14 @@
 			"shell": {
 				"scope": [
 					{
-						"name": "scrape",
+						"name": "learnatvcs",
 						"cmd": "../../learnatvcs/.venv/bin/python",
 						"args": ["-um", "learnatvcs", { "validator": "(null|\\[.*?\\])" }]
+					},
+					{
+						"name": "powerschool",
+						"cmd": "../../powerschool/.venv/bin/python",
+						"args": ["-um", "powerschool"]
 					}
 				]
 			}

@@ -11,14 +11,16 @@
 
 	onMount(() => {
 		window.sessionStorage.removeItem('output'); // Don't use old data when failed
-		command = new Command('scrape', [
+		command = new Command('learnatvcs', [
 			'-um',
 			'learnatvcs',
 			window.sessionStorage.getItem('config') ?? 'null'
 		]);
 		command.on('close', (data) => {
 			console.log(`command finished with code ${data.code} and signal ${data.signal}`);
-			window.location.assign('/learnatvcs/results');
+			if (window.sessionStorage.getItem('output') !== null) {
+				window.location.assign('/learnatvcs/results');
+			}
 		});
 		command.on('error', (error) => console.error(`command error: "${error}"`));
 		command.stdout.on('data', (line) => {
@@ -32,7 +34,11 @@
 		});
 		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
 		child = command.spawn();
-		// return () => {child.kill}
+		return () => {
+			(async function () {
+				await (await child).kill();
+			})();
+		};
 	});
 </script>
 

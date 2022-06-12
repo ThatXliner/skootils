@@ -19,9 +19,9 @@ homepage = "https://github.com/ThatXliner/powerschool"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-data49 = { path = "../../../data49", develop = true }
 pandas = "^1.4.0"
 sympy = "^1.10.1"
+data49 = "^0.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

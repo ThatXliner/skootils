@@ -1,5 +1,5 @@
 """A browser-automation-based API for PowerSchool"""
-from data49.web import Browser, expected_conditions, By
+from data49.web import Browser, expected_conditions, By, get_browser
 from typing import Dict, TYPE_CHECKING, Optional
 import urllib.parse as urlparse
 from collections import defaultdict
@@ -14,13 +14,6 @@ from dataclasses import dataclass
 import datetime
 
 __version__ = "0.1.0"
-
-
-@dataclass
-class Auth:
-    url: str
-    username: str
-    password: str
 
 
 def calculate_weight(info_1, info_2, weight) -> dict:
@@ -71,10 +64,6 @@ class PowerSchool:
         # c = map(lambda x:,self.full_info_scrape(current_offset)[for_period]['scores'])
         # return calc_grade() >= tank_standard
 
-    @classmethod
-    def from_auth(cls, auth: Auth):
-        return cls(auth.url, auth.username, auth.password)
-
     @property
     def info(self):
         if self._info is None:
@@ -119,6 +108,7 @@ class PowerSchool:
                 current_quarter = row.select(f"td:nth-last-child({offset})")[0]
 
                 current_grade = current_quarter.a
+                assignments = []
                 if current_grade:
                     try:
                         current_grade_name = current_grade.contents[0]
@@ -136,15 +126,17 @@ class PowerSchool:
                             (By.ID, "scoreTable")
                         )
                     )
-                    assignments = []
                     for score_row in scores.soup().tbody("tr")[1:-1]:
                         assignment_info = score_row("td")
+                        date = datetime.datetime.strptime(
+                            assignment_info[0].get_text(), "%m/%d/%Y"
+                        )
                         # try:
                         assignments.append(
                             {
-                                "due_date": datetime.datetime.strptime(
-                                    assignment_info[0].get_text(), "%m/%d/%Y"
-                                ),
+                                "due_date": datetime.date(
+                                    date.year, date.month, date.day
+                                ).isoformat(),
                                 "type": assignment_info[1].get_text().strip(),
                                 # types:
                                 # - Classwork
