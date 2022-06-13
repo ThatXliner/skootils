@@ -8,7 +8,7 @@
 	let command;
 	let child: Promise<Child>;
 	let hasCredentials: boolean | null = null;
-	// let tasks: { cur: number; finished: boolean | null; total: number; name: string }[] = [];
+	let progress: [number, number];
 	// TODO: Be able to choose the quarters
 	// TODO: Progress indicators
 	onMount(() => {
@@ -25,6 +25,8 @@
 			let input = JSON.parse(line);
 			if (typeof input === 'boolean') {
 				hasCredentials = input;
+			} else if (Array.isArray(input)) {
+				progress = input;
 			} else {
 				window.sessionStorage.setItem('output', line);
 			}
@@ -32,6 +34,7 @@
 		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
 		child = command.spawn();
 		return () => {
+			// XXX: What about onDestroy?
 			(async function () {
 				await (await child).kill();
 			})();
@@ -59,31 +62,41 @@
 					}}
 				/>
 			{:else if hasCredentials === true}
-				<svg
-					class="h-1/2 w-1/2 inline fill-warning"
-					enable-background="new 0 0 50 50"
-					version="1.1"
-					viewBox="0 0 50 50"
-					xml:space="preserve"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						d="m43.935 25.145c0-10.318-8.364-18.683-18.683-18.683-10.318 0-18.683 8.365-18.683 18.683h4.068c0-8.071 6.543-14.615 14.615-14.615s14.615 6.543 14.615 14.615h4.068z"
+				{#if progress === undefined}
+					<svg
+						class="h-1/5 w-1/5 inline fill-warning"
+						enable-background="new 0 0 50 50"
+						version="1.1"
+						viewBox="0 0 50 50"
+						xml:space="preserve"
+						xmlns="http://www.w3.org/2000/svg"
 					>
-						<animateTransform
-							attributeName="transform"
-							attributeType="xml"
-							dur="0.6s"
-							from="0 25 25"
-							repeatCount="indefinite"
-							to="360 25 25"
-							type="rotate"
-						/>
-					</path>
-				</svg> (Progress indicators coming soon!)
+						<path
+							d="m43.935 25.145c0-10.318-8.364-18.683-18.683-18.683-10.318 0-18.683 8.365-18.683 18.683h4.068c0-8.071 6.543-14.615 14.615-14.615s14.615 6.543 14.615 14.615h4.068z"
+						>
+							<animateTransform
+								attributeName="transform"
+								attributeType="xml"
+								dur="0.6s"
+								from="0 25 25"
+								repeatCount="indefinite"
+								to="360 25 25"
+								type="rotate"
+							/>
+						</path>
+					</svg>
+					<h1 class="text-2xl">Logging in</h1>
+				{:else}
+					<progress
+						class="progress progress-primary w-full"
+						value={progress[0]}
+						max={progress[1]}
+					/>
+					<h1 class="text-2xl">Scraping...</h1>
+				{/if}
 			{:else}
 				<svg
-					class="h-1/2 w-1/2 inline"
+					class="h-1/3 w-1/3 inline"
 					enable-background="new 0 0 50 50"
 					version="1.1"
 					viewBox="0 0 50 50"

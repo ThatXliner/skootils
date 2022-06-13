@@ -119,6 +119,7 @@ class PowerSchool:
             soup = driver.query_selector("#quickLookup").soup()
 
             output: OutputType = {}
+
             for quarter in quarters or [None]:
                 output[quarter] = {}
                 _output = output[quarter]
@@ -132,7 +133,11 @@ class PowerSchool:
                 #   .then(data => console.log(data));
                 # Row of class info
                 NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
-                for row in soup.table.select("[id^='ccid_']"):  # TODO: Parallelize
+                classes = soup.table.select("[id^='ccid_']")
+                progress = [0, len(classes)]
+                for row in classes:
+                    progress[0] += 1
+                    print(progress)
                     period = row.td.string
                     misc = row.find("td", align="left")
                     class_name = misc.contents[0].strip()
