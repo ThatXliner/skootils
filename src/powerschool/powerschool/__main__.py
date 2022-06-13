@@ -1,8 +1,10 @@
-from powerschool import PowerSchool
 import json
+import sys
+
+from powerschool import PowerSchool
 
 
-def main():
+def main() -> None:
     HAS_CREDENTIALS = False
     print(json.dumps(HAS_CREDENTIALS))
     auth = json.loads(input())
@@ -10,7 +12,7 @@ def main():
     site = PowerSchool(
         "https://powerschool.vcs.net/public", auth["username"], auth["password"]
     )
-    print(json.dumps(site.full_info_scrape()))
+    print(json.dumps(site.get(json.loads(sys.argv[1]))))
 
 
 if __name__ == "__main__":

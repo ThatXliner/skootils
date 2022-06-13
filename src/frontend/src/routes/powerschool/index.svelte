@@ -10,9 +10,10 @@
 	let hasCredentials: boolean | null = null;
 	// let tasks: { cur: number; finished: boolean | null; total: number; name: string }[] = [];
 	// TODO: Be able to choose the quarters
+	// TODO: Progress indicators
 	onMount(() => {
 		window.sessionStorage.removeItem('output');
-		command = new Command('powerschool');
+		command = new Command('powerschool', ['-um', 'powerschool', 'null']);
 		command.on('close', (data) => {
 			console.log(`command finished with code ${data.code} and signal ${data.signal}`);
 			if (window.sessionStorage.getItem('output') !== null) {
