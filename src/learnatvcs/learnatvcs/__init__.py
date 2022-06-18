@@ -2,6 +2,8 @@
 import json
 import re
 from typing import NamedTuple, Optional
+from pathlib import Path
+
 
 from attrs import define
 from data49 import web
@@ -144,9 +146,7 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
         "https://learn.vcs.net/",
         driver=web.get_browser(
             headless=HEADLESS,
-            arguments=(
-                "user-data-dir=/Users/bryanhu/projects/skootils/src/learnatvcs/selenium",
-            ),
+            arguments=(f"user-data-dir={Path(__file__).parent.parent / 'selenium'}",),
         ),
     ) as browser:
         tasks[0]["finished"] = None
