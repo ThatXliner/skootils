@@ -1,5 +1,7 @@
+<!-- @hmr:keep-all -->
 <script lang="ts">
 	import AccountInput from '$lib/AccountInput.svelte';
+	import QuarterInput from '$lib/QuarterInput.svelte';
 	import HomeButton from '$lib/HomeButton.svelte';
 
 	import { Command, type Child } from '@tauri-apps/api/shell';
@@ -10,8 +12,7 @@
 	let hasCredentials: boolean | null = null;
 	let progress: { [key: string]: [number, number] };
 	let quarterChoices: string[];
-	// let _selectedQuarter: string;
-	// TODO: Be able to choose the quarters
+
 	onMount(() => {
 		window.sessionStorage.removeItem('output');
 		command = new Command('powerschool');
@@ -23,7 +24,6 @@
 		});
 		command.on('error', (error) => console.error(`command error: "${error}"`));
 		command.stdout.on('data', (line) => {
-			console.log(line);
 			let input = JSON.parse(line);
 			if (typeof input === 'boolean') {
 				hasCredentials = input;
@@ -91,28 +91,16 @@
 					</svg>
 					<h1 class="text-2xl">Logging in</h1>
 				{:else if progress === undefined && quarterChoices !== undefined}
-					<!-- <div class="form-control w-full max-w-xs">
-						<label class="label">
-							<span class="label-text">Pick the quarter to download</span>
-							<select bind:value={_selectedQuarter} class="select select-bordered">
-								<option selected value="null">Latest</option>
-								{#each quarterChoices as quarter}
-									<option>{quarter}</option>
-								{/each}
-							</select>
-						</label>
-					</div> -->
-					<p>Choose your quarter (TODO)</p>
-					<button
-						class="btn btn-primary"
-						on:click={() => {
-							// Only null or an array of strings
-							child.write(JSON.stringify(null) + '\n');
-							// child.write(JSON.stringify(quarterChoices[quarterChoices.length - 1]) + '\n');
-						}}>Bruh ok go</button
-					>
-				{:else if progress !== undefined}
 					<div>
+						<QuarterInput
+							{quarterChoices}
+							on:submit={({ detail }) => {
+								child.write(JSON.stringify(detail) + '\n');
+							}}
+						/>
+					</div>
+				{:else if progress !== undefined}
+					<div class="w-full">
 						<h1 class="text-2xl">Scraping...</h1>
 						<ul class="text-xl m-3">
 							{#each Object.entries(progress) as quarter_progress (quarter_progress[0])}
@@ -172,7 +160,7 @@
 										</svg>
 										{name}
 										<progress
-											class="progress progress-primary w-full"
+											class="progress progress-primary inline"
 											value={finished[0]}
 											max={finished[1]}
 										/>

@@ -108,6 +108,4 @@
 			{/each}
 		</div>
 	</div>
-
-	<!-- <div class="block ml-3 mt-2 w-full">TODO</div> -->
 {/if}
