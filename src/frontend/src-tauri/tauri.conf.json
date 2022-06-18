@@ -23,7 +23,7 @@
 					{
 						"name": "powerschool",
 						"cmd": "../../powerschool/.venv/bin/python",
-						"args": ["-um", "powerschool", { "validator": "(null|\\[.*?\\])" }]
+						"args": ["-um", "powerschool"]
 					}
 				]
 			}
