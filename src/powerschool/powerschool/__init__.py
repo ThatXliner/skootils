@@ -160,8 +160,6 @@ class PowerSchool:
             real_prog["content"][current_quarter_name] = [0, len(classes)]
             progress = real_prog["content"][current_quarter_name]
             for row in classes:
-                progress[0] += 1
-                print(json.dumps(real_prog))
                 period = row.td.string
                 misc = row.find("td", align="left")
                 class_name = misc.contents[0].strip()
@@ -194,7 +192,8 @@ class PowerSchool:
                     scores = self.driver.wait(
                         expected_conditions.visibility_of_element_located(
                             (By.ID, "scoreTable")
-                        )
+                        ),
+                        up_to=42.069,
                     )
                     for score_row in scores.soup().tbody("tr")[1:-1]:
                         assignments.append(self._convert_asignment_row(score_row))
@@ -213,6 +212,8 @@ class PowerSchool:
                         "scores": assignments,
                     },
                 }
+                progress[0] += 1
+                print(json.dumps(real_prog))
         return output
 
     def teachers(self):

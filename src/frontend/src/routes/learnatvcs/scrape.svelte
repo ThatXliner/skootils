@@ -35,6 +35,7 @@
 		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
 		child = command.spawn();
 		return () => {
+			// XXX: What about onDestroy?
 			(async function () {
 				await (await child).kill();
 			})();
