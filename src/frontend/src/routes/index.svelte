@@ -8,34 +8,55 @@
 		<div class="hero h-[100%]">
 			<div class="hero-content flex-col">
 				<h1 class="text-5xl">Skootils</h1>
-				<p>For the inevitable future... <a href="#what-is-this" class="link">Learn more</a></p>
-				<!-- TODO: Split from learn@vcs scraper and powerschool utils -->
+				<p>Many utilities...</p>
 				<div class="flex flex-row justify-center space-x-3 w-screen">
 					<!-- <div class="tooltip tooltip-bottom tooltip-primary" data-tip="hello"> -->
 					<a class="btn btn-primary" href="/learnatvcs">Scrape learn@vcs</a>
 					<!-- </div> -->
-					<!-- <div class="tooltip tooltip-bottom tooltip-primary" data-tip="hello"> -->
+
 					<a class="btn btn-primary" href="/powerschool">PowerSchool++</a>
-					<!-- </div> -->
+
+					<a class="btn btn-primary" href="/email">Mail-tilities</a>
 				</div>
 			</div>
 		</div>
 	</section>
-	<section class="h-screen bg-cyan-300" id="what-is-this">
+
+	<section class="h-screen bg-cyan-300" id="learnatvcs">
 		<div class="hero h-[100%]">
 			<div class="hero-content flex-row">
-				<img src={exampleSrc} alt="Filler" class="mx-2 rounded-lg shadow-2xl max-w-[50%]" />
+				<img src={exampleSrc} alt="Example" class="mx-3 rounded-lg shadow-2xl max-w-[50%]" />
 				<div>
-					<h1 class="text-5xl">What is this?</h1>
+					<h1 class="text-4xl">learn@vcs scraper</h1>
 					<p class="py-6">
 						Teachers, sooner or later they say, <b
 							>will stop providing calendar events of their assignments' due dates</b
-						>.<br />
+						>
+						(see left).<br />
 						As a person who uses said calendar, this means I needed to make that calendar myself. But
 						as a programmer, I didn't want to do this manually. Instead, I wanted to automate this process.
 					</p>
 					<a href="/learnatvcs" class="m-auto btn btn-primary">Get Started</a>
 				</div>
+			</div>
+		</div>
+	</section>
+	<section class="h-screen bg-green-300" id="powerschool">
+		<div class="hero h-[100%]">
+			<div class="hero-content flex-row">
+				<div>
+					<h1 class="text-4xl">PowerSchool++</h1>
+					<p class="py-6">
+						Better grade viewing experience. Track your history and experiment with future
+						assignments.
+					</p>
+					<a href="/powerschool" class="m-auto btn btn-primary">Get Started</a>
+				</div>
+				<img
+					src="https://api.lorem.space/image/movie?w=260&h=400"
+					class="max-w-sm rounded-lg shadow-2xl"
+					alt="Filler"
+				/>
 			</div>
 		</div>
 	</section>
