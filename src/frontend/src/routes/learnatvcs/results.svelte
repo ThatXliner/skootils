@@ -26,7 +26,7 @@
 	<div class="border-b-2">
 		<div class="navbar">
 			<div class="navbar-start">
-				<span class="pl-4 font-semibold text-xl">Results</span>
+				<HomeButton />
 			</div>
 			<div class="navbar-center">
 				{#if DATETYPE === null}
@@ -59,7 +59,7 @@
 				{/if}
 			</div>
 			<div class="navbar-end">
-				<HomeButton />
+				<span class="pl-4 font-semibold text-xl">Results</span>
 			</div>
 		</div>
 	</div>

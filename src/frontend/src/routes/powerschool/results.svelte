@@ -75,22 +75,29 @@
 		</div>
 	</div>
 	<div class="py-2 bg-base-200">
-		<div class="flex flex-wrap justify-evenly ">
+		<div class="flex flex-wrap justify-evenly">
 			{#each Object.entries(data[currentQuarter]) as className}
 				{@const classInfo = className[1]}
 				{@const grade = classInfo['quarter_info']['overall_grade']}
 				{#if grade['name'] != 'N/A'}
-					<div class="stats shadow m-2 w-48">
+					{@const gradeNum = +grade['percent']}
+					<div
+						class="stats shadow m-2 w-48"
+						class:bg-green-400={gradeNum >= 98}
+						class:bg-green-300={98 > gradeNum && gradeNum >= 90}
+						class:bg-yellow-400={90 > gradeNum && gradeNum >= 70}
+						class:bg-red-400={70 > gradeNum}
+					>
 						<div class="stat">
 							<div class="stat-title">{classInfo['class_name']}</div>
 							<div class="stat-value">
 								<label class="swap">
 									<input type="checkbox" />
 									<div class="swap-on">
-										{grade['percent']}% <span class="text-sm text-gray-400">{grade['name']}</span>
+										{grade['percent']}% <span class="text-sm text-gray-500">{grade['name']}</span>
 									</div>
 									<div class="swap-off">
-										{grade['name']} <span class="text-sm text-gray-400">{grade['percent']}%</span>
+										{grade['name']} <span class="text-sm text-gray-500">{grade['percent']}%</span>
 									</div>
 								</label>
 							</div>

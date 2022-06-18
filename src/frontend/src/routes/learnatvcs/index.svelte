@@ -15,7 +15,7 @@
 	<HomeButton />
 	<!-- XXX: should we center all of this? -->
 	<div class="mx-auto w-3/4">
-		<h1 class="text-center text-4xl font-bold my-3">Scrape lesson plans</h1>
+		<h1 class="text-center text-4xl font-bold">Scrape lesson plans</h1>
 		<p class="leading-relaxed text-xl">
 			This tool was literally build to scrape learn@vcs lesson plans for their assignments. Now,
 			choose the <b> date(s) of the lesson plan(s)</b> you want to download and extract dates from.

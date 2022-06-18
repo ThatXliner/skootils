@@ -90,7 +90,7 @@
 			{#each selectedDates as date, i}
 				<!-- TODO: argh where do we put the trash can icon -->
 				<li
-					class="my-1 btn btn-accent"
+					class="my-1 btn btn-accent gap-1"
 					on:click={() => {
 						selectedDates = selectedDates.slice(0, i).concat(selectedDates.slice(i + 1));
 					}}
@@ -107,7 +107,7 @@
 							clip-rule="evenodd"
 						/>
 					</svg>
-					<span class="mx-1">{date}</span>
+					<span>{date}</span>
 				</li>
 			{/each}
 		</ul>
