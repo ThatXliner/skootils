@@ -21,6 +21,7 @@ homepage = "https://github.com/ThatXliner/learnatvcs"
 python = "^3.9"
 data49 = { path = "../../../data49", develop = true }
 summarize = { path = "../summarize", develop = true }
+interprog = { path = "../interprog-py", develop = true }
 attrs = "^21.4.0"
 beautifulsoup4 = "^4.11.1"
 platformdirs = "^2.5.2"
