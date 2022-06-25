@@ -106,7 +106,7 @@
 							{#each Object.entries(progress) as quarter_progress (quarter_progress[0])}
 								{@const finished = quarter_progress[1]}
 								{@const name = quarter_progress[0]}
-								<li>
+								<li class="w-full">
 									{#if finished[1] === -1}
 										<svg
 											xmlns="http://www.w3.org/2000/svg"
@@ -160,7 +160,7 @@
 										</svg>
 										{name}
 										<progress
-											class="progress progress-primary inline"
+											class="progress progress-primary w-full"
 											value={finished[0]}
 											max={finished[1]}
 										/>
