@@ -3,7 +3,6 @@
 	import { onMount } from 'svelte';
 
 	import DOMPurify from 'dompurify'; // I did this because you never know
-	import { element, xlink_attr } from 'svelte/internal';
 
 	let output: { [key: string]: { [key: string]: string } } | null = null;
 	let dates: string[];
