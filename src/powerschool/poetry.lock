@@ -642,14 +642,6 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
-name = "refactor"
-version = "0.4.1"
-description = "AST-based fragmental source code refactoring toolkit"
-category = "dev"
-optional = false
-python-versions = ">=3.9"
-
-[[package]]
 name = "requests"
 version = "2.28.0"
 description = "Python HTTP for Humans."
@@ -708,20 +700,19 @@ urllib3 = "*"
 
 [[package]]
 name = "shed"
-version = "0.5.3"
+version = "0.10.1"
 description = "`shed` canonicalises Python code."
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 autoflake = ">=1.4"
-black = ">=21.7b0"
+black = ">=22.3.0"
 com2ann = {version = ">=0.3.0", markers = "python_version >= \"3.8\""}
-isort = ">=5.9.3"
-libcst = ">=0.3.20"
-pyupgrade = ">=2.24.0"
-teyit = {version = ">=0.3.2", markers = "python_version >= \"3.9\""}
+isort = ">=5.10.1"
+libcst = ">=0.4.0"
+pyupgrade = ">=2.32.0"
 
 [[package]]
 name = "six"
@@ -757,17 +748,6 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 mpmath = ">=0.19"
-
-[[package]]
-name = "teyit"
-version = "0.4.1"
-description = "Unittest assertion formatter"
-category = "dev"
-optional = false
-python-versions = ">=3.9"
-
-[package.dependencies]
-refactor = "0.4.1"
 
 [[package]]
 name = "thefuzz"
@@ -871,7 +851,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "9aa165f2a828b1c581721ca063bafc918f2d0f723a1b60c4e5ef35c5822da583"
+content-hash = "a32adb2b862309e3d3da16adb7ecb271cccce407ba6b1c3cf4d426799a27570e"
 
 [metadata.files]
 astroid = [
@@ -1359,10 +1339,6 @@ pyyaml = [
     {file = "PyYAML-6.0-cp39-cp39-win_amd64.whl", hash = "sha256:b3d267842bf12586ba6c734f89d1f5b871df0273157918b0ccefa29deb05c21c"},
     {file = "PyYAML-6.0.tar.gz", hash = "sha256:68fb519c14306fec9720a2a5b45bc9f0c8d1b9c72adf45c37baedfcd949c35a2"},
 ]
-refactor = [
-    {file = "refactor-0.4.1-py3-none-any.whl", hash = "sha256:5d27a81a6441e8f3eaf0d9ff508d7fc1dd96d00631f154e030a598f982835630"},
-    {file = "refactor-0.4.1.tar.gz", hash = "sha256:23627d7862fb392c9fb47d64f60cb611d3eb2708eb9e858e076e8cf8026e38ef"},
-]
 requests = [
     {file = "requests-2.28.0-py3-none-any.whl", hash = "sha256:bc7861137fbce630f17b03d3ad02ad0bf978c844f3536d0edda6499dafce2b6f"},
     {file = "requests-2.28.0.tar.gz", hash = "sha256:d568723a7ebd25875d8d1eaf5dfa068cd2fc8194b2e483d7b1f7c81918dbec6b"},
@@ -1380,8 +1356,8 @@ selenium = [
     {file = "selenium-3.141.0.tar.gz", hash = "sha256:deaf32b60ad91a4611b98d8002757f29e6f2c2d5fcaf202e1c9ad06d6772300d"},
 ]
 shed = [
-    {file = "shed-0.5.3-py3-none-any.whl", hash = "sha256:a42312d8aac4b45202c10eb2f5ca7f93b600013009fdb9bff286bb090cc28fd4"},
-    {file = "shed-0.5.3.tar.gz", hash = "sha256:b544c74c7c3241392b8640820a46da4ae78328ed4da45a4134ac1cb838320ec9"},
+    {file = "shed-0.10.1-py3-none-any.whl", hash = "sha256:510d23c491265eebfc83458988ca796a78542750de3a118e1974b29822563d76"},
+    {file = "shed-0.10.1.tar.gz", hash = "sha256:7d06485742e9659d6e5ad6f5ecb44d9d6ddf441040adb422197c3d89b1da572a"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
@@ -1398,10 +1374,6 @@ soupsieve = [
 sympy = [
     {file = "sympy-1.10.1-py3-none-any.whl", hash = "sha256:df75d738930f6fe9ebe7034e59d56698f29e85f443f743e51e47df0caccc2130"},
     {file = "sympy-1.10.1.tar.gz", hash = "sha256:5939eeffdf9e152172601463626c022a2c27e75cf6278de8d401d50c9d58787b"},
-]
-teyit = [
-    {file = "teyit-0.4.1-py3-none-any.whl", hash = "sha256:ce04df4071188d6a7a7dbc0291aa2d2c1657a81acd3e32460fb446ce7afea6ef"},
-    {file = "teyit-0.4.1.tar.gz", hash = "sha256:b676dd4dfffc0d3cf492eaaa5ada4d47cebf886cfc460836d0c9c9089d1b7d0b"},
 ]
 thefuzz = [
     {file = "thefuzz-0.19.0-py2.py3-none-any.whl", hash = "sha256:4fcdde8e40f5ca5e8106bc7665181f9598a9c8b18b0a4d38c41a095ba6788972"},
