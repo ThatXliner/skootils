@@ -9,8 +9,16 @@ updates:
     directory: "/src/powerschool"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/src/interprog-py"
+    schedule:
+      interval: "weekly"
   - package-ecosystem: "npm"
     directory: "/src/frontend"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/src/interprog-svelte"
     schedule:
       interval: "weekly"
   - package-ecosystem: "cargo"
