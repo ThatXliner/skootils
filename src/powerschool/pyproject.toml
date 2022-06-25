@@ -26,7 +26,7 @@ keyring = "^23.6.0"
 platformdirs = "^2.5.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.1"
 black = "*"
 mypy = "*"
 isort = "*"
