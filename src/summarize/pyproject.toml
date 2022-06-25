@@ -20,7 +20,7 @@ homepage = "https://github.com/ThatXliner/summarize"
 [tool.poetry.dependencies]
 python = "^3.7"
 sumy = "^0.10.0"
-transformers = "^4.19.2"
+transformers = "^4.20.1"
 torch = "^1.11.0"
 beautifulsoup4 = "^4.11.1"
 
