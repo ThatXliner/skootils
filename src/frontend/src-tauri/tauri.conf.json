@@ -7,7 +7,7 @@
 		"distDir": "../build"
 	},
 	"package": {
-		"productName": "frontend",
+		"productName": "Skootils",
 		"version": "0.1.0"
 	},
 	"tauri": {
@@ -24,6 +24,16 @@
 						"name": "powerschool",
 						"cmd": "../../powerschool/.venv/bin/python",
 						"args": ["-um", "powerschool"]
+					},
+					{
+						"name": "powerschool-history",
+						"cmd": "../../powerschool/.venv/bin/python",
+						"args": [
+							"-um",
+							"powerschool.storage",
+							{ "validator": "all|class" },
+							{ "validator": "w+" }
+						]
 					}
 				]
 			}
