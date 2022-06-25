@@ -607,14 +607,6 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
-name = "refactor"
-version = "0.4.1"
-description = "AST-based fragmental source code refactoring toolkit"
-category = "dev"
-optional = false
-python-versions = ">=3.9"
-
-[[package]]
 name = "regex"
 version = "2022.4.24"
 description = "Alternative regular expression module, to replace re."
@@ -658,7 +650,7 @@ jupyter = ["ipywidgets (>=7.5.1,<8.0.0)"]
 
 [[package]]
 name = "shed"
-version = "0.9.5"
+version = "0.10.1"
 description = "`shed` canonicalises Python code."
 category = "dev"
 optional = false
@@ -671,7 +663,6 @@ com2ann = {version = ">=0.3.0", markers = "python_version >= \"3.8\""}
 isort = ">=5.10.1"
 libcst = ">=0.4.0"
 pyupgrade = ">=2.32.0"
-teyit = {version = ">=0.4.1", markers = "python_version >= \"3.9\""}
 
 [[package]]
 name = "sortedcontainers"
@@ -712,17 +703,6 @@ japanese = ["tinysegmenter"]
 korean = ["konlpy"]
 lsa = ["numpy"]
 lexrank = ["numpy"]
-
-[[package]]
-name = "teyit"
-version = "0.4.1"
-description = "Unittest assertion formatter"
-category = "dev"
-optional = false
-python-versions = ">=3.9"
-
-[package.dependencies]
-refactor = "0.4.1"
 
 [[package]]
 name = "tokenize-rt"
@@ -913,7 +893,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "33d7038a4b40c6ab230aae4ca4900f7c3bc4455550355a041adf0f4f167bc648"
+content-hash = "1981bbe6970b42187d500766707f92c8d65501b9b4064d34dbdb2d6431ba7f27"
 
 [metadata.files]
 astroid = [
@@ -1361,10 +1341,6 @@ pyyaml = [
     {file = "PyYAML-6.0-cp39-cp39-win_amd64.whl", hash = "sha256:b3d267842bf12586ba6c734f89d1f5b871df0273157918b0ccefa29deb05c21c"},
     {file = "PyYAML-6.0.tar.gz", hash = "sha256:68fb519c14306fec9720a2a5b45bc9f0c8d1b9c72adf45c37baedfcd949c35a2"},
 ]
-refactor = [
-    {file = "refactor-0.4.1-py3-none-any.whl", hash = "sha256:5d27a81a6441e8f3eaf0d9ff508d7fc1dd96d00631f154e030a598f982835630"},
-    {file = "refactor-0.4.1.tar.gz", hash = "sha256:23627d7862fb392c9fb47d64f60cb611d3eb2708eb9e858e076e8cf8026e38ef"},
-]
 regex = [
     {file = "regex-2022.4.24-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f86aef546add4ff1202e1f31e9bb54f9268f17d996b2428877283146bf9bc013"},
     {file = "regex-2022.4.24-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:e944268445b5694f5d41292c9228f0ca46d5a32a67f195d5f8547c1f1d91f4bc"},
@@ -1450,8 +1426,8 @@ rich = [
     {file = "rich-12.3.0.tar.gz", hash = "sha256:7e8700cda776337036a712ff0495b04052fb5f957c7dfb8df997f88350044b64"},
 ]
 shed = [
-    {file = "shed-0.9.5-py3-none-any.whl", hash = "sha256:af8e146a8ef9605be1408302f539db88b5b641d619dd64c194dfa891bdb69bfa"},
-    {file = "shed-0.9.5.tar.gz", hash = "sha256:03f39cea77c442e88384386d470aca79c3ed421af1c83113724dec9ec253116b"},
+    {file = "shed-0.10.1-py3-none-any.whl", hash = "sha256:510d23c491265eebfc83458988ca796a78542750de3a118e1974b29822563d76"},
+    {file = "shed-0.10.1.tar.gz", hash = "sha256:7d06485742e9659d6e5ad6f5ecb44d9d6ddf441040adb422197c3d89b1da572a"},
 ]
 sortedcontainers = [
     {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
@@ -1464,10 +1440,6 @@ soupsieve = [
 sumy = [
     {file = "sumy-0.10.0-py2.py3-none-any.whl", hash = "sha256:175838405044e493035920dd360a2e31a2236ddd014fc6376073a2c550973b03"},
     {file = "sumy-0.10.0.tar.gz", hash = "sha256:77571eb1167fdde4e42bd6aa2b05d961e6667c3a1f87c117720cdc9886ab3971"},
-]
-teyit = [
-    {file = "teyit-0.4.1-py3-none-any.whl", hash = "sha256:ce04df4071188d6a7a7dbc0291aa2d2c1657a81acd3e32460fb446ce7afea6ef"},
-    {file = "teyit-0.4.1.tar.gz", hash = "sha256:b676dd4dfffc0d3cf492eaaa5ada4d47cebf886cfc460836d0c9c9089d1b7d0b"},
 ]
 tokenize-rt = [
     {file = "tokenize_rt-4.2.1-py2.py3-none-any.whl", hash = "sha256:08a27fa032a81cf45e8858d0ac706004fcd523e8463415ddf1442be38e204ea8"},
