@@ -19,7 +19,7 @@ homepage = "https://github.com/ThatXliner/powerschool"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pandas = "^1.4.0"
+pandas = "^1.4.3"
 sympy = "^1.10.1"
 data49 = "^0.4.1"
 keyring = "^23.6.0"
