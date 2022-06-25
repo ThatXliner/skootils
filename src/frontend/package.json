@@ -18,7 +18,7 @@
 		"@sveltejs/kit": "next",
 		"@tailwindcss/typography": "^0.5.2",
 		"@tauri-apps/api": "1.0.1",
-		"@tauri-apps/cli": "1.0.0-rc.13",
+		"@tauri-apps/cli": "1.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.28.0",
 		"@typescript-eslint/parser": "^5.28.0",
 		"autoprefixer": "^10.4.7",
