@@ -32,7 +32,11 @@ class TaskManager:
     task_counter: int = 0
 
     def _output(self) -> None:
+        # TODO: A buffer that flushes at an interval
         print(json.dumps(self.tasks))
+
+    def _current_task(self) -> TaskType:
+        return self.tasks[self.task_counter]
 
     def add_task(self, name: str, total: Optional[int] = None) -> None:
         """Enqueue a task"""
@@ -43,25 +47,30 @@ class TaskManager:
 
     def start(self) -> None:
         """Start the next task"""
-        task = self.tasks[self.task_counter]
+        task = self._current_task()
         if task["name"] in self._totals:
-            self.tasks[self.task_counter]["progress"] = [0, self._totals[task["name"]]]
+            task["progress"] = [0, self._totals[task["name"]]]
         else:
-            self.tasks[self.task_counter]["progress"] = None
+            task["progress"] = None
         self._output()
 
-    def increment(self) -> None:
+    def increment(self, by: int = 1, silent: bool = True) -> None:
         """Increment a bar task"""
-        task = self.tasks[self.task_counter]
-        assert isinstance(task["progress"], list)
+        task = self._current_task()
+        if not isinstance(task["progress"], list):
+            if silent:
+                # Or do self.finish?
+                return
+            raise TypeError("Task is a spinner")
+
         if task["progress"][0] >= task["progress"][1]:
             raise ValueError("Maxed out")
-        task["progress"][0] += 1
+        task["progress"][0] += by
         self._output()
 
     def finish(self) -> None:
         """Mark a task as finished"""
-        task = self.tasks[self.task_counter]
+        task = self._current_task()
         task["progress"] = True
         if task["name"] in self._totals:
             del self._totals[task["name"]]
@@ -70,7 +79,7 @@ class TaskManager:
 
     def error(self, message: str) -> None:
         """Mark a task as errored with a reason"""
-        task = self.tasks[self.task_counter]
+        task = self._current_task()
         task["progress"] = message
         if task["name"] in self._totals:
             del self._totals[task["name"]]
