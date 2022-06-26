@@ -10,7 +10,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
-    directory: "/src/interprog-py"
+    directory: "/src/interprog"
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
