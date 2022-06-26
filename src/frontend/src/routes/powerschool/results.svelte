@@ -1,8 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import HomeButton from '$lib/HomeButton.svelte';
-	import { Chart, registerables } from 'chart.js';
-	Chart.register(...registerables);
+	import {
+		Chart,
+		LineController,
+		CategoryScale,
+		LinearScale,
+		PointElement,
+		LineElement
+	} from 'chart.js';
+	Chart.register(LineController, CategoryScale, LinearScale, PointElement, LineElement);
 	let quarters: string[];
 	let currentQuarter: string;
 	let data: {

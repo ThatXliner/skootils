@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 from data49.web import Browser, BrowserContext, By, expected_conditions
 from sympy import Symbol
 from sympy.solvers.solveset import linsolve
+import interprog
 
 __version__ = "0.1.0"
 
@@ -133,12 +134,11 @@ class PowerSchool:
     def get(self, quarters: Optional[List[str]] = None) -> OutputType:
         soup = self.home_table
         output: OutputType = {}
-        real_prog = {
-            "type": "progress",
-            "content": {q: [0, -1] for q in (quarters or [])},
-        }
+        reporter = interprog.TaskManager()
+        for quarter in quarters or ["Latest"]:
+            reporter.add_task(quarter, total=-1)
         for quarter in quarters or [None]:
-
+            reporter.start()
             offset = -3  # Because the rightmost contains "Absences" and "Tardies"
             heads = soup.table.tbody.tr.select(f"th")
             if quarter is not None:
@@ -157,8 +157,7 @@ class PowerSchool:
             NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
             classes = soup.table.select("[id^='ccid_']")
             # TODO: Only classes that have grades for this quarter
-            real_prog["content"][current_quarter_name] = [0, len(classes)]
-            progress = real_prog["content"][current_quarter_name]
+            reporter.set_total(len(classes))
             for row in classes:
                 period = row.td.string
                 misc = row.find("td", align="left")
@@ -212,8 +211,8 @@ class PowerSchool:
                         "scores": assignments,
                     },
                 }
-                progress[0] += 1
-                print(json.dumps(real_prog))
+                reporter.increment()
+            reporter.finish()
         return output
 
     def teachers(self):

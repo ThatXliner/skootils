@@ -38,6 +38,14 @@ class TaskManager:
     def _current_task(self) -> TaskType:
         return self.tasks[self.task_counter]
 
+    def set_total(self, new_total: int) -> None:
+        """Set total of the current bar task"""
+        task = self._current_task()
+        if not isinstance(task["progress"], list):
+            raise AttributeError("Only bar-type tasks may have a total")
+        task["progress"][1] = new_total
+        self._output()
+
     def add_task(self, name: str, total: Optional[int] = None) -> None:
         """Enqueue a task"""
         self.tasks.append({"name": name, "progress": False})
