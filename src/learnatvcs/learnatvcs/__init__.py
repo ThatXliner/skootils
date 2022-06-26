@@ -1,14 +1,13 @@
 """Awesome lesson plan utilities"""
-import json
 import re
-from typing import NamedTuple, Optional
 from pathlib import Path
+from typing import NamedTuple, Optional
 
-
+import interprog
+import selenium
 from attrs import define
 from data49 import web
 
-import selenium
 from learnatvcs import process as process_data
 
 from .highlighter import highlight
@@ -136,11 +135,8 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
     """Get raw scrape data"""
     # TODO: Choose quarters
     output: RawOutput = {}
-    tasks = [
-        {"finished": False, "name": "Log in"},
-    ]
-    print(json.dumps(tasks))
-    # self.prog.assign(interprog.tasks.Status("Log in"))
+    reporter = interprog.TaskManager()
+    reporter.add_task("Log in")
 
     with web.Browser(
         "https://learn.vcs.net/",
@@ -149,13 +145,11 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
             arguments=(f"user-data-dir={Path(__file__).parent.parent / 'selenium'}",),
         ),
     ) as browser:
-        tasks[0]["finished"] = None
-        print(json.dumps(tasks))
+        reporter.start()
         ### Log in ###
         browser.query_selector(".login-btn").click()
         browser.query_selector("div.potentialidp:nth-child(1) > a:nth-child(1)").click()
-        tasks[0]["finished"] = True
-        print(json.dumps(tasks))
+        reporter.finish()
         ### For every class... ###
         # TODO: Assert #side-panel-button exists and not "which account"
         # for future auto setup
@@ -165,37 +159,25 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
         )[2:-1]
         links = [link["href"] for link in raw_links]
         class_names = [link["title"] for link in raw_links]
-        tasks.extend(
-            [
-                {
-                    "finished": [0, len(for_dates)]
-                    if for_dates and len(for_dates) > 1
-                    else False,
-                    "name": f"Scrape {name}",  # XXX: or just `name`? "Scrape" seems a bit excessive
-                }
-                for name in class_names
-            ]
-        )
-        print(json.dumps(tasks))
-        cur_task = 1
+        for name in class_names:
+            reporter.add_task(
+                f"Scrape {name}",
+                total=len(for_dates) if for_dates and len(for_dates) > 1 else None,
+            )
         for link, class_name in zip(links, class_names):
+            reporter.start()
             browser.go(to=link)
             try:
                 browser.query_selector('a[title^="Lesson"]').click()
                 browser.query_selector_all(".activity.book.modtype_book a")[-1].click()
             except (selenium.common.exceptions.NoSuchElementException, IndexError):
-                tasks[cur_task]["finished"] = "No lesson plans"
-                print(json.dumps(tasks))
-                cur_task += 1
+                reporter.error("No lesson plans")
                 continue
             ### ...go to that day's lesson plans... ###
             date2link = {
                 ClassDay.from_str(date["innerText"]): date.get("href")
                 for date in browser.query_selector_all(".book_toc a,.book_toc strong")
             }
-            if tasks[cur_task]["finished"] is False:
-                tasks[cur_task]["finished"] = None
-                print(json.dumps(tasks))
             for date in for_dates or [list(date2link)[-1]]:
                 day_key = str(date) if for_dates is not None else None
                 if day_key not in output:
@@ -207,13 +189,10 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
                     # Should never happen
                     assert False, f"Ambigous lesson plan dates for date {date}"
                 if len(chosen) == 0:
+                    # TODO: Error reporting
                     # output[day_key][class_name] = None
                     # output[day_key][class_name] = f"No lesson plans for {date}"
-                    if tasks[cur_task]["finished"] is None:
-                        tasks[cur_task]["finished"] = True
-                    else:
-                        tasks[cur_task]["finished"][0] += 1
-                    print(json.dumps(tasks))
+                    reporter.increment(silent=True)
                     continue
                 if chosen[0] is not None:
                     browser.go(to=chosen[0])
@@ -222,15 +201,39 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
                 output[day_key][class_name] = _lesson_plan_pipeline(
                     content["innerHTML"]
                 )
-                if tasks[cur_task]["finished"] is None:
-                    tasks[cur_task]["finished"] = True
-                else:
-                    tasks[cur_task]["finished"][0] += 1
-                print(json.dumps(tasks))
-            tasks[cur_task]["finished"] = True
-            print(json.dumps(tasks))
-            cur_task += 1
+                reporter.increment(silent=True)
+            reporter.finish()
     return output
+
+
+def mock(for_dates: Optional[list] = None) -> str:  # type: ignore
+    """how to kill a mockingbird?"""
+    import time
+
+    reporter = interprog.TaskManager()
+    reporter.add_task("Log in")
+    reporter.start()
+    time.sleep(1)
+    reporter.finish()
+    class_names = ["English", "Math", "Science", "History"]
+    for name in class_names:
+        reporter.add_task(
+            f"Scrape {name}",
+            total=len(for_dates) if for_dates and len(for_dates) > 1 else None,  # type: ignore
+        )
+    reporter.start()
+    time.sleep(1)
+    reporter.increment(silent=True)
+    time.sleep(2)
+    reporter.error("Lmao get good")
+    for _ in class_names[1:]:
+        reporter.start()
+        time.sleep(0.2)
+        for _ in for_dates or [None]:  # type: ignore
+            time.sleep(1)
+            reporter.increment(silent=True)
+        reporter.finish()
+    return (Path(__file__).parent.parent / "example.json").read_text()
 
 
 __version__ = "0.1.0"

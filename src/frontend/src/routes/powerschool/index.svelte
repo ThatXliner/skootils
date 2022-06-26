@@ -3,6 +3,7 @@
 	import AccountInput from '$lib/AccountInput.svelte';
 	import QuarterInput from '$lib/QuarterInput.svelte';
 	import HomeButton from '$lib/HomeButton.svelte';
+	import Interprog from '$lib/Interprog.svelte';
 
 	import { Command, type Child } from '@tauri-apps/api/shell';
 	import { onMount } from 'svelte';
@@ -10,7 +11,10 @@
 	let command;
 	let child: Promise<Child>;
 	let hasCredentials: boolean | null = null;
-	let progress: { [key: string]: [number, number] };
+	let progress: {
+		name: string;
+		progress: boolean | null | [number, number] | string;
+	}[];
 	let quarterChoices: string[];
 
 	onMount(() => {
@@ -28,9 +32,11 @@
 			if (typeof input === 'boolean') {
 				hasCredentials = input;
 			} else if (Array.isArray(input)) {
-				quarterChoices = input;
-			} else if (input['type'] === 'progress') {
-				progress = input['content'];
+				if (typeof input[0] === 'string') {
+					quarterChoices = input;
+				} else {
+					progress = input;
+				}
 			} else {
 				window.sessionStorage.setItem('output', line);
 			}
@@ -103,70 +109,7 @@
 					<div class="w-full">
 						<h1 class="text-2xl">Scraping...</h1>
 						<ul class="text-xl m-3">
-							{#each Object.entries(progress) as quarter_progress (quarter_progress[0])}
-								{@const finished = quarter_progress[1]}
-								{@const name = quarter_progress[0]}
-								<li class="w-full">
-									{#if finished[1] === -1}
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											class="h-12 w-12 inline"
-											viewBox="0 0 20 20"
-											fill="currentColor"
-										>
-											<path
-												fill-rule="evenodd"
-												d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-												clip-rule="evenodd"
-											/>
-										</svg>
-										{name}
-									{:else if finished[0] == finished[1]}
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											class="h-12 w-12 inline fill-success"
-											viewBox="0 0 20 20"
-											fill="currentColor"
-										>
-											<path
-												fill-rule="evenodd"
-												d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-												clip-rule="evenodd"
-											/>
-										</svg>
-										{name}
-									{:else}
-										<svg
-											class="h-12 w-12 inline fill-warning"
-											enable-background="new 0 0 50 50"
-											version="1.1"
-											viewBox="0 0 50 50"
-											xml:space="preserve"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path
-												d="m43.935 25.145c0-10.318-8.364-18.683-18.683-18.683-10.318 0-18.683 8.365-18.683 18.683h4.068c0-8.071 6.543-14.615 14.615-14.615s14.615 6.543 14.615 14.615h4.068z"
-											>
-												<animateTransform
-													attributeName="transform"
-													attributeType="xml"
-													dur="0.6s"
-													from="0 25 25"
-													repeatCount="indefinite"
-													to="360 25 25"
-													type="rotate"
-												/>
-											</path>
-										</svg>
-										{name}
-										<progress
-											class="progress progress-primary w-full"
-											value={finished[0]}
-											max={finished[1]}
-										/>
-									{/if}
-								</li>
-							{/each}
+							<Interprog input={progress} />
 						</ul>
 					</div>
 				{/if}

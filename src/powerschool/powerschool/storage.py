@@ -1,10 +1,10 @@
 import json
 import random
 import sys
+import time
 from collections import defaultdict
 from pathlib import Path
-import time
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
 
 import keyring
 from platformdirs import user_data_dir
