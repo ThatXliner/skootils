@@ -1,16 +1,15 @@
 """A browser-automation-based API for PowerSchool"""
 import datetime
-import json
 import re
 import urllib.parse as urlparse
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
+import interprog
 from data49.web import Browser, BrowserContext, By, expected_conditions
 from sympy import Symbol
 from sympy.solvers.solveset import linsolve
-import interprog
 
 __version__ = "0.1.0"
 

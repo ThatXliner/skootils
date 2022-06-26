@@ -1,14 +1,13 @@
 """Awesome lesson plan utilities"""
-import json
 import re
-from typing import NamedTuple, Optional
 from pathlib import Path
+from typing import NamedTuple, Optional
 
-from attrs import define
 import interprog
+import selenium
+from attrs import define
 from data49 import web
 
-import selenium
 from learnatvcs import process as process_data
 
 from .highlighter import highlight
