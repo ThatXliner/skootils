@@ -38,7 +38,7 @@ isort = "^5.8.0"
 pylint = "^2.8.2"
 toml = "^0.10.2"
 hypothesis = "^6.12.0"
-shed = "^0.9.5"
+shed = "^0.10.1"
 pytest-cov = "^3.0.0"
 pytest-clarity = "^1.0.1"
 
