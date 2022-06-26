@@ -1,4 +1,4 @@
-from interprog_py import __version__
+from interprog import __version__
 
 
 def test_version():

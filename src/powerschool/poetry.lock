@@ -290,7 +290,7 @@ develop = true
 
 [package.source]
 type = "directory"
-url = "../interprog-py"
+url = "../interprog"
 
 [[package]]
 name = "isort"
@@ -865,7 +865,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4ce606a2162c832b9b5cb0ad4b8322243ea80e9bce9eaaa9eab0494add0e1c7a"
+content-hash = "98afc6bb17b0abaafd8dd1bd703c0071e324d8b2cec60a45a507e7ab13d17a13"
 
 [metadata.files]
 astroid = [
