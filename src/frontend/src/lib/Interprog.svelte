@@ -91,11 +91,13 @@
 					</path>
 				</svg>
 				{name}
-				<progress
-					class="progress progress-primary w-56 h-4"
-					value={progress[0]}
-					max={progress[1]}
-				/>
+				<div class="tooltip tooltip-info" data-tip="{progress[0]}/{progress[1]}">
+					<progress
+						class="progress progress-primary w-56 h-4"
+						value={progress[0]}
+						max={progress[1]}
+					/>
+				</div>
 			</li></slot
 		>
 	{:else if progress === null}
