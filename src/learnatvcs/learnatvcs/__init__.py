@@ -223,7 +223,9 @@ def mock(for_dates: Optional[list] = None) -> str:  # type: ignore
             total=len(for_dates) if for_dates and len(for_dates) > 1 else None,  # type: ignore
         )
     reporter.start()
-    time.sleep(3)
+    time.sleep(1)
+    reporter.increment(silent=True)
+    time.sleep(2)
     reporter.error("Lmao get good")
     for _ in class_names[1:]:
         reporter.start()
