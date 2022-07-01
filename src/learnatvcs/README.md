@@ -8,7 +8,7 @@
 
 Copyright © 2021, Bryan Hu
 
-This project is licensed under the [GNU GPL v3+](https://github.com/ThatXliner/learnatvcs/blob/main/LICENSE.txt).
+This project is licensed under the [GNU GPL v3+](./COPYING).
 
 In short, this means you can do anything with it (distribute, modify, sell) but if you were to publish your changes, you must make the source code and build instructions readily available.
 

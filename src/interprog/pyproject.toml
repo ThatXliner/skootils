@@ -2,6 +2,7 @@
 name = "interprog"
 version = "0.1.0"
 description = ""
+license = "MIT"
 authors = ["Bryan Hu <bryan.hu.2020@gmail.com>"]
 
 [tool.poetry.dependencies]
