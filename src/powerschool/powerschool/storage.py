@@ -2,7 +2,7 @@ import json
 import random
 import sys
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -31,7 +31,9 @@ def set_auth(auth: Dict[str, str]) -> bool:
 def save(output, quarters: List[str]) -> None:
     filename = f"{time.time()}.json"
     for quarter in output:
-        store = HISTORY_DIR / (quarters[-1] if quarter == "Latest" else quarter)
+        store = HISTORY_DIR / (
+            quarters[-1] if quarter.startswith("Latest") else quarter
+        )
         (store).mkdir(exist_ok=True)
 
         (store / filename).touch()
@@ -42,19 +44,36 @@ def main():
     # TODO: All vs class
     quarter = sys.argv[1]
     labels = []
+    colors = deque(
+        [
+            "#802392",
+            "#DE4D86",
+            "#7C90DB",
+            "#84E6F8",
+            "#4d7976",
+            "#A5F8D3",
+            "#489b51",
+            "#e9b04d",
+            "#df4949",
+        ]
+    )
 
-    classes = defaultdict(list)
+    def pickColor():
+        colors.rotate()
+        return colors[0]
+
+    classes = defaultdict(lambda: (list(), pickColor()))
+    # TODO: multithreading for maximum efficiency
     for i, file in enumerate(sorted((HISTORY_DIR / quarter).iterdir()), start=1):
         labels.append(f"Scrape #{i}")
         scrape = json.loads(file.read_text())
         for period in scrape:
             try:
-                classes[scrape[period]["class_name"]].append(
-                    float(scrape[period]["quarter_info"]["overall_grade"]["percent"])
+                classes[scrape[period]["class_name"]][0].append(
+                    int(scrape[period]["quarter_info"]["overall_grade"]["percent"])
                 )
             except ValueError:
                 pass
-    tension = 1 / len(classes)
     print(
         json.dumps(
             {
@@ -62,13 +81,14 @@ def main():
                 "datasets": [
                     {
                         "label": k,
-                        "data": v,
+                        "data": v[0],
                         "fill": False,
-                        "borderColor": f"rgb{tuple(random.choices(range(256), k=3))}",
-                        "tension": tension,
+                        "backgroundColor": v[1],
+                        "pointBackgroundColor": v[1],
+                        "tension": 0,  # 0 = straight line. this is for bezier curve
                     }
                     for k, v in classes.items()
-                    if v
+                    if v[0]
                 ],
             }
         )

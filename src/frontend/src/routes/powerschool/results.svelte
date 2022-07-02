@@ -1,22 +1,15 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { Command, type Child } from '@tauri-apps/api/shell';
 	import HomeButton from '$lib/HomeButton.svelte';
-	import {
-		Chart,
-		LineController,
-		CategoryScale,
-		LinearScale,
-		PointElement,
-		LineElement,
-		Legend
-	} from 'chart.js';
-	Chart.register(LineController, CategoryScale, LinearScale, PointElement, LineElement, Legend);
+	import Chart from 'chart.js/auto';
 	let quarters: string[];
 	let currentQuarter: string;
 	let data: {
 		[key: string]: {
+			// Quarter (could be "Latest (X)")
 			[key: string]: {
+				// Class name
 				name: string;
 				class_name: string;
 				email: string;
@@ -36,26 +29,8 @@
 			};
 		};
 	} | null = null;
-	let _chartElement: HTMLCanvasElement;
-	let gradeData: object;
-	$: if (gradeData !== undefined) {
-		const ctx = _chartElement.getContext('2d');
-		console.assert(ctx);
-		new Chart(ctx, {
-			type: 'line',
-			data: gradeData,
-			options: {
-				maintainAspectRatio: false
-			}
-		});
-	}
-	let child: Promise<Child>;
-	onMount(() => {
-		data = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
-		if (data === null) return;
-		quarters = Object.keys(data);
-		currentQuarter = quarters[0];
-		// TODO: Reactive
+	let gradeData: object; // multi quarter data
+	$: if (currentQuarter !== undefined) {
 		let command = new Command('powerschool-history', [
 			'-um',
 			'powerschool.storage',
@@ -65,53 +40,77 @@
 		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
 		command.stdout.on('data', (line) => {
 			gradeData = JSON.parse(line);
-			console.log(gradeData);
 		});
-		child = command.spawn();
+		command.spawn();
+	}
+	let _chartElement: HTMLCanvasElement;
+	let chart: Chart;
+	$: if (data !== undefined && _chartElement !== undefined) {
+		const ctx = _chartElement.getContext('2d');
+		if (ctx === null) console.error('No canvas wth');
+		if (chart !== undefined) {
+			chart.destroy();
+		}
+		chart = new Chart(ctx, {
+			type: 'line',
+			data: gradeData,
+			options: {
+				// Maybe I'll do borderJoinStyle
+				maintainAspectRatio: false,
+				pointRadius: 5,
+				borderWidth: 0
+			}
+		});
+	}
+
+	onMount(() => {
+		data = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
+		if (data === null) return;
+		quarters = Object.keys(data);
+		currentQuarter = quarters[0];
 	});
 </script>
 
 {#if data === null}
 	<p>Uh oh, an error has occured</p>
 {:else}
-	<div class="border-b-2">
-		<div class="navbar">
-			<div class="navbar-start">
-				<span class="pl-4 font-semibold text-xl">Results</span>
-			</div>
-			<div class="navbar-center">
-				{#if quarters.length == 1}
-					<span class="btn btn-info">{currentQuarter}</span>
-				{:else}
-					<div class="dropdown dropdown-hover">
-						<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
-							>{currentQuarter}</label
-						>
-						<ul
-							id="date-picker"
-							tabindex="0"
-							class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
-						>
-							{#each quarters as quarter}
-								<li>
-									<span
-										on:click={() => {
-											currentQuarter = quarter;
-											return false;
-										}}
-										class:active={quarter == currentQuarter}>{quarter}</span
-									>
-								</li>
-							{/each}
-						</ul>
-					</div>
-				{/if}
-			</div>
-			<div class="navbar-end">
-				<HomeButton />
-			</div>
+	<div class="navbar border-b-2">
+		<div class="navbar-start">
+			<span class="pl-4 font-semibold text-xl">Results</span>
+		</div>
+		<div class="navbar-center">
+			{#if quarters.length == 1}
+				<span class="btn btn-info">{currentQuarter}</span>
+			{:else}
+				<div class="dropdown dropdown-hover">
+					<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
+						>{currentQuarter}</label
+					>
+					<ul
+						id="date-picker"
+						tabindex="0"
+						class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
+					>
+						{#each quarters as quarter}
+							<li>
+								<span
+									on:click={() => {
+										currentQuarter = quarter;
+										return false;
+									}}
+									class:active={quarter == currentQuarter}>{quarter}</span
+								>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
+		</div>
+		<div class="navbar-end">
+			<HomeButton />
 		</div>
 	</div>
+
 	<div class="py-2 bg-base-200">
 		<!-- <h1 class="text-3xl text-center">Quick look</h1> -->
 		<!-- MARK: Grades -->
@@ -161,10 +160,6 @@
 	</div>
 	<h3 class="text-[3.5vw] m-3">Grade history</h3>
 	<div class="relative p-3 h-xl w-full">
-		{#await child}
-			<p>Loading grade data...</p>
-		{:then}
-			<canvas bind:this={_chartElement} width="400" height="400" />
-		{/await}
+		<canvas bind:this={_chartElement} width="400" height="300" />
 	</div>
 {/if}
