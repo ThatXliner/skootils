@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Command, type Child } from '@tauri-apps/api/shell';
 	import HomeButton from '$lib/HomeButton.svelte';
 	import {
 		Chart,
@@ -7,9 +8,10 @@
 		CategoryScale,
 		LinearScale,
 		PointElement,
-		LineElement
+		LineElement,
+		Legend
 	} from 'chart.js';
-	Chart.register(LineController, CategoryScale, LinearScale, PointElement, LineElement);
+	Chart.register(LineController, CategoryScale, LinearScale, PointElement, LineElement, Legend);
 	let quarters: string[];
 	let currentQuarter: string;
 	let data: {
@@ -35,52 +37,37 @@
 		};
 	} | null = null;
 	let _chartElement: HTMLCanvasElement;
-	$: if (_chartElement !== undefined) {
+	let gradeData: object;
+	$: if (gradeData !== undefined) {
 		const ctx = _chartElement.getContext('2d');
 		console.assert(ctx);
 		new Chart(ctx, {
 			type: 'line',
-			data: {
-				labels: [
-					'1st scrape',
-					'2nd scrape',
-					'3nd scrape',
-					'4nd scrape',
-					'5th scrape',
-					'6th scrape'
-				],
-				datasets: [
-					{
-						label: 'Math',
-						data: [65, 59, 80, 81, 56, 55, 40],
-						fill: false,
-						borderColor: 'rgb(75, 192, 192)',
-						tension: 0.1
-					},
-					{
-						label: 'Science',
-						data: [20, 59, 80, 30, 56, 69, 40],
-						fill: false,
-						borderColor: 'yellow',
-						tension: 0.1
-					},
-					{
-						label: 'English',
-						data: [1, 2, 3, 40, 100, 7, 40],
-						fill: false,
-						borderColor: 'black',
-						tension: 0.1
-					}
-				]
-			},
-			options: { maintainAspectRatio: false }
+			data: gradeData,
+			options: {
+				maintainAspectRatio: false
+			}
 		});
 	}
+	let child: Promise<Child>;
 	onMount(() => {
 		data = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
 		if (data === null) return;
 		quarters = Object.keys(data);
 		currentQuarter = quarters[0];
+		// TODO: Reactive
+		let command = new Command('powerschool-history', [
+			'-um',
+			'powerschool.storage',
+			currentQuarter // TODO: All/class
+		]);
+		command.on('error', (error) => console.error(`command error: "${error}"`));
+		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
+		command.stdout.on('data', (line) => {
+			gradeData = JSON.parse(line);
+			console.log(gradeData);
+		});
+		child = command.spawn();
 	});
 </script>
 
@@ -174,6 +161,10 @@
 	</div>
 	<h3 class="text-[3.5vw] m-3">Grade history</h3>
 	<div class="relative p-3 h-xl w-full">
-		<canvas bind:this={_chartElement} width="400" height="400" />
+		{#await child}
+			<p>Loading grade data...</p>
+		{:then}
+			<canvas bind:this={_chartElement} width="400" height="400" />
+		{/await}
 	</div>
 {/if}

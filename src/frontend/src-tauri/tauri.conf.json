@@ -28,12 +28,7 @@
 					{
 						"name": "powerschool-history",
 						"cmd": "../../powerschool/.venv/bin/python",
-						"args": [
-							"-um",
-							"powerschool.storage",
-							{ "validator": "all|class" },
-							{ "validator": "w+" }
-						]
+						"args": ["-um", "powerschool.storage", { "validator": "\\w+" }]
 					}
 				]
 			}

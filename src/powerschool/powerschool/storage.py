@@ -39,17 +39,22 @@ def save(output, quarters: List[str]) -> None:
 
 
 def main():
+    # TODO: All vs class
     quarter = sys.argv[1]
     labels = []
 
     classes = defaultdict(list)
-    for file in sorted((HISTORY_DIR / quarter).iterdir()):
-        labels.append(file.stem)
+    for i, file in enumerate(sorted((HISTORY_DIR / quarter).iterdir()), start=1):
+        labels.append(f"Scrape #{i}")
         scrape = json.loads(file.read_text())
         for period in scrape:
-            classes[scrape[period]["class_name"]].append(
-                float(scrape[period]["quarter_info"]["percent"])
-            )
+            try:
+                classes[scrape[period]["class_name"]].append(
+                    float(scrape[period]["quarter_info"]["overall_grade"]["percent"])
+                )
+            except ValueError:
+                pass
+    tension = 1 / len(classes)
     print(
         json.dumps(
             {
@@ -59,10 +64,11 @@ def main():
                         "label": k,
                         "data": v,
                         "fill": False,
-                        "borderColor": f"rgb({tuple(random.choices(range(256), k=3))})",
-                        "tension": 0.1,
+                        "borderColor": f"rgb{tuple(random.choices(range(256), k=3))}",
+                        "tension": tension,
                     }
                     for k, v in classes.items()
+                    if v
                 ],
             }
         )
