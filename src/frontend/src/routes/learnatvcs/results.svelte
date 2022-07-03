@@ -41,46 +41,45 @@
 {#if output === null}
 	<p>Oops, something went wrong</p>
 {:else}
-	<div class="border-b-2">
-		<div class="navbar">
-			<div class="navbar-start">
-				<HomeButton />
-			</div>
-			<div class="navbar-center">
-				{#if DATETYPE === null}
-					<span class="btn btn-info">Latest</span>
-				{:else if dates.length == 1}
-					<span class="btn btn-info">{selectedDate}</span>
-				{:else}
-					<div class="dropdown dropdown-hover">
-						<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
-							>{selectedDate}</label
-						>
-						<ul
-							id="date-picker"
-							tabindex="0"
-							class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
-						>
-							{#each dates as date}
-								<li>
-									<span
-										on:click={() => {
-											selectedDate = date;
-											return false;
-										}}
-										class:active={date == selectedDate}>{date}</span
-									>
-								</li>
-							{/each}
-						</ul>
-					</div>
-				{/if}
-			</div>
-			<div class="navbar-end">
-				<span class="pl-4 font-semibold text-xl">Results</span>
-			</div>
+	<div class="navbar border-b-2">
+		<div class="navbar-start">
+			<HomeButton />
+		</div>
+		<div class="navbar-center">
+			{#if DATETYPE === null}
+				<span class="btn btn-info">Latest</span>
+			{:else if dates.length == 1}
+				<span class="btn btn-info">{selectedDate}</span>
+			{:else}
+				<div class="dropdown dropdown-hover">
+					<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
+						>{selectedDate}</label
+					>
+					<ul
+						id="date-picker"
+						tabindex="0"
+						class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
+					>
+						{#each dates as date}
+							<li>
+								<span
+									on:click={() => {
+										selectedDate = date;
+										return false;
+									}}
+									class:active={date == selectedDate}>{date}</span
+								>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
+		</div>
+		<div class="navbar-end">
+			<span class="pl-4 font-semibold text-xl">Results</span>
 		</div>
 	</div>
+
 	<div class="flex max-w-screen">
 		{#if mode === 'normal'}
 			<ul class="min-w-fit min-h-screen bg-base-200 menu p-4">
