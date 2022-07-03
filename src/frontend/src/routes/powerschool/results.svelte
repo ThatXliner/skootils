@@ -144,6 +144,7 @@
 	<div class="modal">
 		<div class="modal-box">
 			<h3 class="font-bold text-lg">{selectedClass?.class_name}</h3>
+			<h4 class="font-bold text-md text-center">Grade history this quarter</h4>
 			<div class="h-full w-full">
 				<canvas bind:this={_quarterChartElement} width="400" height="300" />
 			</div>
