@@ -26,9 +26,19 @@
 						"args": ["-um", "powerschool"]
 					},
 					{
-						"name": "powerschool-history",
+						"name": "powerschool-history-alltime",
 						"cmd": "../../powerschool/.venv/bin/python",
-						"args": ["-um", "powerschool.storage", { "validator": "\\w+" }]
+						"args": ["-um", "powerschool.history.alltime", { "validator": "\\w+" }]
+					},
+					{
+						"name": "powerschool-history-class",
+						"cmd": "../../powerschool/.venv/bin/python",
+						"args": [
+							"-um",
+							"powerschool.history.for_class",
+							{ "validator": "\\w+" },
+							{ "validator": "\\w+" }
+						]
 					}
 				]
 			}

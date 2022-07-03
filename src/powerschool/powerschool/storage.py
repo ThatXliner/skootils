@@ -1,8 +1,6 @@
 import json
-import random
-import sys
 import time
-from collections import defaultdict, deque
+
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -38,65 +36,3 @@ def save(output, quarters: List[str]) -> None:
 
         (store / filename).touch()
         (store / filename).write_text(json.dumps(output[quarter]))
-
-
-def main():
-    # TODO: All vs class
-    quarter = sys.argv[1]
-    labels = []
-    colors = deque(
-        [
-            "rgb(128,35,146)",
-            "rgb(222,77,134)",
-            "rgb(124,144,219)",
-            "rgb(132,230,248)",
-            "rgb(77,121,118)",
-            "rgb(165,248,211)",
-            "rgb(72,155,81)",
-            "rgb(233,176,77)",
-            "rgb(223,73,73)",
-        ]
-    )
-
-    def pickColor():
-        colors.rotate()
-        return colors[0]
-
-    classes = defaultdict(lambda: (list(), pickColor()))
-    # TODO: multithreading for maximum efficiency
-    for i, file in enumerate(sorted((HISTORY_DIR / quarter).iterdir()), start=1):
-        labels.append(f"Scrape #{i}")
-        scrape = json.loads(file.read_text())
-        for period in scrape:
-            try:
-                classes[scrape[period]["class_name"]][0].append(
-                    int(scrape[period]["quarter_info"]["overall_grade"]["percent"])
-                )
-            except ValueError:
-                pass
-    print(
-        json.dumps(
-            {
-                "labels": labels,
-                "datasets": [
-                    {
-                        "label": k,
-                        "data": v[0],
-                        "fill": False,
-                        "backgroundColor": v[1],
-                        "tension": 0,  # 0 = straight line. this is for bezier curve
-                        # Make connection line colors
-                        "borderColor": v[1][:-1] + ", 0.4)",  # slightly transparent
-                        # "borderColor": v[1],  # solid
-                        # [not specified] # Gray
-                    }
-                    for k, v in classes.items()
-                    if v[0]
-                ],
-            }
-        )
-    )
-
-
-if __name__ == "__main__":
-    main()
