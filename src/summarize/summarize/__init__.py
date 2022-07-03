@@ -1,5 +1,6 @@
 """Summarize text, AI or algorithmic"""
 import re
+from typing import Tuple
 
 from bs4 import BeautifulSoup
 from sumy.nlp.stemmers import Stemmer
