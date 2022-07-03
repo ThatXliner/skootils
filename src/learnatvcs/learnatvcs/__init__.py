@@ -3,11 +3,11 @@ import re
 from pathlib import Path
 from typing import NamedTuple, Optional
 
-import interprog
 import selenium
 from attrs import define
 from data49 import web
 
+import interprog
 from learnatvcs import process as process_data
 
 from .highlighter import highlight

@@ -1,12 +1,13 @@
 """Summarize text, AI or algorithmic"""
-from transformers import pipeline
-from sumy.parsers.html import HtmlParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lsa import LsaSummarizer as Summarizer
-from sumy.nlp.stemmers import Stemmer
-from sumy.utils import get_stop_words
-from bs4 import BeautifulSoup
 import re
+
+from bs4 import BeautifulSoup
+from sumy.nlp.stemmers import Stemmer
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.parsers.html import HtmlParser
+from sumy.summarizers.lsa import LsaSummarizer as Summarizer
+from sumy.utils import get_stop_words
+from transformers import pipeline
 
 
 def extract_useful(

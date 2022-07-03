@@ -1,9 +1,7 @@
+import json
 import sys
 
-
 from powerschool.storage import HISTORY_DIR
-
-import json
 
 COLOR = "rgb(132,230,248)"
 

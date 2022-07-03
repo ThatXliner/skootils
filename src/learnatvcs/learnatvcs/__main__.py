@@ -1,7 +1,8 @@
 """The main CLI entry point"""
 import json
 import sys
-from learnatvcs import scrape, Date
+
+from learnatvcs import Date, scrape
 
 # from pathlib import Path
 # from platformdirs import user_cache_dir

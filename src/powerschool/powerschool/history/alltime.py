@@ -1,9 +1,8 @@
-import sys
-
-from collections import defaultdict, deque
-from powerschool.storage import HISTORY_DIR
-
 import json
+import sys
+from collections import defaultdict, deque
+
+from powerschool.storage import HISTORY_DIR
 
 
 def main():

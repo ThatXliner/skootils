@@ -4,7 +4,6 @@
 
 > A browser-automation-based API for PowerSchool
 
-
 ## Installation
 
 You can get this project via `pip`
@@ -18,7 +17,6 @@ Or, if you're using [Poetry](https://python-poetry.org)
 ```bash
 $ poetry add powerschool
 ```
-
 
 ## License
 
