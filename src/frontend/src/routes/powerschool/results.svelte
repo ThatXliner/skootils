@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
-	import { Command, type Child } from '@tauri-apps/api/shell';
+	import { onMount } from 'svelte';
+	import { Command } from '@tauri-apps/api/shell';
 	import HomeButton from '$lib/HomeButton.svelte';
 	import Chart from 'chart.js/auto';
 	let quarters: string[];
@@ -34,7 +34,7 @@
 		let command = new Command('powerschool-history', [
 			'-um',
 			'powerschool.storage',
-			currentQuarter // TODO: All/class
+			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter // TODO: All/class
 		]);
 		command.on('error', (error) => console.error(`command error: "${error}"`));
 		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
@@ -45,7 +45,7 @@
 	}
 	let _chartElement: HTMLCanvasElement;
 	let chart: Chart;
-	$: if (data !== undefined && _chartElement !== undefined) {
+	$: if (gradeData !== undefined && _chartElement !== undefined) {
 		const ctx = _chartElement.getContext('2d');
 		if (ctx === null) console.error('No canvas wth');
 		if (chart !== undefined) {
@@ -57,8 +57,9 @@
 			options: {
 				// Maybe I'll do borderJoinStyle
 				maintainAspectRatio: false,
-				pointRadius: 5,
-				borderWidth: 0
+				pointRadius: 7,
+				borderWidth: 5, // Connection line's width relies on border
+				pointBorderWidth: 0
 			}
 		});
 	}

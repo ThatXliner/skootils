@@ -46,15 +46,15 @@ def main():
     labels = []
     colors = deque(
         [
-            "#802392",
-            "#DE4D86",
-            "#7C90DB",
-            "#84E6F8",
-            "#4d7976",
-            "#A5F8D3",
-            "#489b51",
-            "#e9b04d",
-            "#df4949",
+            "rgb(128,35,146)",
+            "rgb(222,77,134)",
+            "rgb(124,144,219)",
+            "rgb(132,230,248)",
+            "rgb(77,121,118)",
+            "rgb(165,248,211)",
+            "rgb(72,155,81)",
+            "rgb(233,176,77)",
+            "rgb(223,73,73)",
         ]
     )
 
@@ -84,8 +84,11 @@ def main():
                         "data": v[0],
                         "fill": False,
                         "backgroundColor": v[1],
-                        "pointBackgroundColor": v[1],
                         "tension": 0,  # 0 = straight line. this is for bezier curve
+                        # Make connection line colors
+                        "borderColor": v[1][:-1] + ", 0.4)",  # slightly transparent
+                        # "borderColor": v[1],  # solid
+                        # [not specified] # Gray
                     }
                     for k, v in classes.items()
                     if v[0]
