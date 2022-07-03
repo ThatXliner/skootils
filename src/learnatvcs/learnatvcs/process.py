@@ -1,5 +1,3 @@
-import re
-
 from bs4 import BeautifulSoup
 
 
@@ -27,18 +25,3 @@ def clean_html(soup: BeautifulSoup, allow_embeds: bool = True) -> BeautifulSoup:
             element["target"] = "_blank"
 
     return soup
-
-
-def extract_useful(soup: BeautifulSoup) -> str:
-    """Extracts 'Classroom Activities', 'Deliverables', etc"""
-    works = ("classroom activities", "turned in", "deliverables")
-    name_re = re.compile("|".join(f"({x})" for x in works))
-
-    def query(tag) -> bool:
-        return (
-            tag.name == "h4"
-            and tag.strong
-            and name_re.search(tag.strong.get_text().lower()) is not None
-        )
-
-    return "".join(map(lambda x: str(x) + str(x.next_sibling or ""), soup(query)))
