@@ -1,6 +1,8 @@
-from bs4 import BeautifulSoup
-import re
 import json
+import re
+
+from bs4 import BeautifulSoup
+
 from summarize import ai
 
 WORKS = ("classroom activities", "turned in", "deliverables")

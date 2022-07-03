@@ -1,5 +1,5 @@
- - `frontend` The [SvelteKit](https://kit.svelte.dev)-[Tauri](https://kit.svelte.dev)-based frontend
- - `learnatvcs` [learn@vcs](https://learn.vcs.net) scraping utilities (maybe more!)
- - `powerschool` PowerSchool grade information
- - `interprog` Inter-process progress reports (might extract to seperate repository because it's so good)
- - `summarizer` Experimental AI/algorithm-based text summarizer
+- `frontend` The [SvelteKit](https://kit.svelte.dev)-[Tauri](https://kit.svelte.dev)-based frontend
+- `learnatvcs` [learn@vcs](https://learn.vcs.net) scraping utilities (maybe more!)
+- `powerschool` PowerSchool grade information
+- `interprog` Inter-process progress reports (might extract to seperate repository because it's so good)
+- `summarizer` Experimental AI/algorithm-based text summarizer

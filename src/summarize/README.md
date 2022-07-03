@@ -4,7 +4,6 @@
 
 > Summarize text, AI or algorithmic
 
-
 ## Installation
 
 You can get this project via `pip`
@@ -18,7 +17,6 @@ Or, if you're using [Poetry](https://python-poetry.org)
 ```bash
 $ poetry add summarize
 ```
-
 
 ## License
 
