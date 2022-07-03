@@ -1,81 +1,104 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Command } from '@tauri-apps/api/shell';
 	import HomeButton from '$lib/HomeButton.svelte';
-	import {
-		Chart,
-		LineController,
-		CategoryScale,
-		LinearScale,
-		PointElement,
-		LineElement
-	} from 'chart.js';
-	Chart.register(LineController, CategoryScale, LinearScale, PointElement, LineElement);
+	import Chart from 'chart.js/auto';
+	const CHARTOPTIONS = {
+		// Maybe I'll do borderJoinStyle
+		maintainAspectRatio: false,
+		pointRadius: 7,
+		borderWidth: 5, // Connection line's width relies on border
+		pointBorderWidth: 0
+	};
+
 	let quarters: string[];
 	let currentQuarter: string;
-	let data: {
-		[key: string]: {
-			[key: string]: {
+	type ClassInfo = {
+		// Class name
+		name: string;
+		class_name: string;
+		email: string;
+		quarter_info: {
+			name: string;
+			overall_grade: { name: string; percent: string };
+			scores: {
+				due_dates: string;
+				grade: string;
 				name: string;
-				class_name: string;
-				email: string;
-				quarter_info: {
-					name: string;
-					overall_grade: { name: string; percent: string };
-					scores: {
-						due_dates: string;
-						grade: string;
-						name: string;
-						percent: Number;
-						score: string;
-						type: string;
-						// type: 'Classwork' | 'Homework' | 'Test' | 'Quiz';
-					}[];
-				};
-			};
+				percent: Number;
+				score: string;
+				type: string;
+				// type: 'Classwork' | 'Homework' | 'Test' | 'Quiz';
+			}[];
+		};
+	};
+	let selectedClass: ClassInfo;
+	let data: {
+		// Quarter (could be "Latest (X)")
+		[key: string]: {
+			// Period: class
+			[key: string]: ClassInfo;
 		};
 	} | null = null;
-	let _chartElement: HTMLCanvasElement;
-	$: if (_chartElement !== undefined) {
-		const ctx = _chartElement.getContext('2d');
-		console.assert(ctx);
-		new Chart(ctx, {
+	let allTimeGradeData: object; // multi quarter data
+	let quarterGradeData: object; // quarter data for class
+	$: if (currentQuarter !== undefined) {
+		let command = new Command('powerschool-history-alltime', [
+			'-um',
+			'powerschool.history.alltime',
+			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter
+		]);
+		command.on('error', (error) => console.error(`command error: "${error}"`));
+		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
+		command.stdout.on('data', (line) => {
+			allTimeGradeData = JSON.parse(line);
+		});
+		command.spawn();
+	}
+	$: if (selectedClass !== undefined) {
+		let command = new Command('powerschool-history-class', [
+			'-um',
+			'powerschool.history.alltime',
+			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter,
+			selectedClass['class_name']
+		]);
+		command.on('error', (error) => console.error(`command error: "${error}"`));
+		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
+		command.stdout.on('data', (line) => {
+			quarterGradeData = JSON.parse(line);
+		});
+		command.spawn();
+	}
+	let _allTimeChartElement: HTMLCanvasElement;
+	let allTimeChart: Chart;
+	$: if (allTimeGradeData !== undefined && _allTimeChartElement !== undefined) {
+		const ctx = _allTimeChartElement.getContext('2d');
+		if (ctx === null) console.error('No canvas wth');
+		if (allTimeChart !== undefined) {
+			allTimeChart.destroy();
+		}
+		allTimeChart = new Chart(ctx, {
 			type: 'line',
-			data: {
-				labels: [
-					'1st scrape',
-					'2nd scrape',
-					'3nd scrape',
-					'4nd scrape',
-					'5th scrape',
-					'6th scrape'
-				],
-				datasets: [
-					{
-						label: 'Math',
-						data: [65, 59, 80, 81, 56, 55, 40],
-						fill: false,
-						borderColor: 'rgb(75, 192, 192)',
-						tension: 0.1
-					},
-					{
-						label: 'Science',
-						data: [20, 59, 80, 30, 56, 69, 40],
-						fill: false,
-						borderColor: 'yellow',
-						tension: 0.1
-					},
-					{
-						label: 'English',
-						data: [1, 2, 3, 40, 100, 7, 40],
-						fill: false,
-						borderColor: 'black',
-						tension: 0.1
-					}
-				]
-			},
-			options: { maintainAspectRatio: false }
+			data: allTimeGradeData,
+			options: CHARTOPTIONS
 		});
 	}
+
+	let _quarterChartElement: HTMLCanvasElement;
+	let quarterChart: Chart;
+	$: if (quarterGradeData !== undefined && _quarterChartElement !== undefined) {
+		const ctx = _quarterChartElement.getContext('2d');
+		if (ctx === null) console.error('No canvas wth');
+		if (quarterChart !== undefined) {
+			quarterChart.destroy();
+		}
+		quarterChart = new Chart(ctx, {
+			type: 'line',
+			data: quarterGradeData,
+			options: CHARTOPTIONS
+		});
+	}
+
 	onMount(() => {
 		data = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
 		if (data === null) return;
@@ -87,50 +110,63 @@
 {#if data === null}
 	<p>Uh oh, an error has occured</p>
 {:else}
-	<div class="border-b-2">
-		<div class="navbar">
-			<div class="navbar-start">
-				<span class="pl-4 font-semibold text-xl">Results</span>
+	<!-- Modal stuff -->
+	<input type="checkbox" id="my-modal" class="modal-toggle" />
+
+	<div class="modal">
+		<div class="modal-box">
+			<h3 class="font-bold text-lg">{selectedClass?.class_name}</h3>
+			<div class="h-full w-full">
+				<canvas bind:this={_quarterChartElement} width="400" height="300" />
 			</div>
-			<div class="navbar-center">
-				{#if quarters.length == 1}
-					<span class="btn btn-info">{currentQuarter}</span>
-				{:else}
-					<div class="dropdown dropdown-hover">
-						<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
-							>{currentQuarter}</label
-						>
-						<ul
-							id="date-picker"
-							tabindex="0"
-							class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
-						>
-							{#each quarters as quarter}
-								<li>
-									<span
-										on:click={() => {
-											currentQuarter = quarter;
-											return false;
-										}}
-										class:active={quarter == currentQuarter}>{quarter}</span
-									>
-								</li>
-							{/each}
-						</ul>
-					</div>
-				{/if}
-			</div>
-			<div class="navbar-end">
-				<HomeButton />
+			<div class="modal-action">
+				<label for="my-modal" class="btn">Done</label>
 			</div>
 		</div>
 	</div>
+	<!-- Actual content -->
+	<div class="navbar border-b-2">
+		<div class="navbar-start">
+			<span class="pl-4 font-semibold text-xl">Results</span>
+		</div>
+		<div class="navbar-center">
+			{#if quarters.length == 1}
+				<span class="btn btn-info">{currentQuarter}</span>
+			{:else}
+				<div class="dropdown dropdown-hover">
+					<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
+						>{currentQuarter}</label
+					>
+					<ul
+						id="date-picker"
+						tabindex="0"
+						class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
+					>
+						{#each quarters as quarter}
+							<li>
+								<span
+									on:click={() => {
+										currentQuarter = quarter;
+										return false;
+									}}
+									class:active={quarter == currentQuarter}>{quarter}</span
+								>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
+		</div>
+		<div class="navbar-end">
+			<HomeButton />
+		</div>
+	</div>
+
 	<div class="py-2 bg-base-200">
 		<!-- <h1 class="text-3xl text-center">Quick look</h1> -->
 		<!-- MARK: Grades -->
 		<div class="flex flex-wrap justify-evenly">
-			{#each Object.entries(data[currentQuarter]) as className}
-				{@const classInfo = className[1]}
+			{#each Object.values(data[currentQuarter]) as classInfo}
 				{@const grade = classInfo['quarter_info']['overall_grade']}
 				{#if grade['name'] != 'N/A'}
 					{@const gradeNum = +grade['percent']}
@@ -159,12 +195,19 @@
 							</div>
 							<div class="stat-desc">
 								{classInfo['name']}
-								<button
+								<label
+									for="my-modal"
+									class="ml-3 float-right btn-xs btn btn-primary"
+									on:click={() => {
+										selectedClass = classInfo;
+									}}>More</label
+								>
+								<!-- <button
 									class="ml-3 float-right btn-xs btn btn-primary"
 									on:click={() => {
 										window.alert('hi');
 									}}>More</button
-								>
+								> -->
 							</div>
 						</div>
 					</div>
@@ -172,8 +215,8 @@
 			{/each}
 		</div>
 	</div>
-	<h3 class="text-[3.5vw] m-3">Grade history</h3>
+	<h3 class="text-[3.5vw] m-3">All-time grade history</h3>
 	<div class="relative p-3 h-xl w-full">
-		<canvas bind:this={_chartElement} width="400" height="400" />
+		<canvas bind:this={_allTimeChartElement} width="400" height="300" />
 	</div>
 {/if}

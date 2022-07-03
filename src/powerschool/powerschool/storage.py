@@ -1,8 +1,6 @@
 import json
-import random
-import sys
 import time
-from collections import defaultdict
+
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -31,43 +29,10 @@ def set_auth(auth: Dict[str, str]) -> bool:
 def save(output, quarters: List[str]) -> None:
     filename = f"{time.time()}.json"
     for quarter in output:
-        store = HISTORY_DIR / (quarters[-1] if quarter == "Latest" else quarter)
+        store = HISTORY_DIR / (
+            quarters[-1] if quarter.startswith("Latest") else quarter
+        )
         (store).mkdir(exist_ok=True)
 
         (store / filename).touch()
         (store / filename).write_text(json.dumps(output[quarter]))
-
-
-def main():
-    quarter = sys.argv[1]
-    labels = []
-
-    classes = defaultdict(list)
-    for file in sorted((HISTORY_DIR / quarter).iterdir()):
-        labels.append(file.stem)
-        scrape = json.loads(file.read_text())
-        for period in scrape:
-            classes[scrape[period]["class_name"]].append(
-                float(scrape[period]["quarter_info"]["percent"])
-            )
-    print(
-        json.dumps(
-            {
-                "labels": labels,
-                "datasets": [
-                    {
-                        "label": k,
-                        "data": v,
-                        "fill": False,
-                        "borderColor": f"rgb({tuple(random.choices(range(256), k=3))})",
-                        "tension": 0.1,
-                    }
-                    for k, v in classes.items()
-                ],
-            }
-        )
-    )
-
-
-if __name__ == "__main__":
-    main()
