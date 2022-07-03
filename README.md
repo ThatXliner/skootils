@@ -1,5 +1,7 @@
 # Skootils
 
+[![DeepSource](https://deepsource.io/gh/ThatXliner/skootils.svg/?label=active+issues&show_trend=true&token=u1bC2s_2GPOsIJJOEL9QsePh)](https://deepsource.io/gh/ThatXliner/skootils/?ref=repository-badge) [![DeepSource](https://deepsource.io/gh/ThatXliner/skootils.svg/?label=resolved+issues&show_trend=true&token=u1bC2s_2GPOsIJJOEL9QsePh)](https://deepsource.io/gh/ThatXliner/skootils/?ref=repository-badge)
+
 > Utilities for School
 
 Work in progress. Fully packaged binaries and landing page coming soon!
