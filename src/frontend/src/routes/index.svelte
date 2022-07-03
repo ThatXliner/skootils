@@ -1,6 +1,7 @@
 <!-- TODO: Better layout that includes more info and PowerSchool stuff -->
 <script>
-	import exampleSrc from '$lib/assets/example.jpeg';
+	import exampleSrc from '$lib/assets/calendar.jpeg';
+	import powerschoolSrc from '$lib/assets/powerschool.png';
 </script>
 
 <main class="overflow-x-hidden">
@@ -47,16 +48,12 @@
 				<div>
 					<h1 class="text-4xl">PowerSchool++</h1>
 					<p class="py-6">
-						Better grade viewing experience. Track your history and experiment with future
+						The better grade viewing experience. Track your history and experiment with future
 						assignments.
 					</p>
 					<a href="/powerschool" class="m-auto btn btn-primary">Get Started</a>
 				</div>
-				<img
-					src="https://api.lorem.space/image/movie?w=260&h=400"
-					class="max-w-sm rounded-lg shadow-2xl"
-					alt="Filler"
-				/>
+				<img src={powerschoolSrc} class="rounded-lg max-w-[50%]" alt="Demo" />
 			</div>
 		</div>
 	</section>
