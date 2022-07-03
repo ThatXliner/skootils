@@ -98,6 +98,35 @@
 			options: CHARTOPTIONS
 		});
 	}
+	function calculateGPA(data: {
+		// Period: class
+		[key: string]: ClassInfo;
+	}): number {
+		let scores: number[] = [];
+		const GRADE_NAME_TO_GPA = {
+			'A+': 4,
+			A: 4,
+			'A-': 3.7,
+			'B+': 3.3,
+			B: 3,
+			'B-': 2.7,
+			'C+': 2.3,
+			C: 2.0,
+			'C-': 1.7,
+			'D+': 1.3,
+			D: 1.0
+		};
+		for (let info of Object.values(data)) {
+			let gradeName = info['quarter_info']['overall_grade']['name'];
+			if (gradeName !== 'N/A') {
+				// @ts-ignore
+				scores.push(GRADE_NAME_TO_GPA[info['quarter_info']['overall_grade']['name']] ?? 0);
+			}
+		}
+		return scores.reduce((a, b) => a + b, 0) / scores.length;
+	}
+	$: gpa =
+		currentQuarter !== undefined && data !== null ? calculateGPA(data[currentQuarter]) : null;
 
 	onMount(() => {
 		data = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
@@ -165,6 +194,7 @@
 	<div class="py-2 bg-base-200">
 		<!-- <h1 class="text-3xl text-center">Quick look</h1> -->
 		<!-- MARK: Grades -->
+		<p class="ml-3 badge badge-lg badge-primary">GPA: {gpa}</p>
 		<div class="flex flex-wrap justify-evenly">
 			{#each Object.values(data[currentQuarter]) as classInfo}
 				{@const grade = classInfo['quarter_info']['overall_grade']}
