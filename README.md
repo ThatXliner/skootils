@@ -6,12 +6,13 @@
 
 Work in progress. Fully packaged binaries and landing page coming soon!
 
-Current features:
+## :sparkles: Current features
+
  - PowerSchool
-  - GPA calculator
-  - Grade history graph
+   - GPA calculator
+   - Grade history graph
  - Learn@vcs
-  - Scrapes all lesson plans and displays them in one unified page
+   - Scrapes all lesson plans and displays them in one unified page
 
 <details>
 
