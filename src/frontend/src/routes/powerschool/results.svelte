@@ -77,6 +77,7 @@
 		if (allTimeChart !== undefined) {
 			allTimeChart.destroy();
 		}
+		// @ts-ignore
 		allTimeChart = new Chart(ctx, {
 			type: 'line',
 			data: allTimeGradeData,
@@ -92,16 +93,14 @@
 		if (quarterChart !== undefined) {
 			quarterChart.destroy();
 		}
+		// @ts-ignore
 		quarterChart = new Chart(ctx, {
 			type: 'line',
 			data: quarterGradeData,
 			options: CHARTOPTIONS
 		});
 	}
-	function calculateGPA(data: {
-		// Period: class
-		[key: string]: ClassInfo;
-	}): number {
+	function calculateGPA(data: { [key: string]: ClassInfo }): number {
 		let scores: number[] = [];
 		const GRADE_NAME_TO_GPA = {
 			'A+': 4,
