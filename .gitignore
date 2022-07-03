@@ -1,13 +1,17 @@
+# General stuff
+.DS_Store
+.env
+.env.*
+# Python stuff
 .venv/
 __pycache__/
 .hypothesis/
 .pytest_cache/
-.DS_Store
 .mypy_cache/
-.env
 htmlcov/
 dist/
 build/
 .coverage*
+# Example files and logs
 *.log
 example*.json
