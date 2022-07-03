@@ -6,10 +6,12 @@
 
 Work in progress. Fully packaged binaries and landing page coming soon!
 
-Priorities (help is appreciated):
-
-- [PowerSchool grade timeline](https://github.com/ThatXliner/skootils/issues/29)
-- [learn@vcs date regex](https://github.com/ThatXliner/skootils/issues/28)
+Current features:
+ - PowerSchool
+  - GPA calculator
+  - Grade history graph
+ - Learn@vcs
+  - Scrapes all lesson plans and displays them in one unified page
 
 <details>
 
