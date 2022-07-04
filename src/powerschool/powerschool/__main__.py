@@ -28,6 +28,7 @@ def main() -> None:
         output = bot.get(json.loads(input()))
         print(json.dumps(output))
         storage.save(output, quarters)
+        storage.save_teachers(output)
 
 
 if __name__ == "__main__":
