@@ -42,7 +42,7 @@
 			</div>
 		</div>
 	</section>
-	<section class="h-screen bg-green-300 dark:bg-green-700 dark:text-black" id="powerschool">
+	<section class="h-screen bg-green-300 dark:bg-emerald-800" id="powerschool">
 		<div class="hero h-[100%]">
 			<div class="hero-content flex-row">
 				<div>
