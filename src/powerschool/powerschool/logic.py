@@ -28,7 +28,7 @@ def get_weights(scrapes: List[Scrape]) -> Dict[str, float]:
     print(list(weight_symbols.keys()))
     output = linsolve(Matrix(eqs), list(weight_symbols.values()))
     assert len(output) == 1
-    return {k: v for k, v in zip(weight_symbols.keys(), set(output).pop())}
+    return dict(zip(weight_symbols.keys(), set(output).pop()))
 
 
 def whatif(
