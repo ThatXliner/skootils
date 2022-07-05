@@ -48,7 +48,6 @@ wordlist = [
     r"(begin|continue|finish) \w+ing",
     f"due(.+{DAYS})",
     rf"by(.+{DAYS})",
-    # rf"\b{DAYS}\b",
 ]
 
 HIGHLIGHT_ME = re.compile(

@@ -52,33 +52,6 @@ class PowerSchool:
     driver: BrowserContext = field(init=False)
     home_table: BrowserContext = field(init=False)
 
-    # def can_i_tank_it(
-    #     self,
-    #     for_period: str,
-    #     assignment_type: str,
-    #     points: float,
-    #     current_offset: int,
-    #     offset_1: int,
-    #     offset_2: int,
-    #     tank_standard: float = 93.0,
-    # ):
-    #     info_1 = self.full_info_scrape(offset_1)
-    #     info_2 = self.full_info_scrape(offset_2)
-    #     weight = calculate_weights(info_1[for_period], info_2[for_period])[
-    #         assignment_type
-    #     ]
-    #     # c = map(lambda x:,self.full_info_scrape(current_offset)[for_period]['scores'])
-    #     # return calc_grade() >= tank_standard
-
-    # @property
-    # def info(self):
-    #     if self._info is None:
-    #         self._info = self.full_info_scrape()
-    #     return self._info
-    #
-    # @info.deleter
-    # def _(self):
-    #     self._info = None
     def _login(self) -> None:
         self.driver.query_selector("#fieldAccount").type(self.username)
         self.driver.query_selector("#fieldPassword").type(self.password)
@@ -214,7 +187,3 @@ class PowerSchool:
                 reporter.increment()
             reporter.finish()
         return output
-
-    def teachers(self):
-        raise NotImplementedError
-        # return self.info[]

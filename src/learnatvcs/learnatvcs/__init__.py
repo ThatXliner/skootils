@@ -127,10 +127,6 @@ def _lesson_plan_pipeline(contents: str) -> str:
     return str(highlight(process_data.clean_html(process_data.to_soup(contents))))
 
 
-# class Spider:
-#     def start(self, for_dates):
-#         self.target_dates = for_dates
-#
 def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
     """Get raw scrape data"""
     # TODO: Choose quarters
