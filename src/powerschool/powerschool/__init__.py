@@ -67,7 +67,8 @@ class PowerSchool:
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.browser.close()
 
-    def _convert_asignment_row(self, score_row):
+    @staticmethod
+    def _convert_asignment_row(score_row):
         assignment_info = score_row("td")
         date = datetime.datetime.strptime(assignment_info[0].get_text(), "%m/%d/%Y")
         return {
