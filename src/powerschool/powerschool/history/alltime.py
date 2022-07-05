@@ -26,7 +26,7 @@ def main():
         colors.rotate()
         return colors[0]
 
-    classes = defaultdict(lambda: (list(), pickColor()))
+    classes = defaultdict(lambda: ([], pickColor()))
     # TODO: multithreading for maximum efficiency
     for i, file in enumerate(sorted((HISTORY_DIR / quarter).iterdir()), start=1):
         labels.append(f"Scrape #{i}")
