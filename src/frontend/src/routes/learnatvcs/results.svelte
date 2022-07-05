@@ -43,7 +43,7 @@
 {:else}
 	<div class="navbar border-b-2">
 		<div class="navbar-start">
-			<HomeButton />
+			<span class="pl-4 font-semibold text-xl">Results</span>
 		</div>
 		<div class="navbar-center">
 			{#if DATETYPE === null}
@@ -76,7 +76,7 @@
 			{/if}
 		</div>
 		<div class="navbar-end">
-			<span class="pl-4 font-semibold text-xl">Results</span>
+			<HomeButton />
 		</div>
 	</div>
 
@@ -123,7 +123,7 @@
 				<div id="plans">
 					<h3 class="text-2xl font-bold">Lesson plans</h3>
 					<p>Also highlights dates (beta)</p>
-					<article class="lesson-plan  max-h-96 overflow-y-scroll">
+					<article class="lesson-plan max-h-96 overflow-y-scroll">
 						{@html DOMPurify.sanitize(output[selectedDate][selectedClassKey], {
 							ADD_TAGS: ['iframe'],
 							ADD_ATTR: ['target']
@@ -154,7 +154,7 @@
 						<span class="text-xl"
 							>{className} <span class="text-xs pt-2 text-gray-500">{teacher}</span></span
 						>
-						<article class="lesson-plan">
+						<article class="lesson-plan mt-2">
 							{@html DOMPurify.sanitize(contents, {
 								ADD_ATTR: ['target']
 							})}
@@ -201,6 +201,6 @@
 		content: url("data:image/svg+xml,%3Csvg width='1.25em' height='1.25em' fill='currentColor' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z'/%3E%3Cpath d='M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z'/%3E%3C/svg%3E%0A");
 	}
 	.lesson-plan {
-		@apply prose rounded-box max-w-none border-4 p-2 pl-3;
+		@apply prose rounded-box border-4 p-2 pl-3;
 	}
 </style>

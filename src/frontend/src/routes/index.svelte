@@ -23,7 +23,7 @@
 		</div>
 	</section>
 
-	<section class="h-screen bg-cyan-300" id="learnatvcs">
+	<section class="h-screen bg-cyan-300 dark:bg-blue-900" id="learnatvcs">
 		<div class="hero h-[100%]">
 			<div class="hero-content flex-row">
 				<img src={exampleSrc} alt="Example" class="mx-3 rounded-lg shadow-2xl max-w-[50%]" />
@@ -42,7 +42,7 @@
 			</div>
 		</div>
 	</section>
-	<section class="h-screen bg-green-300" id="powerschool">
+	<section class="h-screen bg-green-300 dark:bg-green-700 dark:text-black" id="powerschool">
 		<div class="hero h-[100%]">
 			<div class="hero-content flex-row">
 				<div>
