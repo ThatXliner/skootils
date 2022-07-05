@@ -58,7 +58,7 @@
 			>
 			<input
 				type="number"
-				class="w-10 text-center"
+				class="w-10 text-center bg-base-100"
 				bind:value={selectedDay}
 				on:blur={() => {
 					if (selectedDay < 1) {

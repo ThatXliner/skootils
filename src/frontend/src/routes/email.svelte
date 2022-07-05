@@ -142,7 +142,7 @@
 				</div>
 				<div class="form-control">
 					<button
-						class="link link-primary"
+						class="link link-secondary"
 						on:click={() => {
 							hasInfo = false;
 						}}>Update student info</button

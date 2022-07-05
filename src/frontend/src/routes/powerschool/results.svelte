@@ -201,7 +201,7 @@
 				{#if grade['name'] != 'N/A'}
 					{@const gradeNum = +grade['percent']}
 					<div
-						class="stats m-2 w-fit shadow-xl"
+						class="stats m-2 w-fit shadow-xl dark:text-black"
 						class:bg-green-400={gradeNum >= 98}
 						class:bg-green-300={98 > gradeNum && gradeNum >= 90}
 						class:bg-yellow-400={90 > gradeNum && gradeNum >= 70}
