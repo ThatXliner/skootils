@@ -44,7 +44,7 @@ periods = (
 )
 DAYS = f'(?:{"|".join(periods)})'
 wordlist = [
-    f"(next|following) (class|period|week|month|year)",
+    "(next|following) (class|period|week|month|year)",
     r"(begin|continue|finish) \w+ing",
     f"due(.+{DAYS})",
     rf"by(.+{DAYS})",

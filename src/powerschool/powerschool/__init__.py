@@ -99,7 +99,7 @@ class PowerSchool:
     def get_quarters(self) -> List[str]:
         return [
             el.string
-            for el in self.home_table.table.tbody.tr.select(f"th")
+            for el in self.home_table.table.tbody.tr.select("th")
             if el.string[1].isdigit()
         ]
 
@@ -113,7 +113,7 @@ class PowerSchool:
         for quarter in quarters or [None]:
             reporter.start()
             offset = -3  # Because the rightmost contains "Absences" and "Tardies"
-            heads = soup.table.tbody.tr.select(f"th")
+            heads = soup.table.tbody.tr.select("th")
             if quarter is not None:
                 offset = -(len(heads) - [el.string for el in heads].index(quarter))
 
@@ -144,7 +144,7 @@ class PowerSchool:
                 # first_name = name_info.group(3)
                 name = title + " " + last_name
 
-                current_quarter = row.select(f"td")[offset]
+                current_quarter = row.select("td")[offset]
                 current_grade = current_quarter.a
                 current_grade_name = current_grade_percent = NOT_AVAILABLE
                 assignments = []
