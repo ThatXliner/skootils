@@ -1,46 +1,18 @@
 """A browser-automation-based API for PowerSchool"""
 import asyncio
-import datetime
 import re
-import urllib.parse as urlparse
-from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import reduce
 from typing import Dict, List, Optional
 
 import aiohttp
-from bs4 import BeautifulSoup, SoupStrainer
-from sympy import Symbol
-from sympy.solvers.solveset import linsolve
-
 import interprog
+from bs4 import BeautifulSoup, SoupStrainer
 
 __version__ = "0.1.0"
 
 
-def calculate_weight(info_1, info_2, weight) -> dict:
-    def eval_score(s):
-        a, b = s.split("/")
-        try:
-            return float(a) / int(b)
-        except:
-            return 0
-
-    a1 = defaultdict(int)
-    a2 = defaultdict(int)
-    for a in info_1["scores"]:
-        a1[a["type"]] += eval_score(a["score"])
-    for a in info_2["scores"]:
-        a2[a["type"]] += eval_score(a["score"])
-    symbols = {name: Symbol(name) for name in set(a1.keys()).union(set(a2.keys()))}
-
-    return linsolve(
-        sum(symbols[name] * v for name, v in a1.values()),
-        sum(symbols[name] * v for name, v in a2.values()),
-        symbols[weight],
-    )
-
-
+NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
 NOT_AVAILABLE = "N/A"
 
 OutputType = Dict[str, Dict[str, str]]
@@ -54,7 +26,8 @@ class PowerSchool:
     session: aiohttp.ClientSession = field(init=False)
     home_table: BeautifulSoup = field(init=False)
     student_id: Optional[int] = None
-    reporter: interprog.TaskManager = field(default_factory=interprog.TaskManager)
+    _reporter: interprog.TaskManager = field(default_factory=interprog.TaskManager)
+    _class_to_sectionid: Dict[str, int] = field(default_factory=dict)
 
     async def __aenter__(self) -> "PowerSchool":
         self.session = aiohttp.ClientSession()
@@ -193,24 +166,19 @@ class PowerSchool:
     async def get(self, quarters: Optional[List[str]] = None) -> OutputType:
         soup = self.home_table
         output: OutputType = {}
-        reporter = self.reporter
-        reporter.add_task("Scraping")
-        section_ids = {}  # a cache
+
+        self._reporter.add_task("Scraping")
         tasks = []
-        reporter.start()
+        self._reporter.start()
         for quarter in quarters or [None]:
             tasks.append(
-                asyncio.create_task(
-                    self._scrape_quarter(soup, output, quarter, section_ids)
-                )
+                asyncio.create_task(self._scrape_quarter(soup, output, quarter))
             )
         await asyncio.gather(*tasks)
-        reporter.finish()
+        self._reporter.finish()
         return output
 
-    async def _scrape_quarter(
-        self, soup: BeautifulSoup, output, quarter: str, section_ids
-    ):
+    async def _scrape_quarter(self, soup: BeautifulSoup, output, quarter: str):
         offset = -3  # Because the rightmost contains "Absences" and "Tardies"
         heads = soup.table.tr.select("th")
         if quarter is not None:
@@ -221,88 +189,93 @@ class PowerSchool:
         quarter_key = quarter or f"Latest ({current_quarter_name})"
         output[quarter_key] = {}
         _output = output[quarter_key]  # Don't use references if we're using a lock
+
         # Row of class info
-        NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
         classes = soup.table.select("[id^='ccid_']")
 
         for row in classes:
-            period = row.td.string
-            misc = row.find("td", align="left")
-            class_name = misc.contents[0].strip()
-            # Email and teacher name
-            email_info = misc("a")[-1]
-            email = email_info["href"][len("mailto:") :]
-            name_info = NAME_RE.search(email_info.get_text())
-            last_name = name_info.group(1)
-            title = name_info.group(2)
-            # first_name = name_info.group(3)
-            name = title + " " + last_name
+            await self._scrape_class(offset, current_quarter_name, _output, row)
 
-            current_quarter = row.select("td")[offset]
-            current_grade = current_quarter.a
-            current_grade_name = current_grade_percent = NOT_AVAILABLE
-            assignments = []
-            # TODO: Only add classes that have grades for this quarter
-            # (in other words, don't add to the output)
-            if current_grade:
-                _page = None
-                if self.student_id is None:
-                    if _page is None:
-                        async with self.session.get(
-                            "https://powerschool.vcs.net/guardian/"
-                            + current_grade["href"]
-                        ) as resp:
-                            _page = await resp.text()
-                    self.student_id = int(
-                        re.search(r"studentFRN.+?(\d+)", _page).group(1)[3:]
-                    )
-                if class_name not in section_ids:
-                    if _page is None:
-                        async with self.session.get(
-                            "https://powerschool.vcs.net/guardian/"
-                            + current_grade["href"]
-                        ) as resp:
-                            _page = await resp.text()
-                    section_ids[class_name] = int(
-                        BeautifulSoup(
-                            _page,
-                            features="html.parser",
-                            parse_only=SoupStrainer(attrs={"data-sectionid": True}),
-                        ).div["data-sectionid"]
-                    )
-                try:
-                    current_grade_name = current_grade.contents[0]
-                    current_grade_percent = current_grade.contents[-1]
-                except AttributeError:
-                    current_grade_name = current_grade_percent = NOT_AVAILABLE
-                async with self.session.post(
-                    "https://powerschool.vcs.net/ws/xte/assignment/lookup",
-                    headers={"Referer": "https://powerschool.vcs.net/public"},
-                    json={
-                        # dunno why it's a list
-                        "section_ids": [section_ids[class_name]],
-                        "student_ids": [self.student_id],
-                        # 'Specify store_codes, or start_date and end_date'
-                        "store_codes": [current_quarter_name],
-                    },
-                ) as resp:
-                    assignments.extend(
-                        [
-                            self._make_assignment(assignment)
-                            for assignment in await resp.json()
-                        ]
-                    )
-            _output[period.upper()] = {  # TODO: Change format
-                "name": name,
-                "class_name": class_name,
-                "email": email,
-                "quarter_info": {
-                    "name": current_quarter_name,
-                    "overall_grade": {
-                        "name": current_grade_name,
-                        "percent": current_grade_percent,
-                    },
-                    "scores": assignments,
+    async def _scrape_class(
+        self, offset: int, quarter: str, _output, row: BeautifulSoup
+    ):
+        period = row.td.string
+        misc = row.find("td", align="left")
+        class_name = misc.contents[0].strip()
+        # Email and teacher name
+        email_info = misc("a")[-1]
+        email = email_info["href"][len("mailto:") :]
+        name_info = NAME_RE.search(email_info.get_text())
+        last_name = name_info.group(1)
+        title = name_info.group(2)
+        # first_name = name_info.group(3)
+        name = title + " " + last_name
+
+        current_quarter = row.select("td")[offset]
+        current_grade = current_quarter.a
+        current_grade_name = current_grade_percent = NOT_AVAILABLE
+        assignments = []
+        # TODO: Only add classes that have grades for this quarter
+        # (in other words, don't add to the output)
+        if current_grade:
+            try:
+                current_grade_name = current_grade.contents[0]
+                current_grade_percent = current_grade.contents[-1]
+            except AttributeError:
+                current_grade_name = current_grade_percent = NOT_AVAILABLE
+            await self._setup_cachables(class_name, current_grade)
+
+            assignments.extend(await self._scrape_assignments(quarter, class_name))
+        _output[period.upper()] = {  # TODO: Change format
+            "name": name,
+            "class_name": class_name,
+            "email": email,
+            "quarter_info": {
+                "name": quarter,
+                "overall_grade": {
+                    "name": current_grade_name,
+                    "percent": current_grade_percent,
                 },
-            }
-            # self.reporter.increment()
+                "scores": assignments,
+            },
+        }
+
+    async def _setup_cachables(self, class_name: str, current_grade: Dict[str, str]):
+        """Initializes self.student_id and self._class_to_sectionid"""
+        _page = None
+        if self.student_id is None:
+            if _page is None:
+                async with self.session.get(
+                    "https://powerschool.vcs.net/guardian/" + current_grade["href"]
+                ) as resp:
+                    _page = await resp.text()
+            self.student_id = int(re.search(r"studentFRN.+?(\d+)", _page).group(1)[3:])
+        if class_name not in self._class_to_sectionid:
+            if _page is None:
+                async with self.session.get(
+                    "https://powerschool.vcs.net/guardian/" + current_grade["href"]
+                ) as resp:
+                    _page = await resp.text()
+            self._class_to_sectionid[class_name] = int(
+                BeautifulSoup(
+                    _page,
+                    features="html.parser",
+                    parse_only=SoupStrainer(attrs={"data-sectionid": True}),
+                ).div["data-sectionid"]
+            )
+
+    async def _scrape_assignments(self, quarter: str, class_name: str):
+        async with self.session.post(
+            "https://powerschool.vcs.net/ws/xte/assignment/lookup",
+            headers={"Referer": "https://powerschool.vcs.net/public"},
+            json={
+                # dunno why it's a list
+                "section_ids": [self._class_to_sectionid[class_name]],
+                "student_ids": [self.student_id],
+                # 'Specify store_codes, or start_date and end_date'
+                "store_codes": [quarter],
+            },
+        ) as resp:
+            return [
+                self._make_assignment(assignment) for assignment in await resp.json()
+            ]
