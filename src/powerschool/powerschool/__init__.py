@@ -6,9 +6,8 @@ from functools import reduce
 from typing import Dict, List, Optional
 
 import aiohttp
-from bs4 import BeautifulSoup, SoupStrainer
-
 import interprog
+from bs4 import BeautifulSoup, SoupStrainer
 
 __version__ = "0.1.0"
 
