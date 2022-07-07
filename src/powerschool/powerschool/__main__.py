@@ -1,6 +1,9 @@
 import json
 
 from powerschool import PowerSchool, storage
+from pathlib import Path
+
+MOCK = False
 
 
 def main() -> None:
@@ -11,17 +14,19 @@ def main() -> None:
     auth = cred or json.loads(input())  # TODO: Remember?
     if cred is None:
         storage.set_auth(auth)
-    # input('["haha","L"]\n')
-    # print(
-    #     json.dumps(
-    #         json.loads(
-    #             (Path(__file__).parent.parent / "example-large.json").read_text()
-    #         )
-    #     )
-    # )
+    if MOCK:
+        input('["haha","L"]\n')
+        print(
+            json.dumps(
+                json.loads(
+                    (Path(__file__).parent.parent / "example-large.json").read_text()
+                )
+            )
+        )
+        return
 
     with PowerSchool(
-        "https://powerschool.vcs.net/public", auth["username"], auth["password"]
+        "https://powerschool.vcs.net", auth["username"], auth["password"]
     ) as bot:
         quarters = bot.get_quarters()
         print(json.dumps(quarters))
