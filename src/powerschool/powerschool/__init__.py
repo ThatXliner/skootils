@@ -1,11 +1,12 @@
 """A browser-automation-based API for PowerSchool"""
+import asyncio
 import datetime
 import re
 import urllib.parse as urlparse
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
-import requests
+import aiohttp
 from bs4 import BeautifulSoup, SoupStrainer
 from sympy import Symbol
 from sympy.solvers.solveset import linsolve
@@ -49,25 +50,27 @@ class PowerSchool:
     url: str
     username: str
     password: str
-    session: requests.Session = field(init=False)
+    session: aiohttp.ClientSession = field(init=False)
     home_table: BeautifulSoup = field(init=False)
+    student_id: Optional[int] = None
+    reporter: interprog.TaskManager = field(default_factory=interprog.TaskManager)
 
-    def __enter__(self) -> "PowerSchool":
-        self.session = requests.Session()
-        self.session.post(
+    async def __aenter__(self) -> "PowerSchool":
+        self.session = aiohttp.ClientSession()
+        async with self.session.post(
             self.url + "/guardian/home.html",
             data={"account": self.username, "pw": self.password},
-        ).raise_for_status()
-        self.home_table = BeautifulSoup(
-            self.session.get(self.url + "/guardian/home.html").text,
-            features="html.parser",
-            # parse_only=SoupStrainer(id="quickLookup"),
-        ).find(id="quickLookup")
+        ) as resp:
+            resp.raise_for_status()
+        async with self.session.get(self.url + "/guardian/home.html") as resp:
+            self.home_table = BeautifulSoup(
+                await resp.text(), features="html.parser"
+            ).find(id="quickLookup")
         # print(self.home_table)
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
-        self.session.close()
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        await self.session.close()
 
     @staticmethod
     def _get_flags(score) -> int:
@@ -186,113 +189,119 @@ class PowerSchool:
         ]
 
     # DEPRECATE: Don't allow None as an option
-    def get(self, quarters: Optional[List[str]] = None) -> OutputType:
+    async def get(self, quarters: Optional[List[str]] = None) -> OutputType:
         soup = self.home_table
         output: OutputType = {}
-        reporter = interprog.TaskManager()
-        for quarter in quarters or ["Latest"]:
-            reporter.add_task(quarter, total=-1)
-        student_id = None
-        section_ids = {}
+        reporter = self.reporter
+        reporter.add_task("Scraping")
+        section_ids = {}  # a cache
+        tasks = []
+        reporter.start()
         for quarter in quarters or [None]:
-            reporter.start()
-            offset = -3  # Because the rightmost contains "Absences" and "Tardies"
-            heads = soup.table.tr.select("th")
-            if quarter is not None:
-                offset = -(len(heads) - [el.string for el in heads].index(quarter))
+            tasks.append(
+                asyncio.create_task(
+                    self._scrape_quarter(soup, output, quarter, section_ids)
+                )
+            )
+        await asyncio.gather(*tasks)
+        reporter.finish()
+        return output
 
-            current_quarter_name = heads[offset].string
+    async def _scrape_quarter(
+        self, soup: BeautifulSoup, output, quarter: str, section_ids
+    ):
+        offset = -3  # Because the rightmost contains "Absences" and "Tardies"
+        heads = soup.table.tr.select("th")
+        if quarter is not None:
+            offset = -(len(heads) - [el.string for el in heads].index(quarter))
 
-            quarter_key = quarter or f"Latest ({current_quarter_name})"
-            output[quarter_key] = {}
-            _output = output[quarter_key]
-            # Row of class info
-            NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
-            classes = soup.table.select("[id^='ccid_']")
-            # TODO: Only classes that have grades for this quarter
+        current_quarter_name = heads[offset].string
+
+        quarter_key = quarter or f"Latest ({current_quarter_name})"
+        output[quarter_key] = {}
+        _output = output[quarter_key]  # Don't use references if we're using a lock
+        # Row of class info
+        NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
+        classes = soup.table.select("[id^='ccid_']")
+
+        for row in classes:
+            period = row.td.string
+            misc = row.find("td", align="left")
+            class_name = misc.contents[0].strip()
+            # Email and teacher name
+            email_info = misc("a")[-1]
+            email = email_info["href"][len("mailto:") :]
+            name_info = NAME_RE.search(email_info.get_text())
+            last_name = name_info.group(1)
+            title = name_info.group(2)
+            # first_name = name_info.group(3)
+            name = title + " " + last_name
+
+            current_quarter = row.select("td")[offset]
+            current_grade = current_quarter.a
+            current_grade_name = current_grade_percent = NOT_AVAILABLE
+            assignments = []
+            # TODO: Only add classes that have grades for this quarter
             # (in other words, don't add to the output)
-            reporter.set_total(len(classes))
-            # TODO: parallelize
-
-            for row in classes:
-                period = row.td.string
-                misc = row.find("td", align="left")
-                class_name = misc.contents[0].strip()
-                # Email and teacher name
-                email_info = misc("a")[-1]
-                email = email_info["href"][len("mailto:") :]
-                name_info = NAME_RE.search(email_info.get_text())
-                last_name = name_info.group(1)
-                title = name_info.group(2)
-                # first_name = name_info.group(3)
-                name = title + " " + last_name
-
-                current_quarter = row.select("td")[offset]
-                current_grade = current_quarter.a
-                current_grade_name = current_grade_percent = NOT_AVAILABLE
-                assignments = []
-                if current_grade:
-                    _page = None
-                    if student_id is None:
-                        if _page is None:
-                            _page = self.session.get(
-                                "https://powerschool.vcs.net/guardian/"
-                                + current_grade["href"]
-                            ).text
-                        student_id = int(
-                            re.search(r"studentFRN.+?(\d+)", _page).group(1)[3:]
-                        )
-                    if class_name not in section_ids:
-                        if _page is None:
-                            _page = self.session.get(
-                                "https://powerschool.vcs.net/guardian/"
-                                + current_grade["href"]
-                            ).text
-                        section_ids[class_name] = int(
-                            BeautifulSoup(
-                                _page,
-                                features="html.parser",
-                                parse_only=SoupStrainer(attrs={"data-sectionid": True}),
-                            ).div["data-sectionid"]
-                        )
-                    try:
-                        current_grade_name = current_grade.contents[0]
-                        current_grade_percent = current_grade.contents[-1]
-                    except AttributeError:
-                        current_grade_name = current_grade_percent = NOT_AVAILABLE
-
+            if current_grade:
+                _page = None
+                if self.student_id is None:
+                    if _page is None:
+                        async with self.session.get(
+                            "https://powerschool.vcs.net/guardian/"
+                            + current_grade["href"]
+                        ) as resp:
+                            _page = await resp.text()
+                    self.student_id = int(
+                        re.search(r"studentFRN.+?(\d+)", _page).group(1)[3:]
+                    )
+                if class_name not in section_ids:
+                    if _page is None:
+                        async with self.session.get(
+                            "https://powerschool.vcs.net/guardian/"
+                            + current_grade["href"]
+                        ) as resp:
+                            _page = await resp.text()
+                    section_ids[class_name] = int(
+                        BeautifulSoup(
+                            _page,
+                            features="html.parser",
+                            parse_only=SoupStrainer(attrs={"data-sectionid": True}),
+                        ).div["data-sectionid"]
+                    )
+                try:
+                    current_grade_name = current_grade.contents[0]
+                    current_grade_percent = current_grade.contents[-1]
+                except AttributeError:
+                    current_grade_name = current_grade_percent = NOT_AVAILABLE
+                async with self.session.post(
+                    "https://powerschool.vcs.net/ws/xte/assignment/lookup",
+                    headers={"Referer": "https://powerschool.vcs.net/public"},
+                    json={
+                        # dunno why it's a list
+                        "section_ids": [section_ids[class_name]],
+                        "student_ids": [self.student_id],
+                        # 'Specify store_codes, or start_date and end_date'
+                        "store_codes": [current_quarter_name],
+                    },
+                ) as resp:
                     assignments.extend(
                         [
                             self._make_assignment(assignment)
-                            for assignment in self.session.post(
-                                "https://powerschool.vcs.net/ws/xte/assignment/lookup",
-                                headers={
-                                    "Referer": "https://powerschool.vcs.net/public"
-                                },
-                                json={
-                                    # dunno why it's a list
-                                    "section_ids": [section_ids[class_name]],
-                                    "student_ids": [student_id],
-                                    # 'Specify store_codes, or start_date and end_date'
-                                    "store_codes": [current_quarter_name],
-                                },
-                            ).json()
+                            for assignment in await resp.json()
                         ]
                     )
-
-                _output[period.upper()] = {  # TODO: Change format
-                    "name": name,
-                    "class_name": class_name,
-                    "email": email,
-                    "quarter_info": {
-                        "name": current_quarter_name,
-                        "overall_grade": {
-                            "name": current_grade_name,
-                            "percent": current_grade_percent,
-                        },
-                        "scores": assignments,
+            _output[period.upper()] = {  # TODO: Change format
+                "name": name,
+                "class_name": class_name,
+                "email": email,
+                "quarter_info": {
+                    "name": current_quarter_name,
+                    "overall_grade": {
+                        "name": current_grade_name,
+                        "percent": current_grade_percent,
                     },
-                }
-                reporter.increment()
-            reporter.finish()
-        return output
+                    "scores": assignments,
+                },
+            }
+            # self.reporter.increment()

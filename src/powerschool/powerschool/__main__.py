@@ -1,4 +1,5 @@
 import json
+import asyncio
 
 from powerschool import PowerSchool, storage
 from pathlib import Path
@@ -6,7 +7,7 @@ from pathlib import Path
 MOCK = False
 
 
-def main() -> None:
+async def main() -> None:
     cred = storage.get_auth()
     HAS_CREDENTIALS = cred is not None
     print(json.dumps(HAS_CREDENTIALS))
@@ -25,16 +26,16 @@ def main() -> None:
         )
         return
 
-    with PowerSchool(
+    async with PowerSchool(
         "https://powerschool.vcs.net", auth["username"], auth["password"]
     ) as bot:
         quarters = bot.get_quarters()
         print(json.dumps(quarters))
-        output = bot.get(json.loads(input()))
+        output = await bot.get(json.loads(input()))
         print(json.dumps(output))
         storage.save(output, quarters)
         storage.save_teachers(output)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
