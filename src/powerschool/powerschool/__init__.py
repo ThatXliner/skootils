@@ -5,12 +5,13 @@ import re
 import urllib.parse as urlparse
 from collections import defaultdict
 from dataclasses import dataclass, field
+from functools import reduce
 from typing import Dict, List, Optional
+
 import aiohttp
 from bs4 import BeautifulSoup, SoupStrainer
 from sympy import Symbol
 from sympy.solvers.solveset import linsolve
-from functools import reduce
 
 import interprog
 
