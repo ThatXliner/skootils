@@ -107,8 +107,7 @@
 					</div>
 				{:else if progress !== undefined}
 					<div class="w-full">
-						<h1 class="text-2xl">Scraping...</h1>
-						<ul class="text-xl m-3">
+						<ul class="text-2xl">
 							<Interprog input={progress} />
 						</ul>
 					</div>

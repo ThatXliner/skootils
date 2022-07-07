@@ -21,10 +21,12 @@ homepage = "https://github.com/ThatXliner/powerschool"
 python = "^3.8"
 pandas = "^1.4.3"
 sympy = "^1.10.1"
-data49 = "^0.4.1"
 keyring = "^23.6.0"
 platformdirs = "^2.5.2"
 interprog = { path = "../interprog", develop = true }
+requests = "^2.28.1"
+beautifulsoup4 = "^4.11.1"
+aiohttp = "^3.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1"
@@ -37,6 +39,7 @@ hypothesis = "^6.47.5"
 shed = "^0.10.1"
 pytest-cov = "^3.0.0"
 pytest-clarity = "^1.0.1"
+types-beautifulsoup4 = "^4.11.2"
 
 [tool.poe.tasks]
 # Code linting
