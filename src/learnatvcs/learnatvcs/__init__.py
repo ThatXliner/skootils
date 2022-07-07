@@ -142,11 +142,11 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
         ),
     ) as browser:
         reporter.start()
-        ### Log in ###
+        # Log in
         browser.query_selector(".login-btn").click()
         browser.query_selector("div.potentialidp:nth-child(1) > a:nth-child(1)").click()
         reporter.finish()
-        ### For every class... ###
+        # For every class...
         # TODO: Assert #side-panel-button exists and not "which account"
         # for future auto setup
         browser.query_selector("#side-panel-button").click()
@@ -169,7 +169,7 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
             except (selenium.common.exceptions.NoSuchElementException, IndexError):
                 reporter.error("No lesson plans")
                 continue
-            ### ...go to that day's lesson plans... ###
+            # ...go to that day's lesson plans...
             date2link = {
                 ClassDay.from_str(date["innerText"]): date.get("href")
                 for date in browser.query_selector_all(".book_toc a,.book_toc strong")
@@ -192,7 +192,7 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
                     continue
                 if chosen[0] is not None:
                     browser.go(to=chosen[0])
-                ### ...and scrape it ###
+                # ...and scrape it
                 content = browser.css("section#region-main > div[role='main']")
                 output[day_key][class_name] = _lesson_plan_pipeline(
                     content["innerHTML"]
