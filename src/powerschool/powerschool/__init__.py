@@ -41,7 +41,6 @@ class PowerSchool:
             self.home_table = BeautifulSoup(
                 await resp.text(), features="html.parser"
             ).find(id="quickLookup")
-        # print(self.home_table)
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
@@ -209,7 +208,8 @@ class PowerSchool:
         name_info = NAME_RE.search(email_info.get_text())
         last_name = name_info.group(1)
         title = name_info.group(2)
-        # first_name = name_info.group(3)
+        # If we ever need this information...
+        # first_name = name_info.group(3)  # skipcq
         name = title + " " + last_name
 
         current_quarter = row.select("td")[offset]
@@ -270,7 +270,7 @@ class PowerSchool:
             "https://powerschool.vcs.net/ws/xte/assignment/lookup",
             headers={"Referer": "https://powerschool.vcs.net/public"},
             json={
-                # dunno why it's a list
+                # dunno why these are a list
                 "section_ids": [self._class_to_sectionid[class_name]],
                 "student_ids": [self.student_id],
                 # 'Specify store_codes, or start_date and end_date'
