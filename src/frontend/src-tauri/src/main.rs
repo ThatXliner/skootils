@@ -2,40 +2,10 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-
-use directories::ProjectDirs;
 #[macro_use]
 extern crate lazy_static;
-use serde_json::Value;
-use std::fs;
 use tauri::{Menu, MenuItem, Submenu};
-
-lazy_static! {
-    static ref PROJ_DIRS: ProjectDirs = ProjectDirs::from("", "", "Skootils").unwrap();
-}
-#[tauri::command]
-fn get_teachers() -> Result<Value, String> {
-    let mut file_path = PROJ_DIRS.data_dir().join("powerschool");
-    file_path.push("teachers.json");
-
-    fs::read_to_string(file_path.as_path()).map_or(Err("Could not read file".into()), |read| {
-        Ok(serde_json::from_str(read.as_str()).unwrap())
-    })
-}
-#[tauri::command]
-fn get_user_info() -> Result<Value, String> {
-    let file_path = PROJ_DIRS.data_dir().join("user.json");
-
-    fs::read_to_string(file_path.as_path()).map_or(Err("Could not read file".into()), |read| {
-        Ok(serde_json::from_str(read.as_str()).unwrap())
-    })
-}
-#[tauri::command]
-fn set_user_info(to: Value) -> Result<(), String> {
-    let file_path = PROJ_DIRS.data_dir().join("user.json");
-
-    fs::write(file_path.as_path(), to.to_string()).or(Err("Could not write file".into()))
-}
+mod commands;
 
 fn main() {
     // TODO: Better menu
@@ -74,9 +44,9 @@ fn main() {
     tauri::Builder::default()
         .menu(menu)
         .invoke_handler(tauri::generate_handler![
-            get_teachers,
-            get_user_info,
-            set_user_info
+            commands::get_teachers,
+            commands::get_user_info,
+            commands::set_user_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
