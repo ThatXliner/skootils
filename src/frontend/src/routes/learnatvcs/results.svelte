@@ -123,7 +123,7 @@
 				<div id="plans">
 					<h3 class="text-2xl font-bold">Lesson plans</h3>
 					<p>Also highlights dates (beta)</p>
-					<article class="lesson-plan max-h-96 overflow-y-scroll">
+					<article class="lesson-plan max-h-96 overflow-y-auto">
 						{@html DOMPurify.sanitize(output[selectedDate][selectedClassKey], {
 							ADD_TAGS: ['iframe'],
 							ADD_ATTR: ['target']
