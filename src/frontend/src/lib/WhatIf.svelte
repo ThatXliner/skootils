@@ -23,8 +23,6 @@
 		(assignmentCount + artificialAssignments.length);
 </script>
 
-<!-- <div class="flex space-y-4 flex-col"> -->
-<!-- <p class="p-5 bg-amber-300 rounded-box">What if I...</p> -->
 <div class="flex justify-around">
 	<span class="p-3 bg-red-300 rounded-box">Current grade: <b>{currentGrade}%</b></span>
 	<span class="p-3 bg-blue-300 rounded-box">
@@ -83,17 +81,3 @@
 		artificialAssignments = [];
 	}}>Clear all</button
 >
-
-<!-- <div class="flex justify-center mx-auto">
-	<div class="bg-base-300 p-3 w-fit ">
-		<input class="rounded bg-base-200 w-20 p-3 text-lg" type="number" min="0" bind:value={got} />
-		<span class="font-bold">out of</span>
-		<input class="rounded bg-base-200 w-20 p-3 text-lg" type="number" min="1" bind:value={total} />
-	</div>
-	<button
-		class="btn btn-primary h-full"
-		on:click={() => {
-			artificialAssignments = [...artificialAssignments, (got / total) * 100];
-		}}>Add</button
-	>
-</div> -->
