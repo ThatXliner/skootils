@@ -142,7 +142,7 @@ class PowerSchool:
             # - Mastery Assessments
             "name": info["name"],
             # TODO: Flags (missing, late, etc)
-            "flag": self._get_flags(score),
+            "flags": self._get_flags(score),
             "_raw": info,
             "score": {  # Can also be --/20 or smth like that
                 "total": info["totalpointvalue"],
