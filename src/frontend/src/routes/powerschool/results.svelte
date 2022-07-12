@@ -157,7 +157,14 @@
 			</details>
 			<details>
 				<!-- TODO -->
-				<summary>What if? <span class="badge badge-warning">Beta</span></summary>
+				<summary
+					>What if? <div
+						class="tooltip tooltip-right"
+						data-tip="Calculations may be incorrect because we are currently disregarding weights"
+					>
+						<span class="badge badge-warning">Beta</span>
+					</div></summary
+				>
 				<WhatIf
 					currentScore={selectedClass?.quarter_info.overall_grade.percent}
 					assignmentCount={selectedClass?.quarter_info.scores.length}
