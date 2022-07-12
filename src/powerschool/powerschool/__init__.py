@@ -1,4 +1,4 @@
-"""A browser-automation-based API for PowerSchool"""
+"""A fairly fast API for PowerSchool"""
 import asyncio
 import re
 from dataclasses import dataclass, field
