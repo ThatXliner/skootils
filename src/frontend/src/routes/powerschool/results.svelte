@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Command } from '@tauri-apps/api/shell';
 	import HomeButton from '$lib/HomeButton.svelte';
+	import WhatIf from '$lib/WhatIf.svelte';
 	import Chart from 'chart.js/auto';
 	const CHARTOPTIONS = {
 		// Maybe I'll do borderJoinStyle
@@ -20,14 +21,18 @@
 		email: string;
 		quarter_info: {
 			name: string;
-			overall_grade: { name: string; percent: string };
+			overall_grade: { name: string; percent: number };
 			scores: {
-				due_dates: string;
+				due_date: string;
+				description?: string;
+				comment?: string;
 				grade: string;
 				name: string;
-				percent: Number;
-				score: string;
+				flags: number;
+				percent?: number;
+				score: { total: number; recieved?: number };
 				type: string;
+				_raw: object;
 				// type: 'Classwork' | 'Homework' | 'Test' | 'Quiz';
 			}[];
 		};
@@ -144,10 +149,28 @@
 	<div class="modal">
 		<div class="modal-box">
 			<h3 class="font-bold text-lg">{selectedClass?.class_name}</h3>
-			<h4 class="font-bold text-md text-center">Grade history this quarter</h4>
-			<div class="h-full w-full">
-				<canvas bind:this={_quarterChartElement} width="400" height="300" />
-			</div>
+			<details>
+				<summary>Grade history this quarter</summary>
+				<div class="h-full w-full">
+					<canvas bind:this={_quarterChartElement} width="400" height="300" />
+				</div>
+			</details>
+			<details>
+				<!-- TODO -->
+				<summary
+					>What if? <div
+						class="tooltip tooltip-right"
+						data-tip="Calculations may be incorrect because we are currently disregarding possible weighting"
+					>
+						<span class="badge badge-warning">Beta</span>
+					</div></summary
+				>
+				<WhatIf
+					currentScore={selectedClass?.quarter_info.overall_grade.percent}
+					assignmentCount={selectedClass?.quarter_info.scores.length}
+				/>
+			</details>
+
 			<div class="modal-action">
 				<label for="my-modal" class="btn">Done</label>
 			</div>
