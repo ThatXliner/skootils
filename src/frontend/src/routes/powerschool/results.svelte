@@ -146,7 +146,6 @@
 	<!-- Modal stuff -->
 	<input type="checkbox" id="my-modal" class="modal-toggle" />
 
-	<!-- <label for="my-modal" class="modal"> -->
 	<div class="modal">
 		<div class="modal-box">
 			<h3 class="font-bold text-lg">{selectedClass?.class_name}</h3>
@@ -170,7 +169,6 @@
 			</div>
 		</div>
 	</div>
-	<!-- </label> -->
 	<!-- Actual content -->
 	<div class="navbar border-b-2">
 		<div class="navbar-start">
