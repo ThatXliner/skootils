@@ -160,7 +160,7 @@
 				<summary
 					>What if? <div
 						class="tooltip tooltip-right"
-						data-tip="Calculations may be incorrect because we are currently disregarding weights"
+						data-tip="Calculations may be incorrect because we are currently disregarding possible weighting"
 					>
 						<span class="badge badge-warning">Beta</span>
 					</div></summary
