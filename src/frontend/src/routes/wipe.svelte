@@ -1,5 +1,6 @@
 <script lang="ts">
 	import HomeButton from '$lib/HomeButton.svelte';
+	import { invoke } from '@tauri-apps/api/tauri';
 	import { fade } from 'svelte/transition';
 
 	const CHOICES = {
@@ -17,9 +18,17 @@
 	function clearNotif(cancelled: boolean) {
 		if (notifId === null) return;
 		clearTimeout(notifId);
-		notifId = null;
 		if (!cancelled) {
-			window.alert('TODO');
+			invoke('delete', { items: chosen })
+				.then(() => {
+					notifId = null;
+				})
+				.catch(() => {
+					window.alert('An error occured');
+					notifId = null;
+				});
+		} else {
+			notifId = null;
 		}
 	}
 </script>

@@ -46,7 +46,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::get_teachers,
             commands::get_user_info,
-            commands::set_user_info
+            commands::set_user_info,
+            commands::delete
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
