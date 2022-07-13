@@ -73,3 +73,17 @@ pub fn delete(items: Vec<String>) -> Result<(), ()> {
         Err(_) => Err(()),
     }
 }
+#[tauri::command]
+pub fn data_dir_exists(name: String) -> bool {
+    return match name.as_str() {
+        "Your name and grade" => get_user_info_file().as_path().exists(),
+        "Your credentials" => {
+            // TODO: selenium one, remember?
+            let key = keyring::Entry::new("skootils", "powerschool");
+            key.get_password().is_ok()
+        }
+        "All PowerSchool history" => get_powerschool_history_dir().as_path().exists(),
+        "Teacher information" => get_powerschool_teacher_file().as_path().exists(),
+        _ => panic!("bruh"),
+    };
+}

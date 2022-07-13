@@ -134,15 +134,22 @@
 							</div></span
 						>
 						{#each entry[1]['choices'] as choice}
-							<label class="label cursor-pointer">
-								<span class="label-text text-lg">{choice}</span>
-								<input
-									type="checkbox"
-									bind:group={chosen}
-									value={choice}
-									class="checkbox checkbox-lg checkbox-primary"
-								/>
-							</label>
+							{#await invoke('data_dir_exists', { name: choice }) then exists}
+								<label class="label cursor-pointer">
+									{#if exists}
+										<span class="label-text text-lg">{choice}</span>
+									{:else}
+										<s class="label-text text-lg">{choice}</s>
+									{/if}
+									<input
+										type="checkbox"
+										bind:group={chosen}
+										value={choice}
+										class="checkbox checkbox-lg checkbox-primary"
+										disabled={!exists}
+									/>
+								</label>
+							{/await}
 						{/each}
 					{/each}
 				</div>

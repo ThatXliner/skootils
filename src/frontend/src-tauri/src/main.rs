@@ -47,7 +47,8 @@ fn main() {
             commands::get_teachers,
             commands::get_user_info,
             commands::set_user_info,
-            commands::delete
+            commands::delete,
+            commands::data_dir_exists,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
