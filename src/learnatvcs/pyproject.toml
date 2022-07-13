@@ -19,7 +19,6 @@ homepage = "https://github.com/ThatXliner/learnatvcs"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-summarize = { path = "../summarize", develop = true }
 interprog = { path = "../interprog", develop = true }
 attrs = "^21.4.0"
 beautifulsoup4 = "^4.11.1"
@@ -37,7 +36,7 @@ mypy = "^0.961"
 isort = "^5.8.0"
 pylint = "^2.8.2"
 toml = "^0.10.2"
-hypothesis = "^6.12.0"
+hypothesis = "^6.50.1"
 shed = "^0.10.1"
 pytest-cov = "^3.0.0"
 pytest-clarity = "^1.0.1"

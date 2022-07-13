@@ -3,7 +3,7 @@
 	export let extraClasses = '';
 </script>
 
-<div class="alert alert-error shadow-lg {extraClasses}">
+<div class="alert alert-error shadow-lg w-fit {extraClasses}">
 	<div>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

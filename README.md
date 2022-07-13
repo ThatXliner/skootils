@@ -11,6 +11,7 @@ Work in progress. Fully packaged binaries and landing page coming soon!
 - PowerSchool
   - GPA calculator
   - Grade history graph
+  - "What if" - calculate the effect of future scores on your grade
 - Learn@vcs
   - Scrapes all lesson plans and displays them in one unified page
 
