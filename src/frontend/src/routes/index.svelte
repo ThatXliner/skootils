@@ -18,6 +18,7 @@
 					<a class="btn btn-primary" href="/powerschool">PowerSchool++</a>
 
 					<a class="btn btn-primary" href="/email">Mail-tilities</a>
+					<a class="btn btn-error" href="/wipe">Wipe storage</a>
 				</div>
 			</div>
 		</div>
