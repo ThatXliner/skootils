@@ -57,7 +57,7 @@ pub fn delete(items: Vec<String>) -> Result<(), ()> {
             "Your name and grade" => to_delete.push(get_user_info_file()),
             "Your credentials" => {
                 // TODO: selenium one, remember?
-                let key = keyring::Entry::new("Skootils", "powerschool");
+                let key = keyring::Entry::new("skootils", "powerschool");
                 match key.delete_password() {
                     Ok(_) => (),
                     Err(_) => return Err(()),

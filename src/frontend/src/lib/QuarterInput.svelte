@@ -40,7 +40,7 @@
 		if (_latest) {
 			dispatch('submit', null);
 		} else {
-			dispatch('submit', realSel);
+			dispatch('submit', realSel.sort());
 		}
 	}}>Go!</button
 >
