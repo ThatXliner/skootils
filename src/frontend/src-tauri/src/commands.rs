@@ -6,9 +6,6 @@ use std::fs;
 use std::path::PathBuf;
 use trash;
 
-// DISCUSS: Would using lazy static
-// And statically link break things
-// When we're at the packaging step?
 lazy_static! {
     static ref PROJ_DIRS: ProjectDirs = ProjectDirs::from("", "", "Skootils").unwrap();
 }
