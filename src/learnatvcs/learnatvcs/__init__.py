@@ -2,7 +2,7 @@
 import re
 from pathlib import Path
 from typing import NamedTuple, Optional
-
+from platformdirs import user_data_dir
 import selenium
 from attrs import define
 from data49 import web
@@ -13,7 +13,8 @@ from learnatvcs import process as process_data
 from .highlighter import highlight
 
 HEADLESS = False  # TODO: get it to work with headless
-
+APP_NAME = "Skootils"
+APP_AUTHOR = "Bryan Hu"
 
 MONTH2INT: dict[str, int] = {
     "jan": 1,
@@ -138,7 +139,9 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
         "https://learn.vcs.net/",
         driver=web.get_browser(
             headless=HEADLESS,
-            arguments=(f"user-data-dir={Path(__file__).parent.parent / 'selenium'}",),
+            arguments=(
+                f"user-data-dir={Path(user_data_dir(APP_NAME,APP_AUTHOR))/'learnatvcs'/'.webdriver_profile'}",
+            ),
         ),
     ) as browser:
         reporter.start()
