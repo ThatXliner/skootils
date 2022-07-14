@@ -149,11 +149,17 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
         # Log in
         browser.query_selector(".login-btn").click()
         browser.query_selector("div.potentialidp:nth-child(1) > a:nth-child(1)").click()
-        reporter.finish()
         # For every class...
         # TODO: Assert #side-panel-button exists and not "which account"
         # for future auto setup
-        browser.query_selector("#side-panel-button").click()
+        try:
+            browser.query_selector("#side-panel-button").click()
+        except web.selenium_exceptions.NoSuchElementException:
+            print("false")
+            input()
+        else:
+            print("true")
+        reporter.finish()
         raw_links = browser.query_selector_all(
             "#inst6206 > div > div > ul > li > div > a"
         )[2:-1]
