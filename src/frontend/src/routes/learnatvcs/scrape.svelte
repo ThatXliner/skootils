@@ -59,7 +59,8 @@
 				<p class="py-4">
 					<!-- Because "Sign in with Google" exists.
 					<br /> -->
-					<b>You only need to do this once.</b> There may be reCAPTCHAs.
+					<b>You only need to do this once.</b> There may be reCAPTCHAs. You also might get a "new
+					sign in detected" email from Google after this.
 					<br />
 					<br />
 					Click "I'm done" when it redirects you to the learn@vcs home page.
