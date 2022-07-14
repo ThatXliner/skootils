@@ -2,10 +2,11 @@
 import re
 from pathlib import Path
 from typing import NamedTuple, Optional
-from platformdirs import user_data_dir
+
 import selenium
 from attrs import define
 from data49 import web
+from platformdirs import user_data_dir
 
 import interprog
 from learnatvcs import process as process_data
