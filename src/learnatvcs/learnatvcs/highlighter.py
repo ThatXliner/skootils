@@ -4,7 +4,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from .process import to_soup
+from learnatvcs.process import to_soup
 
 # TODO: Re-organize
 MONTHS = [

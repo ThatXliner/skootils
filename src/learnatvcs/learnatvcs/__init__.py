@@ -14,8 +14,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from learnatvcs import process as process_data
 
-from .highlighter import highlight
-from .models import ClassDay, Date
+from learnatvcs.highlighter import highlight
+from learnatvcs.models import ClassDay, Date
 
 HEADLESS = False  # TODO: get it to work with headless
 APP_NAME = "Skootils"
