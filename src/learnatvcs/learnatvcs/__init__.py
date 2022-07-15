@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
+import interprog
 import selenium
 from data49 import web
 from platformdirs import user_data_dir
@@ -11,7 +12,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
-import interprog
 from learnatvcs import process as process_data
 
 from .highlighter import highlight
