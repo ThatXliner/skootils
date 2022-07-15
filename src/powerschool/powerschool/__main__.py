@@ -1,9 +1,10 @@
 import asyncio
 import json
 
+from powerschool import PowerSchool, storage
+
 # from pathlib import Path
 
-from powerschool import PowerSchool, storage
 
 # MOCK = False
 
