@@ -5,7 +5,6 @@ import re
 from pathlib import Path
 from typing import NamedTuple, Optional
 
-import interprog
 import selenium
 from attrs import define
 from data49 import web
@@ -14,6 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
+import interprog
 from learnatvcs import process as process_data
 
 from .highlighter import highlight
