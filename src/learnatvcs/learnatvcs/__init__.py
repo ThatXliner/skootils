@@ -137,7 +137,13 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
     reporter.add_task("Initalizing browser")
     reporter.start()
     _start_browser = web.Browser("https://learn.vcs.net/", driver=_get_browser)
-    browser = _start_browser.open()
+    try:
+        browser = _start_browser.open()
+    except web.browser_exceptions.WebDriverException:
+        reporter.error(
+            "Please close the window and install Google Chrome (and try again after)"
+        )
+        input()
     reporter.finish()
 
     return _scrape(browser=browser, for_dates=for_dates)
