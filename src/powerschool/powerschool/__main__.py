@@ -3,10 +3,8 @@ import json
 
 from powerschool import PowerSchool, storage
 
-# from pathlib import Path
 
 
-# MOCK = False
 
 
 async def main() -> None:

@@ -42,18 +42,17 @@ def _get_browser() -> web.RawWebDriver:
         options.add_argument("--headless")
 
     # webdriver_manager makes stdout dirty
-    with open(os.devnull, "w") as devnull:
-        with contextlib.redirect_stdout(devnull):
-            # TODO: Suppress stdout
-            # TODO: pin version
-            driver = webdriver.Chrome(
-                options=options,
-                service=ChromeService(
-                    executable_path=ChromeDriverManager(
-                        path=str(DATA_DIR / "chromedriver")
-                    ).install()
-                ),
-            )
+    with open(os.devnull, "w") as devnull, contextlib.redirect_stdout(devnull):
+        # TODO: Suppress stdout
+        # TODO: pin version
+        driver = webdriver.Chrome(
+            options=options,
+            service=ChromeService(
+                executable_path=ChromeDriverManager(
+                    path=str(DATA_DIR / "chromedriver")
+                ).install()
+            ),
+        )
     return driver
 
 
