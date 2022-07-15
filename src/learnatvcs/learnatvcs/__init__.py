@@ -154,7 +154,7 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
         # for future auto setup
         try:
             browser.query_selector("#side-panel-button").click()
-        except web.selenium_exceptions.NoSuchElementException:
+        except web.browser_exceptions.NoSuchElementException:
             print("false")
             input()
         else:
