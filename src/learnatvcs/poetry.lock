@@ -282,15 +282,10 @@ python-versions = "*"
 [[package]]
 name = "interprog"
 version = "0.1.0"
-description = ""
+description = "Inter-process progress reports made easy"
 category = "main"
 optional = false
-python-versions = "^3.8"
-develop = true
-
-[package.source]
-type = "directory"
-url = "../interprog"
+python-versions = ">=3.7,<4.0"
 
 [[package]]
 name = "isort"
@@ -838,7 +833,7 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "b27d1744f076d007d76242ebf20a7e8a6a78be77871e2fe9aed605ee38f8c9d2"
+content-hash = "4abb8148f785f0cbc02ffd442e9fcb45a6fb04ef73cc8f19c1368c3502876773"
 
 [metadata.files]
 astroid = []
