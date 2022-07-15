@@ -1,10 +1,11 @@
 import asyncio
 import json
-from pathlib import Path
+
+# from pathlib import Path
 
 from powerschool import PowerSchool, storage
 
-MOCK = False
+# MOCK = False
 
 
 async def main() -> None:
@@ -15,16 +16,16 @@ async def main() -> None:
     auth = cred or json.loads(input())  # TODO: Remember?
     if cred is None:
         storage.set_auth(auth)
-    if MOCK:
-        input('["haha","L"]\n')
-        print(
-            json.dumps(
-                json.loads(
-                    (Path(__file__).parent.parent / "example-large.json").read_text()
-                )
-            )
-        )
-        return
+    # if MOCK:
+    #     input('["haha","L"]\n')
+    #     print(
+    #         json.dumps(
+    #             json.loads(
+    #                 (Path(__file__).parent.parent / "example-large.json").read_text()
+    #             )
+    #         )
+    #     )
+    #     return
 
     async with PowerSchool(
         "https://powerschool.vcs.net", auth["username"], auth["password"]

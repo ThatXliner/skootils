@@ -149,33 +149,4 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
     return _scrape(browser=browser, for_dates=for_dates)
 
 
-def mock(for_dates: Optional[list] = None) -> str:  # type: ignore
-    """how to kill a mockingbird?"""
-    import time
-
-    reporter.add_task("Log in")
-    reporter.start()
-    time.sleep(1)
-    reporter.finish()
-    class_names = ["English", "Math", "Science", "History"]
-    for name in class_names:
-        reporter.add_task(
-            f"Scrape {name}",
-            total=len(for_dates) if for_dates and len(for_dates) > 1 else None,  # type: ignore
-        )
-    reporter.start()
-    time.sleep(1)
-    reporter.increment(silent=True)
-    time.sleep(2)
-    reporter.error("Lmao get good")
-    for _ in class_names[1:]:
-        reporter.start()
-        time.sleep(0.2)
-        for _ in for_dates or [None]:  # type: ignore
-            time.sleep(1)
-            reporter.increment(silent=True)
-        reporter.finish()
-    return (Path(__file__).parent.parent / "example.json").read_text()
-
-
 __version__ = "0.1.0"
