@@ -2,7 +2,8 @@
 import json
 import sys
 
-from learnatvcs import Date, scrape
+from learnatvcs import scrape
+from learnatvcs.models import Date
 
 # from pathlib import Path
 # from platformdirs import user_cache_dir
