@@ -3,7 +3,60 @@
 	import { Command } from '@tauri-apps/api/shell';
 	import HomeButton from '$lib/HomeButton.svelte';
 	import WhatIf from '$lib/WhatIf.svelte';
-	import Chart from 'chart.js/auto';
+	import * as pkg from 'chart.js';
+	const {
+		Chart,
+		ArcElement,
+		LineElement,
+		BarElement,
+		PointElement,
+		BarController,
+		BubbleController,
+		DoughnutController,
+		LineController,
+		PieController,
+		PolarAreaController,
+		RadarController,
+		ScatterController,
+		CategoryScale,
+		LinearScale,
+		LogarithmicScale,
+		RadialLinearScale,
+		TimeScale,
+		TimeSeriesScale,
+		Decimation,
+		Filler,
+		Legend,
+		Title,
+		Tooltip,
+		SubTitle
+	} = pkg;
+	Chart.register(
+		ArcElement,
+		LineElement,
+		BarElement,
+		PointElement,
+		BarController,
+		BubbleController,
+		DoughnutController,
+		LineController,
+		PieController,
+		PolarAreaController,
+		RadarController,
+		ScatterController,
+		CategoryScale,
+		LinearScale,
+		LogarithmicScale,
+		RadialLinearScale,
+		TimeScale,
+		TimeSeriesScale,
+		Decimation,
+		Filler,
+		Legend,
+		Title,
+		Tooltip,
+		SubTitle
+	);
 	const CHARTOPTIONS = {
 		// Maybe I'll do borderJoinStyle
 		maintainAspectRatio: false,
