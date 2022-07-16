@@ -4,9 +4,6 @@ import json
 from powerschool import PowerSchool, storage
 
 
-
-
-
 async def main() -> None:
     cred = storage.get_auth()
     HAS_CREDENTIALS = cred is not None

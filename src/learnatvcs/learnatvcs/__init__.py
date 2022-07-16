@@ -13,7 +13,6 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 
 from learnatvcs import process as process_data
-
 from learnatvcs.highlighter import highlight
 from learnatvcs.models import ClassDay, Date
 
