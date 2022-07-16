@@ -30,8 +30,8 @@ jobs:
           node-version: 16
       - name: Setup Poetry
         uses: snok/install-poetry@v1
-      - name: Install PyInstaller
-        run: python -m pip install pyinstaller
+      - name: Install Python bundling dependencies
+        run: python -m pip install pyinstaller poethepoet
       - name: Install dependencies for Tauri (ubuntu only)
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -40,22 +40,10 @@ jobs:
 
       - name: Build learn@vcs
         working-directory: src/learnatvcs
-        run: |
-          poetry install
-          echo *.spec | xargs -n 1 pyinstaller
-          for x in $(ls dist)
-          do
-            mv dist/$x dist/$x-`rustc -Vv | grep host | cut -f2 -d' '`
-          done
+        run: poe build
       - name: Build PowerSchool
         working-directory: src/powerschool
-        run: |
-          poetry install
-          echo *.spec | xargs -n 1 pyinstaller
-          for x in $(ls dist)
-          do
-            mv dist/$x dist/$x-`rustc -Vv | grep host | cut -f2 -d' '`
-          done
+        run: poe build
       - name: Install frontend dependencies
         run: pnpm install
         working-directory: src/frontend
