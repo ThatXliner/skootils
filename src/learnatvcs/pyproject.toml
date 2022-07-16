@@ -51,16 +51,6 @@ check_isort = {"cmd" = "isort learnatvcs --check --profile=black"}
 style    = ["check_black", "check_isort"]
 codebase = ["pylint", "mypy"]
 
-    [tool.poe.tasks.build]
-    shell = """
-    rm -rf dist
-    echo *.spec | xargs -n 1 pyinstaller
-    for x in $(ls dist)
-    do
-        mv dist/$x dist/$x-`rustc -Vv | grep host | cut -f2 -d' '`
-    done
-    """
-
     [tool.poe.tasks.format]
     cmd = "shed"
     help = "Format code"
