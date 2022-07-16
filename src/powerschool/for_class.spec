@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import glob
+import platform
 
 block_cipher = None
 

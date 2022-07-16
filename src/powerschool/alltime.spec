@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import glob
+import platform
 
 block_cipher = None
 
@@ -33,7 +34,7 @@ exe = EXE(
     name='alltime',
     debug=False,
     bootloader_ignore_signals=False,
-    strip=False,
+    strip=platform.platform() != 'Windows',
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
