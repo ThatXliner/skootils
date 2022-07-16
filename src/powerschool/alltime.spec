@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-import glob
+from pathlib import Path
 import platform
 
 block_cipher = None
@@ -7,7 +7,7 @@ block_cipher = None
 
 a = Analysis(
     ['powerschool/history/alltime.py'],
-    pathex=glob.glob('.venv/lib/python*/site-packages'),
+    pathex=Path('.venv/lib').glob("python*/site-packages"),
     binaries=[],
     datas=[],
     hiddenimports=[],
