@@ -24,7 +24,8 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: pnpm/action-setup@v2
+      - name: Setup pNPM
+        uses: pnpm/action-setup@v2
         with:
           version: 7
       - name: Setup NodeJS
