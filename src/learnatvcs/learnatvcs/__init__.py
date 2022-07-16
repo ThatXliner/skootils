@@ -37,7 +37,7 @@ def _lesson_plan_pipeline(contents: str) -> str:
 def _get_browser() -> web.RawWebDriver:
 
     options = webdriver.ChromeOptions()
-    options.add_argument(f"user-data-dir={DATA_DIR/'.webdriver_profile'}")
+    options.add_argument(f"user-data-dir={DATA_DIR/'webdriver_profile'}")
     if HEADLESS:
         options.add_argument("--headless")
 
