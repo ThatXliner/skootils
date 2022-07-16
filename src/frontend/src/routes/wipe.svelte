@@ -11,6 +11,10 @@
 		'Yearly trash': {
 			description: 'Every year you get new classes...',
 			choices: ['All PowerSchool history', 'Teacher information']
+		},
+		'Dev stuff': {
+			description: 'Do not delete this unless you know exactly what you are doing',
+			choices: ['learn@vcs scraping profile', 'learn@vcs bundled chromedriver']
 		}
 	};
 	let chosen: string[] = [];

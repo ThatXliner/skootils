@@ -12,6 +12,9 @@ lazy_static! {
 fn get_powerschool_dir() -> PathBuf {
     PROJ_DIRS.data_dir().join("powerschool")
 }
+fn get_learnatvcs_dir() -> PathBuf {
+    PROJ_DIRS.data_dir().join("learnatvcs")
+}
 fn get_powerschool_history_dir() -> PathBuf {
     let mut output = get_powerschool_dir();
     output.push("history");
@@ -20,6 +23,11 @@ fn get_powerschool_history_dir() -> PathBuf {
 fn get_powerschool_teacher_file() -> PathBuf {
     let mut output = get_powerschool_dir();
     output.push("teachers.json");
+    return output;
+}
+fn get_learnatvcs_file(filename: &str) -> PathBuf {
+    let mut output = get_learnatvcs_dir();
+    output.push(filename);
     return output;
 }
 fn get_user_info_file() -> PathBuf {
@@ -65,6 +73,8 @@ pub fn delete(items: Vec<String>) -> Result<(), ()> {
             }
             "All PowerSchool history" => to_delete.push(get_powerschool_history_dir()),
             "Teacher information" => to_delete.push(get_powerschool_teacher_file()),
+            "learn@vcs scraping profile" => to_delete.push(get_learnatvcs_file("profile")),
+            "learn@vcs bundled chromedriver" => to_delete.push(get_learnatvcs_file("chromedriver")),
             _ => panic!("bruh"),
         }
     }
@@ -84,6 +94,8 @@ pub fn data_dir_exists(name: String) -> bool {
         }
         "All PowerSchool history" => get_powerschool_history_dir().as_path().exists(),
         "Teacher information" => get_powerschool_teacher_file().as_path().exists(),
+        "learn@vcs scraping profile" => get_learnatvcs_file("profile").as_path().exists(),
+        "learn@vcs bundled chromedriver" => get_learnatvcs_file("chromedriver").as_path().exists(),
         _ => panic!("bruh"),
     };
 }
