@@ -64,13 +64,13 @@
 					Click "I'm done" when it redirects you to the learn@vcs home page.
 				</p>
 				<div class="modal-action">
-					<label
+					<span
 						for="my-modal"
 						class="btn btn-primary"
 						on:click={() => {
 							hasCredentials = true;
 							child.write('\n');
-						}}>I'm done</label
+						}}>I'm done</span
 					>
 				</div>
 			</div>
