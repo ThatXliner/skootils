@@ -68,11 +68,13 @@ jobs:
         run: pnpm tauri build
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.os }} artifacts
+          name: ${{ runner.os }} ${{ runner.arch }} Artifacts
+          # No .app because it's pretty big and .dmg is nicer
           path: |
             src/frontend/src-tauri/target/release/bundle/*/*.dmg
             src/frontend/src-tauri/target/release/bundle/*/*.AppImage
             src/frontend/src-tauri/target/release/bundle/*/*.deb
+            src/frontend/src-tauri/target/release/bundle/*/*.msi
       # - name: Build the app
       #   uses: tauri-apps/tauri-action@v0
       #   working-directory: src/frontend
