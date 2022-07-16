@@ -67,7 +67,6 @@ jobs:
           name: ${{ matrix.os }} artifacts
           path: |
             src/frontend/src-tauri/target/release/bundle/*/*.dmg
-            src/frontend/src-tauri/target/release/bundle/*/*.app
             src/frontend/src-tauri/target/release/bundle/*/*.AppImage
             src/frontend/src-tauri/target/release/bundle/*/*.deb
       # - name: Build the app
