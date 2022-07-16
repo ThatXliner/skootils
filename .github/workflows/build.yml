@@ -1,0 +1,83 @@
+name: CI
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Setup Poetry
+        uses: snok/install-poetry@v1
+      - name: Install PyInstaller
+        run: python -m pip install pyinstaller
+      - name: Install dependencies for Tauri (ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev webkit2gtk-4.0 libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Build learn@vcs
+        working-directory: src/learnatvcs
+        run: |
+          poetry install
+          echo *.spec | xargs -n 1 pyinstaller
+          for x in $(ls dist)
+          do
+            mv dist/$x dist/$x-`rustc -Vv | grep host | cut -f2 -d' '`
+          done
+      - name: Build PowerSchool
+        working-directory: src/powerschool
+        run: |
+          poetry install
+          echo *.spec | xargs -n 1 pyinstaller
+          for x in $(ls dist)
+          do
+            mv dist/$x dist/$x-`rustc -Vv | grep host | cut -f2 -d' '`
+          done
+      - name: Install frontend dependencies
+        run: pnpm install
+        working-directory: src/frontend
+      - name: Build the app
+        working-directory: src/frontend
+        run: pnpm tauri build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }} artifacts
+          path: |
+            src/frontend/src-tauri/target/release/bundle/*/*.dmg
+            src/frontend/src-tauri/target/release/bundle/*/*.app
+            src/frontend/src-tauri/target/release/bundle/*/*.AppImage
+            src/frontend/src-tauri/target/release/bundle/*/*.deb
+      # - name: Build the app
+      #   uses: tauri-apps/tauri-action@v0
+      #   working-directory: src/frontend
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tagName: v__VERSION__ # tauri-action replaces \_\_VERSION\_\_ with the app version
+      #     releaseName: 'v__VERSION__'
+      #     releaseBody: 'See the assets to download this version and install.'
+      #     releaseDraft: true
+      #     prerelease: false
