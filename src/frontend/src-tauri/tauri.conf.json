@@ -3,7 +3,7 @@
 	"build": {
 		"beforeBuildCommand": "pnpm run build",
 		"beforeDevCommand": "pnpm run dev",
-		"devPath": "http://localhost:3000",
+		"devPath": "http://localhost:5173",
 		"distDir": "../build"
 	},
 	"package": {
@@ -12,33 +12,27 @@
 	},
 	"tauri": {
 		"allowlist": {
-			"all": true,
 			"shell": {
+				"sidecar": true,
 				"scope": [
 					{
-						"name": "learnatvcs",
-						"cmd": "../../learnatvcs/.venv/bin/python",
-						"args": ["-um", "learnatvcs", { "validator": "(null|\\[.*?\\])" }]
+						"name": "../../learnatvcs/dist/learnatvcs",
+						"args": [{ "validator": "(null|\\[.*?\\])" }],
+						"sidecar": true
 					},
 					{
-						"name": "powerschool",
-						"cmd": "../../powerschool/.venv/bin/python",
-						"args": ["-um", "powerschool"]
+						"name": "../../powerschool/dist/powerschool",
+						"sidecar": true
 					},
 					{
-						"name": "powerschool-history-alltime",
-						"cmd": "../../powerschool/.venv/bin/python",
-						"args": ["-um", "powerschool.history.alltime", { "validator": "\\w+" }]
+						"name": "../../powerschool/dist/alltime",
+						"args": [{ "validator": "\\w+" }],
+						"sidecar": true
 					},
 					{
-						"name": "powerschool-history-class",
-						"cmd": "../../powerschool/.venv/bin/python",
-						"args": [
-							"-um",
-							"powerschool.history.for_class",
-							{ "validator": "\\w+" },
-							{ "validator": "\\w+" }
-						]
+						"name": "../../powerschool/dist/for_class",
+						"args": [{ "validator": "\\w+" }, { "validator": "\\w+" }],
+						"sidecar": true
 					}
 				]
 			}
@@ -50,7 +44,12 @@
 			"deb": {
 				"depends": []
 			},
-			"externalBin": [],
+			"externalBin": [
+				"../../powerschool/dist/powerschool",
+				"../../powerschool/dist/alltime",
+				"../../powerschool/dist/for_class",
+				"../../learnatvcs/dist/learnatvcs"
+			],
 			"icon": [
 				"icons/32x32.png",
 				"icons/128x128.png",
