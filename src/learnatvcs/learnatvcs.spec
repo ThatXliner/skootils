@@ -31,7 +31,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='__main__',
+    name='learnatvcs',
     debug=False,
     bootloader_ignore_signals=False,
     strip=platform.platform() != 'Windows',
