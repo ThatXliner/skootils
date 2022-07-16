@@ -50,12 +50,12 @@ jobs:
         uses: actions/cache@v2
         with:
           path: src/learnatvcs/.venv
-          key: ${{ runner.os }}-${{ hashFiles('src/learnatvcs/poetry.lock') }}
+          key: learnatvcs-${{ runner.os }}-${{ hashFiles('src/learnatvcs/poetry.lock') }}
       - name: Load cached venv (powerschool)
         uses: actions/cache@v2
         with:
           path: src/powerschool/.venv
-          key: ${{ runner.os }}-${{ hashFiles('src/powerschool/poetry.lock') }}
+          key: powerschool-${{ runner.os }}-${{ hashFiles('src/powerschool/poetry.lock') }}
       - name: Install learn@vcs dependencies
         working-directory: src/learnatvcs
         run: poetry install
@@ -83,7 +83,7 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ runner.os }}-${{ hashFiles('src/frontend/src-tauri/Cargo.lock') }}
+          key: cargo-${{ runner.os }}-${{ hashFiles('src/frontend/src-tauri/Cargo.lock') }}
       - name: Build the app
         working-directory: src/frontend
         run: pnpm tauri build
