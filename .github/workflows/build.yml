@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        type: [debug, release]
+        build_type: [debug, release]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -88,16 +88,16 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('src/frontend/src-tauri/Cargo.lock') }}
       - name: Build the app (release)
         working-directory: src/frontend
-        if: ${{ matrix.type }} == 'release'
+        if: ${{ matrix.build_type }} == 'release'
         run: pnpm tauri build
       - name: Build the app (debug)
         working-directory: src/frontend
-        if: ${{ matrix.type }} == 'debug'
+        if: ${{ matrix.build_type }} == 'debug'
         run: pnpm tauri build --debug
 
       - name: Upload artifacts (release)
         uses: actions/upload-artifact@v3
-        if: ${{ matrix.type }} == 'release'
+        if: ${{ matrix.build_type }} == 'release'
         with:
           name: ${{ runner.os }} ${{ runner.arch }} artifacts
           # No .app because it's pretty big and .dmg is nicer
@@ -108,7 +108,7 @@ jobs:
             src/frontend/src-tauri/target/release/bundle/*/*.msi
       - name: Upload artifacts (debug)
         uses: actions/upload-artifact@v3
-        if: ${{ matrix.type }} == 'debug'
+        if: ${{ matrix.build_type }} == 'debug'
         with:
           name: ${{ runner.os }} ${{ runner.arch }} artifacts (debug)
           path: |
