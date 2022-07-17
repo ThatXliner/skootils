@@ -68,20 +68,9 @@ jobs:
         working-directory: src/frontend
         run: pnpm install
 
-
-      - name: Load cached PyInstaller cache (learnatvcs)
-        uses: actions/cache@v3
-        with:
-          path: src/learnatvcs/build
-          key: pyinstaller-learnatvcs-${{ runner.os }}-${{ hashFiles('src/learnatvcs/learnatvcs') }}
       - name: Build learn@vcs
         working-directory: src/learnatvcs
         run: echo *.spec | xargs -n 1 pyinstaller
-      - name: Load cached PyInstaller cache (powerschool)
-        uses: actions/cache@v3
-        with:
-          path: src/powerschool/build
-          key: pyinstaller-powerschool-${{ runner.os }}-${{ hashFiles('src/powerschool/powerschool') }}
       - name: Build PowerSchool
         working-directory: src/powerschool
         run: echo *.spec | xargs -n 1 pyinstaller
