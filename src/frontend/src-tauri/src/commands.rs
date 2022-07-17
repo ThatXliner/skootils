@@ -9,26 +9,26 @@ use trash;
 lazy_static! {
     static ref PROJ_DIRS: ProjectDirs = ProjectDirs::from("", "", "Skootils").unwrap();
 }
-fn assert_dir_exists(dir: PathBuf){
+fn assert_dir_exists(dir: &PathBuf) {
     let path = dir.as_path();
     if !path.is_dir() {
         fs::create_dir_all(path).expect("Why is there a file here");
     }
 }
 fn get_powerschool_dir() -> PathBuf {
-    let output = PROJ_DIRS.data_dir().join("powerschool")
-    assert_dir_exists(output);
-    return output
+    let output = PROJ_DIRS.data_dir().join("powerschool");
+    assert_dir_exists(&output);
+    return output;
 }
 fn get_learnatvcs_dir() -> PathBuf {
-    let output = PROJ_DIRS.data_dir().join("learnatvcs")
-    assert_dir_exists(output);
-    return output
+    let output = PROJ_DIRS.data_dir().join("learnatvcs");
+    assert_dir_exists(&output);
+    return output;
 }
 fn get_powerschool_history_dir() -> PathBuf {
     let mut output = get_powerschool_dir();
     output.push("history");
-    assert_dir_exists(output);
+    assert_dir_exists(&output);
     return output;
 }
 fn get_powerschool_teacher_file() -> PathBuf {
@@ -42,7 +42,7 @@ fn get_learnatvcs_file(filename: &str) -> PathBuf {
     return output;
 }
 fn get_user_info_file() -> PathBuf {
-    assert_dir_exists(PROJ_DIRS.data_dir().to_path_buf());
+    assert_dir_exists(&PROJ_DIRS.data_dir().to_path_buf());
     PROJ_DIRS.data_dir().join("user.json")
 }
 
