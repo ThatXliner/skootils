@@ -39,8 +39,8 @@
 		},
 		"bundle": {
 			"active": true,
-			"category": "DeveloperTool",
-			"copyright": "",
+			"category": "Productivity",
+			"copyright": "Copyright (c) 2022 Bryan Hu, GNU GPL v3+",
 			"deb": {
 				"depends": []
 			},
