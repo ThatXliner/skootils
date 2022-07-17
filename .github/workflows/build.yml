@@ -112,10 +112,10 @@ jobs:
         with:
           name: ${{ runner.os }} ${{ runner.arch }} artifacts (debug)
           path: |
-            src/frontend/src-tauri/target/release/bundle/*/*.dmg
-            src/frontend/src-tauri/target/release/bundle/*/*.AppImage
-            src/frontend/src-tauri/target/release/bundle/*/*.deb
-            src/frontend/src-tauri/target/release/bundle/*/*.msi
+            src/frontend/src-tauri/target/debug/bundle/*/*.dmg
+            src/frontend/src-tauri/target/debug/bundle/*/*.AppImage
+            src/frontend/src-tauri/target/debug/bundle/*/*.deb
+            src/frontend/src-tauri/target/debug/bundle/*/*.msi
       # - name: Build the app
       #   uses: tauri-apps/tauri-action@v0
       #   working-directory: src/frontend
