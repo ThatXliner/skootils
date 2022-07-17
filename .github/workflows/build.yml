@@ -103,7 +103,7 @@ jobs:
         run: pnpm tauri build
       - name: Build the app (debug)
         working-directory: src/frontend
-        if: ${{ matrix.build_type }} == 'debug'
+        if: matrix.build_type == 'debug'
         run: pnpm tauri build --debug
 
       - name: Upload artifacts (release)
@@ -119,7 +119,7 @@ jobs:
             src/frontend/src-tauri/target/release/bundle/*/*.msi
       - name: Upload artifacts (debug)
         uses: actions/upload-artifact@v3
-        if: ${{ matrix.build_type }} == 'debug'
+        if: matrix.build_type == 'debug'
         with:
           name: ${{ runner.os }} ${{ runner.arch }} artifacts (debug)
           path: |
