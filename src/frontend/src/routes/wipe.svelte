@@ -27,8 +27,8 @@
 				.then(() => {
 					notifId = null;
 				})
-				.catch(() => {
-					window.alert('An error occured');
+				.catch((error: string) => {
+					window.alert(`Error: ${error}`);
 					notifId = null;
 				});
 		} else {

@@ -3,7 +3,7 @@ use keyring;
 use lazy_static;
 use serde_json::Value;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use trash;
 
 lazy_static! {
@@ -12,7 +12,8 @@ lazy_static! {
 fn assert_dir_exists(dir: &PathBuf) {
     let path = dir.as_path();
     if !path.is_dir() {
-        fs::create_dir_all(path).expect("Why is there a file here");
+        // This shouldn't happen unless we're being tampered with
+        fs::create_dir_all(path).expect("A file was found where a directory was expected");
     }
 }
 fn get_powerschool_dir() -> PathBuf {
@@ -45,23 +46,21 @@ fn get_user_info_file() -> PathBuf {
     assert_dir_exists(&PROJ_DIRS.data_dir().to_path_buf());
     PROJ_DIRS.data_dir().join("user.json")
 }
-
+fn read_json(file: &Path) -> Result<Value, String> {
+    fs::read_to_string(file).map_or(Err("Could not read file".into()), |read| {
+        serde_json::from_str(read.as_str()).or(Err("Could not parse JSON".into()))
+    })
+}
 #[tauri::command]
 pub fn get_teachers() -> Result<Value, String> {
     let file_path = get_powerschool_teacher_file();
-
-    fs::read_to_string(file_path.as_path()).map_or(Err("Could not read file".into()), |read| {
-        Ok(serde_json::from_str(read.as_str()).unwrap())
-    })
+    read_json(file_path.as_path())
 }
 
 #[tauri::command]
 pub fn get_user_info() -> Result<Value, String> {
     let file_path = get_user_info_file();
-
-    fs::read_to_string(file_path.as_path()).map_or(Err("Could not read file".into()), |read| {
-        Ok(serde_json::from_str(read.as_str()).unwrap())
-    })
+    read_json(file_path.as_path())
 }
 #[tauri::command]
 pub fn set_user_info(to: Value) -> Result<(), String> {
@@ -70,7 +69,7 @@ pub fn set_user_info(to: Value) -> Result<(), String> {
     fs::write(file_path.as_path(), to.to_string()).or(Err("Could not write file".into()))
 }
 #[tauri::command]
-pub fn delete(items: Vec<String>) -> Result<(), ()> {
+pub fn delete(items: Vec<String>) -> Result<(), String> {
     let mut to_delete = Vec::new();
     for item in items {
         match item.as_str() {
@@ -80,19 +79,19 @@ pub fn delete(items: Vec<String>) -> Result<(), ()> {
                 let key = keyring::Entry::new("skootils", "powerschool");
                 match key.delete_password() {
                     Ok(_) => (),
-                    Err(_) => return Err(()),
+                    Err(_) => return Err("Could not delete credentials".into()),
                 }
             }
             "All PowerSchool history" => to_delete.push(get_powerschool_history_dir()),
             "Teacher information" => to_delete.push(get_powerschool_teacher_file()),
             "learn@vcs scraping profile" => to_delete.push(get_learnatvcs_file("profile")),
             "learn@vcs bundled chromedriver" => to_delete.push(get_learnatvcs_file("chromedriver")),
-            _ => panic!("bruh"),
+            _ => return Err("Internal error. Please report this to the developers".into()),
         }
     }
     match trash::delete_all(to_delete.as_slice()) {
         Ok(_) => Ok(()),
-        Err(_) => Err(()),
+        Err(_) => Err("Could not delete stuff".into()),
     }
 }
 #[tauri::command]
@@ -108,6 +107,7 @@ pub fn data_dir_exists(name: String) -> bool {
         "Teacher information" => get_powerschool_teacher_file().as_path().exists(),
         "learn@vcs scraping profile" => get_learnatvcs_file("profile").as_path().exists(),
         "learn@vcs bundled chromedriver" => get_learnatvcs_file("chromedriver").as_path().exists(),
-        _ => panic!("bruh"),
+        _ => false, // Default to non-existent
+                    // Because that way, bugs will be easier to catch
     };
 }
