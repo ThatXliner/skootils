@@ -19,7 +19,7 @@
 	let hasInfo: boolean = false;
 	let authorGrade: Grade;
 	let authorName: string;
-	$: formValid = selectedTeacher !== 'Choose a teacher' && assignmentName && authorName;
+	$: formValid = (selectedTeacher !== 'Choose a teacher' || selectedTeacher !== undefined) && assignmentName && authorName;
 	getAuthorInfo.then((out) => {
 		hasInfo = true;
 		authorName = out['name'];
