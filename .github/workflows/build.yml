@@ -93,12 +93,24 @@ jobs:
       - name: Build the app (debug)
         working-directory: src/frontend
         if: ${{ matrix.type }} == 'debug'
-        run: pnpm tauri build  --debug
+        run: pnpm tauri build --debug
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload artifacts (release)
+        uses: actions/upload-artifact@v3
+        if: ${{ matrix.type }} == 'release'
         with:
-          name: ${{ runner.os }} ${{ runner.arch }} Artifacts
+          name: ${{ runner.os }} ${{ runner.arch }} artifacts
           # No .app because it's pretty big and .dmg is nicer
+          path: |
+            src/frontend/src-tauri/target/release/bundle/*/*.dmg
+            src/frontend/src-tauri/target/release/bundle/*/*.AppImage
+            src/frontend/src-tauri/target/release/bundle/*/*.deb
+            src/frontend/src-tauri/target/release/bundle/*/*.msi
+      - name: Upload artifacts (debug)
+        uses: actions/upload-artifact@v3
+        if: ${{ matrix.type }} == 'debug'
+        with:
+          name: ${{ runner.os }} ${{ runner.arch }} artifacts (debug)
           path: |
             src/frontend/src-tauri/target/release/bundle/*/*.dmg
             src/frontend/src-tauri/target/release/bundle/*/*.AppImage
