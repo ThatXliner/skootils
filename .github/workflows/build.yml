@@ -99,7 +99,7 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('src/frontend/src-tauri/Cargo.lock') }}
       - name: Build the app (release)
         working-directory: src/frontend
-        if: ${{ matrix.build_type }} == 'release'
+        if: matrix.build_type == 'release'
         run: pnpm tauri build
       - name: Build the app (debug)
         working-directory: src/frontend
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload artifacts (release)
         uses: actions/upload-artifact@v3
-        if: ${{ matrix.build_type }} == 'release'
+        if: matrix.build_type == 'release'
         with:
           name: ${{ runner.os }} ${{ runner.arch }} artifacts
           # No .app because it's pretty big and .dmg is nicer
