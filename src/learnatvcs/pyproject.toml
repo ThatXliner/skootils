@@ -23,7 +23,7 @@ interprog = { path = "../interprog", develop = true }
 attrs = "^21.4.0"
 beautifulsoup4 = "^4.11.1"
 platformdirs = "^2.5.2"
-data49 = "^0.4.1"
+data49 = "^0.4.4"
 
 [tool.poetry.scripts]
 learnatvcs = "learnatvcs.__main__:main"
