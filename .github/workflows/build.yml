@@ -74,6 +74,8 @@ jobs:
       - name: Build PowerSchool
         working-directory: src/powerschool
         run: echo *.spec | xargs -n 1 pyinstaller
+      - name: Verify binaries
+        run: python scripts/verify_binaries.py
       - name: Rename built binaries
         run: python scripts/rename_binaries.py
 

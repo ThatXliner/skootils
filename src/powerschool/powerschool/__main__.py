@@ -1,10 +1,14 @@
 import asyncio
 import json
+import sys
 
 from powerschool import PowerSchool, storage
 
 
 async def main() -> None:
+    if len(sys.argv) == 2 and sys.argv[1] == "--test":
+        print("Program is valid")
+        return
     cred = storage.get_auth()
     HAS_CREDENTIALS = cred is not None
     print(json.dumps(HAS_CREDENTIALS))

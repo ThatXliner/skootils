@@ -19,6 +19,9 @@ from learnatvcs.models import Date
 
 
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "--test":
+        print("Program is valid")
+        return
     dates = [Date.from_str(x) for x in json.loads(sys.argv[1]) or []]
     print(json.dumps(scrape(for_dates=dates or None)))
 
