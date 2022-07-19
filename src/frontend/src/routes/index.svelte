@@ -64,7 +64,7 @@
 				Bryan Hu (@ThatXliner). <br /><br /> <b>Logo credits:</b> The logo's pencil is from
 				>Twitter's open source
 				<a href="https://twemoji.twitter.com" target="_blank" class="link">Twemoji emoji set</a>
-				(License: CC BY-SA 4.0). I have only rotated the pencil added the S.
+				(License: CC BY-SA 4.0). I have only rotated the pencil and added the S.
 			</p>
 		</div>
 		<div class="w-3/4">
