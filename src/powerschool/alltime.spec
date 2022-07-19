@@ -7,7 +7,7 @@ block_cipher = None
 
 a = Analysis(
     ['powerschool/history/alltime.py'],
-    pathex=Path('.venv/lib').glob("python*/site-packages"),
+    pathex=Path('.venv/lib').glob("*/site-packages"),
     binaries=[],
     datas=[],
     hiddenimports=[],
