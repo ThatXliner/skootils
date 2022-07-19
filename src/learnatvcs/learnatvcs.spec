@@ -34,7 +34,7 @@ exe = EXE(
     name='learnatvcs',
     debug=False,
     bootloader_ignore_signals=False,
-    strip=platform.platform() != 'Windows',
+    strip=platform.system() != 'Windows',
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,

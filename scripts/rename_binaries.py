@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 import platform
 
-extension = ".exe" if platform.platform() == "Windows" else ""
+extension = ".exe" if platform.system() == "Windows" else ""
 
 target_triple = re.search(
     r"host: (\S+)",
