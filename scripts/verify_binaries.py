@@ -1,5 +1,6 @@
 import subprocess
 from pathlib import Path
+import sys
 
 for file in list(Path("src/learnatvcs/dist").iterdir()) + list(
     Path("src/powerschool/dist").iterdir()
@@ -14,10 +15,10 @@ for file in list(Path("src/learnatvcs/dist").iterdir()) + list(
         print(proc.stdout)
         print("\nStderr:\n")
         print(proc.stderr)
-        exit(1)
+        sys.exit(1)
     if not (proc.stdout.strip() == "Program is valid"):
         print(f"{file} is not valid")
         print("reason: invalid output")
-        exit(1)
+        sys.exit(1)
 
 print("All programs are working")
