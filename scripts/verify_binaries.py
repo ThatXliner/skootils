@@ -4,13 +4,19 @@ from pathlib import Path
 for file in list(Path("src/learnatvcs/dist").iterdir()) + list(
     Path("src/powerschool/dist").iterdir()
 ):
-    if not (
-        subprocess.run(
-            [str(file), "--test"], check=True, capture_output=True, text=True
-        ).stdout.strip()
-        == "Program is valid"
-    ):
-        print(f"{file} is not working")
+    proc = subprocess.run(
+        [str(file), "--test"], check=False, capture_output=True, text=True
+    )
+    if proc.returncode != 0:
+        print(f"{file} is not valid")
+        print("reason: errored during verification")
+        print("\nStdout:\n")
+        print(proc.stdout)
+        print("\nStderr:\n")
+        print(proc.stderr)
+        exit(1)
+    if not (proc.stdout.strip() == "Program is valid"):
+        print(f"{file} is not valid")
         print("reason: invalid output")
         exit(1)
 
