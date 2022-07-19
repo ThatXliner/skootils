@@ -1,6 +1,9 @@
 import re
 import subprocess
 from pathlib import Path
+import platform
+
+extension = ".exe" if platform.platform() == "Windows" else ""
 
 target_triple = re.search(
     r"host: (\S+)",
@@ -11,4 +14,4 @@ assert target_triple  # skipcq
 for file in list(Path("src/learnatvcs/dist").iterdir()) + list(
     Path("src/powerschool/dist").iterdir()
 ):
-    file.replace(file.with_name(f"{file.stem}-{target_triple}{file.suffix}"))
+    file.replace(file.with_name(f"{file.stem}-{target_triple}{extension}"))
