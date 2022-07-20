@@ -64,6 +64,13 @@ jobs:
       - name: Install PowerSchool dependencies
         working-directory: src/powerschool
         run: poetry install
+      - name: Load cached node_modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/frontend/node_modules
+            ~/.pnpm-store
+          key: ${{ matrix.build_type }}-pnpm-${{ runner.os }}-${{ hashFiles('src/frontend/pnpm-lock.yaml') }}
       - name: Install frontend dependencies
         working-directory: src/frontend
         run: pnpm install
