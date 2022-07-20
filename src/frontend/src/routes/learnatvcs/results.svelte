@@ -140,7 +140,7 @@
 				</div>
 			</div>
 		{:else if mode === 'overview'}
-			<div>
+			<div class="w-screen">
 				<h3 class="text-3xl text-center py-3">Quick Overview</h3>
 				<p class="text-center">
 					Show all detected assignments in one page because I haven't got an AI to do it yet.

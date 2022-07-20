@@ -3,7 +3,60 @@
 	import { Command } from '@tauri-apps/api/shell';
 	import HomeButton from '$lib/HomeButton.svelte';
 	import WhatIf from '$lib/WhatIf.svelte';
-	import Chart from 'chart.js/auto';
+	import * as pkg from 'chart.js';
+	const {
+		Chart,
+		ArcElement,
+		LineElement,
+		BarElement,
+		PointElement,
+		BarController,
+		BubbleController,
+		DoughnutController,
+		LineController,
+		PieController,
+		PolarAreaController,
+		RadarController,
+		ScatterController,
+		CategoryScale,
+		LinearScale,
+		LogarithmicScale,
+		RadialLinearScale,
+		TimeScale,
+		TimeSeriesScale,
+		Decimation,
+		Filler,
+		Legend,
+		Title,
+		Tooltip,
+		SubTitle
+	} = pkg;
+	Chart.register(
+		ArcElement,
+		LineElement,
+		BarElement,
+		PointElement,
+		BarController,
+		BubbleController,
+		DoughnutController,
+		LineController,
+		PieController,
+		PolarAreaController,
+		RadarController,
+		ScatterController,
+		CategoryScale,
+		LinearScale,
+		LogarithmicScale,
+		RadialLinearScale,
+		TimeScale,
+		TimeSeriesScale,
+		Decimation,
+		Filler,
+		Legend,
+		Title,
+		Tooltip,
+		SubTitle
+	);
 	const CHARTOPTIONS = {
 		// Maybe I'll do borderJoinStyle
 		maintainAspectRatio: false,
@@ -48,9 +101,7 @@
 	let allTimeGradeData: object; // multi quarter data
 	let quarterGradeData: object; // quarter data for class
 	$: if (currentQuarter !== undefined) {
-		let command = new Command('powerschool-history-alltime', [
-			'-um',
-			'powerschool.history.alltime',
+		let command = Command.sidecar('../../powerschool/dist/alltime', [
 			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter
 		]);
 		command.on('error', (error) => console.error(`command error: "${error}"`));
@@ -61,9 +112,7 @@
 		command.spawn();
 	}
 	$: if (selectedClass !== undefined) {
-		let command = new Command('powerschool-history-class', [
-			'-um',
-			'powerschool.history.alltime',
+		let command = Command.sidecar('../../powerschool/dist/for_class', [
 			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter,
 			selectedClass['class_name']
 		]);

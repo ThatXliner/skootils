@@ -12,12 +12,11 @@
 		name: string;
 		progress: boolean | null | [number, number] | string;
 	}[] = [];
+	let hasCredentials: boolean = true;
 
 	onMount(() => {
 		window.sessionStorage.removeItem('output'); // Don't use old data when failed
-		command = new Command('learnatvcs', [
-			'-um',
-			'learnatvcs',
+		command = Command.sidecar('../../learnatvcs/dist/learnatvcs', [
 			window.sessionStorage.getItem('config') ?? 'null'
 		]);
 		command.on('close', (data) => {
@@ -32,6 +31,8 @@
 			let input = JSON.parse(line);
 			if (Array.isArray(input)) {
 				tasks = input;
+			} else if (typeof input === 'boolean') {
+				hasCredentials = input;
 			} else {
 				window.sessionStorage.setItem('output', line);
 			}
@@ -48,7 +49,32 @@
 </script>
 
 {#if child != null}
-	{#await child then}
+	{#await child then child}
+		<input type="checkbox" id="my-modal" class="modal-toggle" />
+		<div class="modal" class:modal-open={!hasCredentials}>
+			<div class="modal-box">
+				<h3 class="font-bold text-lg">Please log in with your school Google account</h3>
+				<p class="py-4">
+					<!-- Because "Sign in with Google" exists.
+					<br /> -->
+					<b>You only need to do this once.</b> There may be reCAPTCHAs. You also might get a "new
+					sign in detected" email from Google after this.
+					<br />
+					<br />
+					Click "I'm done" when it redirects you to the learn@vcs home page.
+				</p>
+				<div class="modal-action">
+					<span
+						for="my-modal"
+						class="btn btn-primary"
+						on:click={() => {
+							hasCredentials = true;
+							child.write('\n');
+						}}>I'm done</span
+					>
+				</div>
+			</div>
+		</div>
 		<ul class="text-2xl m-3">
 			<Interprog input={tasks} />
 		</ul>

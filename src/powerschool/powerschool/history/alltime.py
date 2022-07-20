@@ -6,6 +6,9 @@ from powerschool.storage import HISTORY_DIR
 
 
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "--test":
+        print("Program is valid")
+        return
     quarter = sys.argv[1]
     labels = []
     colors = deque(

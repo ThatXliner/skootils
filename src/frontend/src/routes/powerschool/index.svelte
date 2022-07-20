@@ -16,10 +16,11 @@
 		progress: boolean | null | [number, number] | string;
 	}[];
 	let quarterChoices: string[];
+	let error: string | null = null;
 
 	onMount(() => {
 		window.sessionStorage.removeItem('output');
-		command = new Command('powerschool');
+		command = Command.sidecar('../../powerschool/dist/powerschool');
 		command.on('close', (data) => {
 			console.log(`command finished with code ${data.code} and signal ${data.signal}`);
 			if (window.sessionStorage.getItem('output') !== null) {
@@ -38,6 +39,10 @@
 					progress = input;
 				}
 			} else {
+				if ('error' in input) {
+					error = input['error'];
+					return;
+				}
 				window.sessionStorage.setItem('output', line);
 			}
 		});
@@ -52,6 +57,33 @@
 	});
 </script>
 
+<input type="checkbox" id="my-modal" class="modal-toggle" />
+<div class="modal" class:modal-open={error !== null}>
+	<div class="modal-box">
+		<h3 class="font-bold text-lg">Error!</h3>
+		<div class="alert alert-error shadow-lg">
+			<div>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="stroke-current flex-shrink-0 h-6 w-6"
+					fill="none"
+					viewBox="0 0 24 24"
+					><path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+					/></svg
+				>
+				<span>{error}</span>
+			</div>
+		</div>
+
+		<div class="modal-action">
+			<a href="/" class="btn btn-primary">Bring me back home</a>
+		</div>
+	</div>
+</div>
 <div class="hero min-h-screen bg-base-200">
 	<HomeButton extraClasses="mr-auto mb-auto ml-3 mt-3" />
 	<div class="hero-content flex-row-reverse justify-evenly">

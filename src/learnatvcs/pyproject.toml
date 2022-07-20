@@ -19,11 +19,12 @@ homepage = "https://github.com/ThatXliner/learnatvcs"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-interprog = { path = "../interprog", develop = true }
 attrs = "^21.4.0"
 beautifulsoup4 = "^4.11.1"
 platformdirs = "^2.5.2"
-data49 = "^0.4.1"
+data49 = "^0.4.4"
+webdriver-manager = "^3.8.1"
+interprog = "^0.1.0"
 
 [tool.poetry.scripts]
 learnatvcs = "learnatvcs.__main__:main"
@@ -49,7 +50,6 @@ check_black = {"cmd" = "black learnatvcs --check"}
 check_isort = {"cmd" = "isort learnatvcs --check --profile=black"}
 style    = ["check_black", "check_isort"]
 codebase = ["pylint", "mypy"]
-
 
     [tool.poe.tasks.format]
     cmd = "shed"

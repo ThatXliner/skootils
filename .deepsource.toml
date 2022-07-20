@@ -34,10 +34,11 @@ enabled = true
 name = "prettier"
 enabled = true
 
-[[transformers]]
-name = "black"
-enabled = true
+# DeepSource is contradicting itself...
+# [[transformers]]
+# name = "black"
+# enabled = true
 
-[[transformers]]
-name = "isort"
-enabled = true
+# [[transformers]]
+# name = "isort"
+# enabled = true

@@ -6,9 +6,8 @@ from functools import reduce
 from typing import Dict, List, Optional
 
 import aiohttp
-from bs4 import BeautifulSoup, SoupStrainer
-
 import interprog
+from bs4 import BeautifulSoup, SoupStrainer
 
 __version__ = "0.1.0"
 
@@ -17,6 +16,10 @@ NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
 NOT_AVAILABLE = "N/A"
 
 OutputType = Dict[str, Dict[str, str]]
+
+
+class PowerSchoolError(Exception):
+    """Expected errors from API"""
 
 
 @dataclass
@@ -36,11 +39,18 @@ class PowerSchool:
             self.url + "/guardian/home.html",
             data={"account": self.username, "pw": self.password},
         ) as resp:
-            resp.raise_for_status()
+            try:
+                resp.raise_for_status()
+            except aiohttp.client_exceptions.ClientResponseError as err:
+                await self.session.close()
+                raise PowerSchoolError(err.message) from err
         async with self.session.get(self.url + "/guardian/home.html") as resp:
             self.home_table = BeautifulSoup(
                 await resp.text(), features="html.parser"
             ).find(id="quickLookup")
+            if self.home_table is None:
+                await self.session.close()
+                raise PowerSchoolError("PowerSchool is down")
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:

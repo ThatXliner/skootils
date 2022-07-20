@@ -2,7 +2,8 @@
 import json
 import sys
 
-from learnatvcs import Date, scrape
+from learnatvcs import scrape
+from learnatvcs.models import Date
 
 # from pathlib import Path
 # from platformdirs import user_cache_dir
@@ -18,6 +19,9 @@ from learnatvcs import Date, scrape
 
 
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "--test":
+        print("Program is valid")
+        return
     dates = [Date.from_str(x) for x in json.loads(sys.argv[1]) or []]
     print(json.dumps(scrape(for_dates=dates or None)))
 

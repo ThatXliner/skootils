@@ -7,6 +7,9 @@ COLOR = "rgb(132,230,248)"
 
 
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "--test":
+        print("Program is valid")
+        return
     quarter = sys.argv[1]
     class_name = sys.argv[2]
     labels = []

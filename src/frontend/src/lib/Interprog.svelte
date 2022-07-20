@@ -60,7 +60,7 @@
 					/>
 				</svg>
 				<s>{name}</s>
-				<span class="ml-2 p-2 bg-error text-error-content rounded-box">{name}</span>
+				<span class="ml-2 p-2 bg-error text-error-content rounded-box">{progress}</span>
 			</li></slot
 		>
 	{:else if Array.isArray(progress) && typeof progress[0] === 'number'}
