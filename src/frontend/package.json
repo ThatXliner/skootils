@@ -24,7 +24,7 @@
 		"@typescript-eslint/parser": "^5.30.7",
 		"autoprefixer": "^10.4.7",
 		"chart.js": "^3.8.0",
-		"daisyui": "^2.19.0",
+		"daisyui": "^2.19.1",
 		"dompurify": "^2.3.10",
 		"eslint": "^8.20.0",
 		"eslint-config-prettier": "^8.5.0",
