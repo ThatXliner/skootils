@@ -4,7 +4,7 @@
 
 > Utilities for School
 
-Work in progress. Fully packaged binaries and landing page coming soon!
+Landing page coming soon! Get your binaries [here](https://nightly.link/ThatXliner/skootils/workflows/build/main)
 
 ## :sparkles: Current features
 
@@ -14,6 +14,7 @@ Work in progress. Fully packaged binaries and landing page coming soon!
   - "What if" - calculate the effect of future scores on your grade
 - Learn@vcs
   - Scrapes all lesson plans and displays them in one unified page
+- Email templates
 
 <details>
 
