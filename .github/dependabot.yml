@@ -10,10 +10,6 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "pip"
-    directory: "/src/interprog"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "pip"
     directory: "/src/summarize"
     schedule:
       interval: "weekly"
