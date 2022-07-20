@@ -2,7 +2,7 @@ import asyncio
 import json
 import sys
 
-from powerschool import PowerSchool, storage
+from powerschool import PowerSchool, storage, PowerSchoolError
 
 
 async def main() -> None:
@@ -26,16 +26,18 @@ async def main() -> None:
     #         )
     #     )
     #     return
-
-    async with PowerSchool(
-        "https://powerschool.vcs.net", auth["username"], auth["password"]
-    ) as bot:
-        quarters = bot.get_quarters()
-        print(json.dumps(quarters))
-        output = await bot.get(json.loads(input()))
-        print(json.dumps(output))
-        storage.save(output, quarters)
-        storage.save_teachers(output)
+    try:
+        async with PowerSchool(
+            "https://powerschool.vcs.net", auth["username"], auth["password"]
+        ) as bot:
+            quarters = bot.get_quarters()
+            print(json.dumps(quarters))
+            output = await bot.get(json.loads(input()))
+            print(json.dumps(output))
+            storage.save(output, quarters)
+            storage.save_teachers(output)
+    except PowerSchoolError as err:
+        print(json.dumps({"error": str(err.args[0])}))
 
 
 if __name__ == "__main__":
