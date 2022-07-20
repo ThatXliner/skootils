@@ -28,7 +28,7 @@ async def main() -> None:
     #     return
     try:
         async with PowerSchool(
-            "https://powerschool.vcs.net", auth["username"], auth["password"]
+            "https://vcsnet.powerschool.com", auth["username"], auth["password"]
         ) as bot:
             quarters = bot.get_quarters()
             print(json.dumps(quarters))
