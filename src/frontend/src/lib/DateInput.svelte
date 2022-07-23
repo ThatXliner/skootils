@@ -15,7 +15,7 @@
 	];
 	let selectedMonth: string | null = null;
 	let selectedDay: number = 1;
-	$: selected = selectedMonth !== null ? `${selectedMonth} ${selectedDay}` : 'today';
+	$: selected = `${selectedMonth} ${selectedDay}`;
 	export let selectedDates: string[] = [];
 	function select() {
 		selectedDates = [selected, ...selectedDates];
