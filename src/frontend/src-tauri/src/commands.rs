@@ -1,7 +1,16 @@
 use directories::ProjectDirs;
 use keyring;
 use lazy_static;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
+#[derive(Serialize, Deserialize)]
+pub struct TeacherInfo {
+    email: String,
+    class_name: String,
+    period: String,
+}
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use trash;
@@ -56,7 +65,40 @@ pub fn get_teachers() -> Result<Value, String> {
     let file_path = get_powerschool_teacher_file();
     read_json(file_path.as_path())
 }
-
+#[tauri::command]
+pub fn add_teacher(teacher_name: String, teacher_info: TeacherInfo) -> Result<(), String> {
+    let file_path = get_powerschool_teacher_file();
+    let mut val: HashMap<String, TeacherInfo> = serde_json::from_str(
+        fs::read_to_string(&file_path)
+            .unwrap_or_else(|_| String::from("{}"))
+            .as_str(),
+    )
+    .or(Err(String::from("Could not parse JSON")))?;
+    val.insert(teacher_name, teacher_info);
+    fs::write(
+        &file_path,
+        serde_json::to_string(&val).or(Err(String::from("Converting to string failed")))?,
+    )
+    .or(Err(String::from("Could not write to file")))?;
+    Ok(())
+}
+#[tauri::command]
+pub fn remove_teacher(teacher_name: String) -> Result<(), String> {
+    let file_path = get_powerschool_teacher_file();
+    let mut val: HashMap<String, TeacherInfo> = serde_json::from_str(
+        fs::read_to_string(&file_path)
+            .unwrap_or_else(|_| String::from("{}"))
+            .as_str(),
+    )
+    .or(Err(String::from("Could not parse JSON")))?;
+    val.remove(&teacher_name);
+    fs::write(
+        &file_path,
+        serde_json::to_string(&val).or(Err(String::from("Converting to string failed")))?,
+    )
+    .or(Err(String::from("Could not write to file")))?;
+    Ok(())
+}
 #[tauri::command]
 pub fn get_user_info() -> Result<Value, String> {
     let file_path = get_user_info_file();

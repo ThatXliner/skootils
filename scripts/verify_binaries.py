@@ -16,7 +16,7 @@ for file in list(Path("src/learnatvcs/dist").iterdir()) + list(
         print("\nStderr:\n")
         print(proc.stderr)
         sys.exit(1)
-    if not (proc.stdout.strip() == "Program is valid"):
+    if not proc.stdout.strip() == "Program is valid":
         print(f"{file} is not valid")
         print("reason: invalid output")
         sys.exit(1)
