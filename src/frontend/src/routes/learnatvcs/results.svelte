@@ -19,16 +19,17 @@
 		selectedClassKey = Object.keys(output[selectedDate])[0];
 		DATETYPE = JSON.parse(window.sessionStorage.getItem('config') ?? 'null');
 	});
-	function recursiveNextSibling(element: Element): string {
-		let output = '';
-		let cursor: Element | null = element;
-		while (cursor && !(cursor.nodeName === 'P' && cursor.querySelector('strong') !== null)) {
-			output += cursor.outerHTML;
-			cursor = cursor.nextElementSibling;
-		}
-		return output;
-	}
+
 	function getContents(html: string) {
+		function recursiveNextSibling(element: Element): string {
+			let output = '';
+			let cursor: Element | null = element;
+			while (cursor && !(cursor.nodeName === 'P' && cursor.querySelector('strong') !== null)) {
+				output += cursor.outerHTML;
+				cursor = cursor.nextElementSibling;
+			}
+			return output;
+		}
 		const parser = new DOMParser();
 		let doc = parser.parseFromString(html, 'text/html');
 		return Array.from(doc.body.querySelectorAll('h4,h3'))

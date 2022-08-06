@@ -50,28 +50,10 @@ _WORD_DATE = f"(?:{'|'.join(times)})"
 DATE = (
     rf"(?:(?:{_START_KEYWORDS}|{_RELATIVE_KEYWORDS})?\s*(?:{_DUAL_DATE}|{_WORD_DATE}))"
 )
-# TIMES = ""
-#
-# periods = (
-#     [
-#         "((next|following|in) )?class",
-#         "in-class",
-#         "((next|following) )?period",
-#         "((next|following) )?week",
-#         "((next|following) )?month",
-#         "((next|following) )?year",
-#     ]
-#     + [rf"{month}(?: \d+\w*)?" for month in MONTHS]
-#     + [rf"((next|following) )?{time}" for time in times]
-# )
-# DAYS = f'(?:{"|".join(periods)})'
+
 wordlist = [
     rf"(due|by)(.+{DATE})",
     r"(begin|continue|finish)( \w+ing)?",
-    # "(next|following) (class|period|week|month|year)",
-    # r"(begin|continue|finish) \w+ing",
-    # f"due(.+{DAYS})",
-    # rf"by(.+{DAYS})",
 ]
 
 HIGHLIGHT_ME = re.compile(
