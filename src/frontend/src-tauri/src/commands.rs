@@ -70,8 +70,7 @@ pub fn add_teacher(teacher_name: String, teacher_info: TeacherInfo) -> Result<()
     let file_path = get_powerschool_teacher_file();
     let mut val: HashMap<String, TeacherInfo> = serde_json::from_str(
         fs::read_to_string(&file_path)
-            .ok()
-            .unwrap_or(String::from("{}"))
+            .unwrap_or_else(|_| String::from("{}"))
             .as_str(),
     )
     .or(Err(String::from("Could not parse JSON")))?;
@@ -88,8 +87,7 @@ pub fn remove_teacher(teacher_name: String) -> Result<(), String> {
     let file_path = get_powerschool_teacher_file();
     let mut val: HashMap<String, TeacherInfo> = serde_json::from_str(
         fs::read_to_string(&file_path)
-            .ok()
-            .unwrap_or(String::from("{}"))
+            .unwrap_or_else(|_| String::from("{}"))
             .as_str(),
     )
     .or(Err(String::from("Could not parse JSON")))?;
