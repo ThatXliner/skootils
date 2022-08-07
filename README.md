@@ -11,7 +11,7 @@ Landing page coming soon! Get your binaries [here](https://nightly.link/ThatXlin
 - PowerSchool
   - GPA calculator
   - Grade history graph
-  - "What if" - calculate the effect of future scores on your grade
+  - "What if" - calculate the effect of future scores on your grade (beta)
 - Learn@vcs
   - Scrapes all lesson plans and displays them in one unified page
 - Email templates
