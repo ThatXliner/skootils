@@ -105,7 +105,7 @@
 			</div>
 		</div>
 	{/if}
-	<HomeButton extraClasses="mr-auto mb-auto ml-3 mt-3" />
+	<HomeButton extraClasses="mr-auto mb-auto ml-3 mt-2" />
 	<div class="hero-content flex-col">
 		<div class="text-center">
 			<h1 class="text-5xl font-bold">Wipe Data (forever!)</h1>

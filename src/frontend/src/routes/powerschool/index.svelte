@@ -85,7 +85,7 @@
 	</div>
 </div>
 <div class="hero min-h-screen bg-base-200">
-	<HomeButton extraClasses="mr-auto mb-auto ml-3 mt-3" />
+	<HomeButton extraClasses="mr-auto mb-auto ml-3 mt-2" />
 	<div class="hero-content flex-row-reverse justify-evenly">
 		<div class="ml-4 text-left">
 			<h1 class="text-5xl font-bold">PowerSchool++</h1>

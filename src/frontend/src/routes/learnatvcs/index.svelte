@@ -13,7 +13,6 @@
 
 <main class="ml-3 mt-2">
 	<HomeButton />
-	<!-- XXX: should we center all of this? -->
 	<div class="mx-auto w-3/4">
 		<h1 class="text-center text-4xl font-bold">Scrape lesson plans</h1>
 		<p class="leading-relaxed text-xl">
