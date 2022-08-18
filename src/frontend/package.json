@@ -24,6 +24,7 @@
 		"autoprefixer": "^10.4.8",
 		"chart.js": "^3.9.1",
 		"daisyui": "^2.22.0",
+		"date-fns": "^2.29.1",
 		"dompurify": "^2.3.10",
 		"eslint": "^8.21.0",
 		"eslint-config-prettier": "^8.5.0",

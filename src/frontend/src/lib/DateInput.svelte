@@ -1,135 +1,148 @@
 <script lang="ts">
-	const MONTHS = [
-		'January',
-		'February',
-		'March',
-		'April',
-		'May',
-		'June',
-		'July',
-		'August',
-		'September',
-		'October',
-		'November',
-		'December'
+	// TODO: Selection logic
+	const monthFormatter = new Intl.DateTimeFormat('default', { month: 'long' });
+	const MONTHS: Date[] = [...Array(12).keys()].map((n) => {
+		return new Date(new Date().getFullYear(), n, 0);
+	});
+	let selectedMonth = new Date(new Date()).getMonth();
+	let calendarMatrix = [
+		[
+			{ value: 31, isInMonth: false },
+			{ value: 1, isInMonth: true },
+			{ value: 2, isInMonth: true },
+			{ value: 3, isInMonth: true },
+			{ value: 4, isInMonth: true },
+			{ value: 5, isInMonth: true },
+			{ value: 6, isInMonth: true }
+		],
+		[
+			{ value: 7, isInMonth: true },
+			{ value: 8, isInMonth: true },
+			{ value: 9, isInMonth: true },
+			{ value: 10, isInMonth: true },
+			{ value: 11, isInMonth: true },
+			{ value: 12, isInMonth: true },
+			{ value: 13, isInMonth: true }
+		]
 	];
-	let selectedMonth: string | null = null;
-	let selectedDay: number = 1;
-	$: selected = `${selectedMonth} ${selectedDay}`;
+	// TODO: List of pairs of ints instead of dumb matrix
+	// Also todo: multi-month support
+	let selected: boolean[][] = [...Array(calendarMatrix.length).keys()].map(() => {
+		return [...Array(calendarMatrix[0].length).keys()].map(() => false);
+	});
+	// let selectedDay: number = 1;
+	// $: selected = `${selectedMonth} ${selectedDay}`;
 	export let selectedDates: string[] = [];
-	function select() {
-		selectedDates = [selected, ...selectedDates];
-		selectedMonth = null;
-		selectedDay = 1;
-	}
+	// $: selectedDates = convertSelectedDate()
+	// function select() {
+	// 	selectedDates = [selected, ...selectedDates];
+	// 	selectedMonth = null;
+	// 	selectedDay = 1;
+	// }
 </script>
 
-<div>
-	<div class="flex space-x-2 my-2">
-		<div class="dropdown">
-			{#if selectedMonth == null}
-				<label for="month-select" tabindex="0" class="btn">Select a month</label>
-			{:else}
-				<label for="month-select" tabindex="0" class="btn btn-accent">{selectedMonth}</label>
-			{/if}
-			<ul
-				id="month-select"
-				tabindex="0"
-				class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 max-h-52 overflow-y-scroll"
-			>
-				{#each MONTHS as month}
-					<li
-						class:active={month == selectedMonth}
-						on:click={() => {
-							selectedMonth = month;
-						}}
-					>
-						<span>{month}</span>
-					</li>
-				{/each}
-			</ul>
-		</div>
-		<div class="btn-group">
-			<button
-				class="btn text-lg"
-				on:click={() => {
-					selectedDay--;
-				}}>-</button
-			>
+<div class="form-control">
+	<div class="dropdown">
+		<label class="input-group">
 			<input
-				type="number"
-				class="w-10 text-center bg-base-100"
-				bind:value={selectedDay}
-				on:blur={() => {
-					if (selectedDay < 1) {
-						selectedDay = 1;
-					}
-					if (selectedDay > 31) {
-						selectedDay = 31;
-					}
-				}}
-			/>
-
-			<button
-				class="btn text-lg"
-				on:click={() => {
-					selectedDay++;
-				}}>+</button
-			>
-		</div>
-
-		<button
-			on:click={select}
-			class="btn btn-primary"
-			class:btn-disabled={selectedMonth == null || selectedDates.includes(selected)}>Add</button
-		>
-	</div>
-
-	{#if selectedDates.length > 0}
-		<ul id="date-list" class="flex flex-col p-2 border-2 rounded-box w-fit">
-			{#each selectedDates as date, i}
-				<!-- TODO: argh where do we put the trash can icon -->
-				<li
-					class="my-1 btn btn-accent gap-1"
-					on:click={() => {
-						selectedDates = selectedDates.slice(0, i).concat(selectedDates.slice(i + 1));
-					}}
+				type="text"
+				placeholder="Select a date"
+				class="input input-bordered w-full max-w-xs"
+				readonly
+			/><span
+				><svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="inline h-5 w-5"
+					viewBox="0 0 20 20"
+					fill="currentColor"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-							clip-rule="evenodd"
-						/>
-					</svg>
-					<span>{date}</span>
-				</li>
-			{/each}
-		</ul>
-	{:else}
-		<p
-			class="text-red-500 text-center font-bold border-2 dark:bg-neutral p-2 py-5 rounded-box w-fit"
+					<path
+						fill-rule="evenodd"
+						d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+						clip-rule="evenodd"
+					/>
+				</svg></span
+			></label
 		>
-			No dates selected
-		</p>
-	{/if}
+		<div tabindex="0" class="dropdown-content card card-compact w-fit shadow bg-base-100">
+			<div class="card-body">
+				<h3 class="card-title mx-auto">
+					<button
+						class="btn btn-ghost mr-auto"
+						disabled={selectedMonth == 0}
+						on:click={() => {
+							selectedMonth--;
+						}}
+						><svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+								clip-rule="evenodd"
+							/>
+						</svg></button
+					>
+					<select class="select select-bordered" bind:value={selectedMonth}>
+						{#each MONTHS as month}
+							<!-- We could also make the value the index if performance matters -->
+							<option value={month.getMonth()}>{monthFormatter.format(month)}</option>
+						{/each}
+					</select>
+					<button
+						class="btn btn-ghost left-auto right-0"
+						disabled={selectedMonth == 11}
+						on:click={() => {
+							selectedMonth++;
+						}}
+						><svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+								clip-rule="evenodd"
+							/>
+						</svg></button
+					>
+				</h3>
+				<table class="table w-full">
+					<!-- head -->
+					<thead>
+						<tr class="[&>*]:normal-case">
+							<th>Sun</th>
+							<th>Mon</th>
+							<th>Tue</th>
+							<th>Wed</th>
+							<th>Thu</th>
+							<th>Fri</th>
+							<th>Sat</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each calendarMatrix as week, i}
+							<tr>
+								{#each week as day, j}
+									<td
+										class="table-cell btn btn-ghost text-center border-1 border-base-200"
+										class:btn-disabled={!day.isInMonth}
+										class:btn-active={selected[i][j]}
+										on:click={() => {
+											selected[i][j] = !selected[i][j];
+										}}>{day.value}</td
+									>
+								{/each}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 </div>
-
-<style>
-	/* Chrome, Safari, Edge, Opera */
-	input::-webkit-outer-spin-button,
-	input::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
-
-	/* Firefox */
-	input[type='number'] {
-		-moz-appearance: textfield;
-	}
-</style>
