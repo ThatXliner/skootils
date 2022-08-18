@@ -103,6 +103,9 @@ def _scrape(
             ClassDay.from_str(date["innerText"]): date.get("href")
             for date in browser.query_selector_all(".book_toc a,.book_toc strong")
         }
+        if not date2link:
+            reporter.error("No lesson plans")
+            continue
         for date in for_dates or [list(date2link)[-1]]:
             day_key = str(date) if for_dates is not None else None
             if day_key not in output:

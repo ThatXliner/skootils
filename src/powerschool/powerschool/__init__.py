@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 __version__ = "0.1.0"
 
 
-NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
+NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)?\s*(\w+)")
 NOT_AVAILABLE = "N/A"
 
 OutputType = Dict[str, Dict[str, str]]
