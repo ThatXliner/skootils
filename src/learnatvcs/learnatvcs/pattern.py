@@ -22,6 +22,6 @@ ENTITY = rf"class|period|year|month|week|({MONTH})"
 relative_date = _union(_(RELATIVE_KEYWORD, ENTITY), "tomorrow", "today")
 NUM_DATE = _union(
     _(MONTH, r"(\d+(/\d+)?)|(\d+\w+)"),
-    r"\d+/\d+/\d+",
+    r"\d+/\d+(/\d+)?",
 )
 date = re.compile(_union(NUM_DATE, relative_date), flags=re.IGNORECASE)

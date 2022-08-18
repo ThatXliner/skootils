@@ -5,9 +5,11 @@
 from bs4 import BeautifulSoup
 
 from learnatvcs.process import to_soup
-from learnatvcs.pattern import date
+from learnatvcs.pattern import date as DATE_RE, assignment as ASSIGNMENT_RE
 
-HIGHLIGHT_ME = date
+HIGHLIGHT_ME = lambda x: DATE_RE.search(x) or ASSIGNMENT_RE.search(
+    x
+)  # type: (str) -> bool
 
 
 def create_highlight(x: str) -> str:
@@ -17,7 +19,7 @@ def create_highlight(x: str) -> str:
 def highlight(soup: BeautifulSoup) -> BeautifulSoup:
     for body in soup(string=HIGHLIGHT_ME):
         search_space = body.get_text()
-        match = HIGHLIGHT_ME.search(search_space)
+        match = DATE_RE.search(search_space)
         span = match.span()
         left, right = search_space[: span[0]], search_space[span[1] :]
         body.replace_with(
