@@ -17,21 +17,21 @@
 				"sidecar": true,
 				"scope": [
 					{
-						"name": "../../learnatvcs/dist/learnatvcs",
+						"name": "../../learnatvcs/dist/learnatvcs/learnatvcs",
 						"args": [{ "validator": "(null|\\[.*?\\])" }],
 						"sidecar": true
 					},
 					{
-						"name": "../../powerschool/dist/powerschool",
+						"name": "../../powerschool/dist/powerschool/powerschool",
 						"sidecar": true
 					},
 					{
-						"name": "../../powerschool/dist/alltime",
+						"name": "../../powerschool/dist/alltime/alltime",
 						"args": [{ "validator": "\\w+" }],
 						"sidecar": true
 					},
 					{
-						"name": "../../powerschool/dist/for_class",
+						"name": "../../powerschool/dist/for_class/for_class",
 						"args": [{ "validator": "\\w+" }, { "validator": "\\w+" }],
 						"sidecar": true
 					}

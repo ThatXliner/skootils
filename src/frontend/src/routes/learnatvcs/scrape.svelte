@@ -16,7 +16,7 @@
 
 	onMount(() => {
 		window.sessionStorage.removeItem('output'); // Don't use old data when failed
-		command = Command.sidecar('../../learnatvcs/dist/learnatvcs', [
+		command = Command.sidecar('../../learnatvcs/dist/learnatvcs/learnatvcs', [
 			window.sessionStorage.getItem('config') ?? 'null'
 		]);
 		command.on('close', (data) => {

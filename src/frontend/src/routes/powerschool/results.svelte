@@ -101,7 +101,7 @@
 	let allTimeGradeData: object; // multi quarter data
 	let quarterGradeData: object; // quarter data for class
 	$: if (currentQuarter !== undefined) {
-		let command = Command.sidecar('../../powerschool/dist/alltime', [
+		let command = Command.sidecar('../../powerschool/dist/alltime/alltime', [
 			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter
 		]);
 		command.on('error', (error) => console.error(`command error: "${error}"`));
@@ -112,7 +112,7 @@
 		command.spawn();
 	}
 	$: if (selectedClass !== undefined) {
-		let command = Command.sidecar('../../powerschool/dist/for_class', [
+		let command = Command.sidecar('../../powerschool/dist/for_class/for_class', [
 			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter,
 			selectedClass['class_name']
 		]);

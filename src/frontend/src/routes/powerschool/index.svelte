@@ -20,7 +20,7 @@
 
 	onMount(() => {
 		window.sessionStorage.removeItem('output');
-		command = Command.sidecar('../../powerschool/dist/powerschool');
+		command = Command.sidecar('../../powerschool/dist/powerschool/powerschool');
 		command.on('close', (data) => {
 			console.log(`command finished with code ${data.code} and signal ${data.signal}`);
 			if (window.sessionStorage.getItem('output') !== null) {
