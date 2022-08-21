@@ -1,12 +1,16 @@
 import subprocess
 from pathlib import Path
 import sys
+import re
 
 for file in list(Path("src/learnatvcs/dist").iterdir()) + list(
     Path("src/powerschool/dist").iterdir()
 ):
     proc = subprocess.run(
-        [str(file), "--test"], check=False, capture_output=True, text=True
+        [str(file / re.match(r"\w+", file.name).group(0)), "--test"],
+        check=False,
+        capture_output=True,
+        text=True,
     )
     if proc.returncode != 0:
         print(f"{file} is not valid")
