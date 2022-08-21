@@ -15,7 +15,10 @@ def _(*args) -> str:
 
 # Originally a Lark grammar
 RELATIVE_KEYWORD = _union("next", _(r"(the)?", "following"))
-LONG_MONTH = r"january|february|march|april|may|june|july|august|september|october|november|december"
+LONG_MONTH = (
+    r"january|february|march|april|may|june|"
+    r"july|august|september|october|november|december"
+)
 SHORT_MONTH = r"jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec"
 MONTH = f"({LONG_MONTH})|({SHORT_MONTH})"
 ENTITY = rf"class|period|year|month|week|({MONTH})"
