@@ -25,3 +25,4 @@ NUM_DATE = _union(
     r"\d+/\d+(/\d+)?",
 )
 date = re.compile(_union(NUM_DATE, relative_date), flags=re.IGNORECASE)
+assignment = re.compile(_(r"complete|finish|do", r".+"), flags=re.IGNORECASE)
