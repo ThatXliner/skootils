@@ -6,7 +6,7 @@
 
 <main class="overflow-x-hidden">
 	<section class="h-screen" id="home">
-		<div class="hero h-[100%]">
+		<div class="hero h-full">
 			<div class="hero-content flex-col">
 				<h1 class="text-5xl">Skootils</h1>
 				<p>Many utilities...</p>
@@ -14,9 +14,7 @@
 					<!-- <div class="tooltip tooltip-bottom tooltip-primary" data-tip="hello"> -->
 					<a class="btn btn-primary" href="/learnatvcs">Scrape learn@vcs</a>
 					<!-- </div> -->
-
 					<a class="btn btn-primary" href="/powerschool">PowerSchool++</a>
-
 					<a class="btn btn-primary" href="/email">Mail-tilities</a>
 					<a class="btn btn-error" href="/wipe">Wipe storage</a>
 				</div>
@@ -25,7 +23,7 @@
 	</section>
 
 	<section class="h-screen bg-cyan-300 dark:bg-blue-900" id="learnatvcs">
-		<div class="hero h-[100%]">
+		<div class="hero h-full">
 			<div class="hero-content flex-row">
 				<img src={exampleSrc} alt="Example" class="mx-3 rounded-lg shadow-2xl max-w-[50%]" />
 				<div>
@@ -44,7 +42,7 @@
 		</div>
 	</section>
 	<section class="h-screen bg-green-300 dark:bg-emerald-800" id="powerschool">
-		<div class="hero h-[100%]">
+		<div class="hero h-full">
 			<div class="hero-content flex-row">
 				<div>
 					<h1 class="text-4xl">PowerSchool++</h1>

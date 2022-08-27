@@ -9,7 +9,7 @@ Landing page coming soon! Get your binaries [here](https://nightly.link/ThatXlin
 ## :sparkles: Current features
 
 - PowerSchool
-  - GPA calculator
+  - ~~GPA calculator~~ VCS allowed us to see our GPA now :smile:
   - Grade history graph
   - "What if" - calculate the effect of future scores on your grade (beta)
 - Learn@vcs

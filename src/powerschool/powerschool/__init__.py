@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 __version__ = "0.1.0"
 
 
-NAME_RE = re.compile(r"Email (\w+),\s*(\w+\.)\s*(\w+)")
+NAME_RE = re.compile(r"Email (\w+),\s*((?:\w+\.\s+)?\w+)")
 NOT_AVAILABLE = "N/A"
 
 OutputType = Dict[str, Dict[str, str]]
@@ -71,7 +71,7 @@ class PowerSchool:
         }
         return reduce(
             lambda a, b: a | b,
-            [value if score[f"is{key}"] else 0 for key, value in FLAGS.items()],
+            [value if score.get(f"is{key}") else 0 for key, value in FLAGS.items()],
             0,
         )
 
@@ -127,8 +127,8 @@ class PowerSchool:
         assert len(sections) == 1
         info = sections[0]
         scores = info["_assignmentscores"]
-        assert len(scores) == 1
-        score = scores[0]
+        assert len(scores) <= 1
+        score = {} if not scores else scores[0]
         assignment_types = info["_assignmentcategoryassociations"]
         assert len(assignment_types) == 1
         assignment_type = assignment_types[0]
@@ -152,7 +152,7 @@ class PowerSchool:
             # - Mastery Assessments
             "name": info["name"],
             # TODO: Flags (missing, late, etc)
-            "flags": self._get_flags(score),
+            "flags": 0 if not score else self._get_flags(score),
             "_raw": info,
             "score": {  # Can also be --/20 or smth like that
                 "total": info["totalpointvalue"],
@@ -206,6 +206,10 @@ class PowerSchool:
         for row in classes:
             await self._scrape_class(offset, current_quarter_name, _output, row)
 
+    @staticmethod
+    def normalize(x: str) -> Optional[str]:
+        return None if x == "[ i ]" else x
+
     async def _scrape_class(
         self, offset: int, quarter: str, _output, row: BeautifulSoup
     ):
@@ -217,9 +221,7 @@ class PowerSchool:
         email = email_info["href"][len("mailto:") :]
         name_info = NAME_RE.search(email_info.get_text())
         last_name = name_info.group(1)
-        title = name_info.group(2)
-        # If we ever need this information...
-        # first_name = name_info.group(3)  # skipcq
+        title = name_info.group(2).replace("  ", " ")
         name = title + " " + last_name
 
         current_quarter = row.select("td")[offset]
@@ -244,8 +246,8 @@ class PowerSchool:
             "quarter_info": {
                 "name": quarter,
                 "overall_grade": {
-                    "name": current_grade_name,
-                    "percent": current_grade_percent,
+                    "name": self.normalize(current_grade_name),
+                    "percent": self.normalize(current_grade_percent),
                 },
                 "scores": assignments,
             },
@@ -257,14 +259,14 @@ class PowerSchool:
         if self.student_id is None:
             if _page is None:
                 async with self.session.get(
-                    "https://powerschool.vcs.net/guardian/" + current_grade["href"]
+                    f"{self.url}/guardian/" + current_grade["href"]
                 ) as resp:
                     _page = await resp.text()
             self.student_id = int(re.search(r"studentFRN.+?(\d+)", _page).group(1)[3:])
         if class_name not in self._class_to_sectionid:
             if _page is None:
                 async with self.session.get(
-                    "https://powerschool.vcs.net/guardian/" + current_grade["href"]
+                    f"{self.url}/guardian/" + current_grade["href"]
                 ) as resp:
                     _page = await resp.text()
             self._class_to_sectionid[class_name] = int(
@@ -277,8 +279,8 @@ class PowerSchool:
 
     async def _scrape_assignments(self, quarter: str, class_name: str):
         async with self.session.post(
-            "https://powerschool.vcs.net/ws/xte/assignment/lookup",
-            headers={"Referer": "https://powerschool.vcs.net/public"},
+            f"{self.url}/ws/xte/assignment/lookup",
+            headers={"Referer": f"{self.url}/public"},
             json={
                 # dunno why these are a list
                 "section_ids": [self._class_to_sectionid[class_name]],
