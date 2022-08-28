@@ -23,8 +23,6 @@
 		}
 		return month;
 	}
-	// calMatrix generation algorithm:
-	// Get the day of the first day.
 	function generateCalendarMatrix(month: number) {
 		let calMatrix = [];
 		let day = 1;
