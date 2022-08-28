@@ -1,55 +1,103 @@
 <script lang="ts">
-	// TODO: Selection logic
+	const YEAR = new Date().getFullYear();
 	const monthFormatter = new Intl.DateTimeFormat('default', { month: 'long' });
 	const MONTHS: Date[] = [...Array(12).keys()].map((n) => {
-		return new Date(new Date().getFullYear(), n, 0);
+		// First days of the month
+		return new Date(YEAR, n, 1);
 	});
-	let selectedMonth = new Date(new Date()).getMonth();
-	let calendarMatrix = [
-		[
-			{ value: 31, isInMonth: false },
-			{ value: 1, isInMonth: true },
-			{ value: 2, isInMonth: true },
-			{ value: 3, isInMonth: true },
-			{ value: 4, isInMonth: true },
-			{ value: 5, isInMonth: true },
-			{ value: 6, isInMonth: true }
-		],
-		[
-			{ value: 7, isInMonth: true },
-			{ value: 8, isInMonth: true },
-			{ value: 9, isInMonth: true },
-			{ value: 10, isInMonth: true },
-			{ value: 11, isInMonth: true },
-			{ value: 12, isInMonth: true },
-			{ value: 13, isInMonth: true }
-		]
-	];
-	// TODO: List of pairs of ints instead of dumb matrix
+	function getLastDay(date: number): Date {
+		let newDate = new Date();
+		newDate.setMonth(date + 1);
+		// last day of previous month
+		newDate.setDate(0);
+		return newDate;
+	}
+
+	let selectedMonth = new Date().getMonth();
+	function subtractOneMonth(month: number) {
+		if (month == 1) {
+			month = 12;
+			// decrement year
+		} else {
+			month--;
+		}
+		return month;
+	}
+	// calMatrix generation algorithm:
+	// Get the day of the first day.
+	function generateCalendarMatrix(month: number) {
+		let calMatrix = [];
+		let day = 1;
+		function generateFirstWeek() {
+			// fill up the first week
+			let initialOffset = MONTHS[month].getDay();
+			let firstWeek = [];
+			const DAYSINLASTMONTH = getLastDay(subtractOneMonth(month)).getDate();
+			let days = DAYSINLASTMONTH - initialOffset + 1;
+			while (days != DAYSINLASTMONTH + 1) {
+				firstWeek.push({ value: days, isInMonth: false });
+				days++;
+			}
+			for (let i = initialOffset; i < 7; i++) {
+				firstWeek.push({ value: day++, isInMonth: true });
+			}
+			return firstWeek;
+		}
+
+		calMatrix.push(generateFirstWeek());
+		let week = [];
+		while (day < getLastDay(month).getDate() + 1) {
+			week.push({ value: day, isInMonth: true });
+			if (week.length == 7) {
+				calMatrix.push(week);
+				week = [];
+			}
+			day++;
+		}
+		// fill last week
+		if (week.length > 0) {
+			let day = 1;
+			for (let i = week.length; i < 7; i++) {
+				week.push({ value: day, isInMonth: false });
+				day++;
+			}
+			calMatrix.push(week);
+			week = [];
+		}
+		return calMatrix;
+	}
+	let calendarMatrix = generateCalendarMatrix(selectedMonth);
+	$: {
+		calendarMatrix = generateCalendarMatrix(selectedMonth);
+	}
 	// Also todo: multi-month support
 	let selected: boolean[][] = [...Array(calendarMatrix.length).keys()].map(() => {
 		return [...Array(calendarMatrix[0].length).keys()].map(() => false);
 	});
-	// let selectedDay: number = 1;
-	// $: selected = `${selectedMonth} ${selectedDay}`;
+	$: {
+		selected = [...Array(calendarMatrix.length).keys()].map(() => {
+			return [...Array(calendarMatrix[0].length).keys()].map(() => false);
+		});
+	}
 	export let selectedDates: string[] = [];
-	// $: selectedDates = convertSelectedDate()
-	// function select() {
-	// 	selectedDates = [selected, ...selectedDates];
-	// 	selectedMonth = null;
-	// 	selectedDay = 1;
-	// }
+	$: {
+		let sel = [];
+		for (let [i, row] of calendarMatrix.entries()) {
+			for (let [j, column] of row.entries()) {
+				if (selected[i][j]) {
+					sel.push(`${monthFormatter.format(MONTHS[selectedMonth])} ${column.value}`);
+				}
+			}
+		}
+		selectedDates = sel;
+	}
+	$: placeholder = selectedDates.join(', ') || 'Select dates';
 </script>
 
 <div class="form-control">
 	<div class="dropdown">
 		<label class="input-group">
-			<input
-				type="text"
-				placeholder="Select a date"
-				class="input input-bordered w-full max-w-xs"
-				readonly
-			/><span
+			<input type="text" {placeholder} class="input input-bordered w-full max-w-xs" readonly /><span
 				><svg
 					xmlns="http://www.w3.org/2000/svg"
 					class="inline h-5 w-5"
