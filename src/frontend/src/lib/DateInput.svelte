@@ -64,26 +64,22 @@
 		}
 		return calMatrix;
 	}
-	let calendarMatrix = generateCalendarMatrix(selectedMonth);
-	$: {
-		calendarMatrix = generateCalendarMatrix(selectedMonth);
-	}
+	let calendarMatrices = [...Array(12).keys()].map((month) => generateCalendarMatrix(month));
 	// Also todo: multi-month support
-	let selected: boolean[][] = [...Array(calendarMatrix.length).keys()].map(() => {
-		return [...Array(calendarMatrix[0].length).keys()].map(() => false);
-	});
-	$: {
-		selected = [...Array(calendarMatrix.length).keys()].map(() => {
-			return [...Array(calendarMatrix[0].length).keys()].map(() => false);
-		});
-	}
+	let selected: boolean[][][] = [...Array(12).keys()].map((month) =>
+		[...Array(calendarMatrices[month].length).keys()].map(() => {
+			return [...Array(calendarMatrices[month][0].length).keys()].map(() => false);
+		})
+	);
 	export let selectedDates: string[] = [];
 	$: {
 		let sel = [];
-		for (let [i, row] of calendarMatrix.entries()) {
-			for (let [j, column] of row.entries()) {
-				if (selected[i][j]) {
-					sel.push(`${monthFormatter.format(MONTHS[selectedMonth])} ${column.value}`);
+		for (let [month, calendarMatrix] of calendarMatrices.entries()) {
+			for (let [i, row] of calendarMatrix.entries()) {
+				for (let [j, column] of row.entries()) {
+					if (selected[month][i][j]) {
+						sel.push(`${monthFormatter.format(MONTHS[month])} ${column.value}`);
+					}
 				}
 			}
 		}
@@ -172,15 +168,15 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each calendarMatrix as week, i}
+						{#each calendarMatrices[selectedMonth] as week, i}
 							<tr>
 								{#each week as day, j}
 									<td
 										class="table-cell btn btn-ghost text-center border-1 border-base-200"
 										class:btn-disabled={!day.isInMonth}
-										class:btn-active={selected[i][j]}
+										class:btn-active={selected[selectedMonth][i][j]}
 										on:click={() => {
-											selected[i][j] = !selected[i][j];
+											selected[selectedMonth][i][j] = !selected[selectedMonth][i][j];
 										}}>{day.value}</td
 									>
 								{/each}
