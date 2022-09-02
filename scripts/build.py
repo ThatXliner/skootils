@@ -54,6 +54,10 @@ for target, prerequisites in targets.items():
     expected_output = get_new_name(target)
     if not expected_output.exists() or any(
         map(
+            # "Cell variable defined in loop"
+            # shouldn't be a problem because
+            # we're using the `any` function
+            # to use it immediantly after
             lambda mod_time: mod_time >= getmtime(expected_output),
             map(getmtime, prerequisites),
         )

@@ -4,6 +4,7 @@ test_patterns = ["test_*.py"]
 
 exclude_patterns = [
   "poetry.lock",
+  "scripts/*",
   "pnpm-lock.yaml"
 ]
 
