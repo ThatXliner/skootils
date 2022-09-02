@@ -37,12 +37,15 @@ def is_verbose():
 
 
 def start_build(spec: Path) -> subprocess.Popen:
-    return subprocess.Popen(
+    output = subprocess.Popen(
         ["pyinstaller", str(spec.name)],
         cwd=str(spec.parent),
         stdout=None if is_verbose() else subprocess.DEVNULL,
         stderr=None if is_verbose() else subprocess.DEVNULL,
     )
+    if "--serial" in sys.argv:
+        output.wait()
+    return output
 
 
 specfiles = map(
@@ -58,20 +61,22 @@ if is_verbose():
 jobs = set()
 for target, prerequisites in targets.items():
     expected_output = get_new_name(target)
-    if not expected_output.exists() or any(
-        map(
-            # "Cell variable defined in loop"
-            # shouldn't be a problem because
-            # we're using the `any` function
-            # to use it immediantly after
-            lambda mod_time: mod_time >= getmtime(expected_output),
-            map(getmtime, prerequisites),
+    if (
+        "--force" in sys.argv
+        or not expected_output.exists()
+        or any(
+            map(
+                # "Cell variable defined in loop"
+                # shouldn't be a problem because
+                # we're using the `any` function
+                # to use it immediantly after
+                lambda mod_time: mod_time >= getmtime(expected_output),
+                map(getmtime, prerequisites),
+            )
         )
     ):
         if is_verbose():
             print(f"{target} needs to be built")
-        if "--full" in sys.argv and (target.parent / "build").exists():
-            shutil.rmdir(target.parent / "build")
         jobs.add(Job(start_build(prerequisites[0]), target))
         print("Sent", prerequisites[0], "to build worker")
 if not jobs:
