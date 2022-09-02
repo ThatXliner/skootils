@@ -66,6 +66,8 @@
 								<span
 									on:click={() => {
 										selectedDate = date;
+										// @ts-ignore
+										selectedClassKey = Object.keys(output[selectedDate])[0];
 										return false;
 									}}
 									class:active={date == selectedDate}>{date}</span
