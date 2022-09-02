@@ -13,7 +13,6 @@ __version__ = "0.1.0"
 
 
 NAME_RE = re.compile(r"Email (\w+),\s*((?:\w+\.\s+)?\w+)")
-NOT_AVAILABLE = "N/A"
 
 OutputType = Dict[str, Dict[str, str]]
 
@@ -226,7 +225,7 @@ class PowerSchool:
 
         current_quarter = row.select("td")[offset]
         current_grade = current_quarter.a
-        current_grade_name = current_grade_percent = NOT_AVAILABLE
+        current_grade_name = current_grade_percent = None
         assignments = []
         # TODO: Only add classes that have grades for this quarter
         # (in other words, don't add to the output)
@@ -235,7 +234,7 @@ class PowerSchool:
                 current_grade_name = current_grade.contents[0]
                 current_grade_percent = current_grade.contents[-1]
             except AttributeError:
-                current_grade_name = current_grade_percent = NOT_AVAILABLE
+                current_grade_name = current_grade_percent = None
             await self._setup_cachables(class_name, current_grade)
 
             assignments.extend(await self._scrape_assignments(quarter, class_name))

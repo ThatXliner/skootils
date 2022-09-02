@@ -39,7 +39,7 @@ def main():
                 classes[scrape[period]["class_name"]][0].append(
                     int(scrape[period]["quarter_info"]["overall_grade"]["percent"])
                 )
-            except ValueError:
+            except (ValueError, TypeError):
                 pass
     print(
         json.dumps(

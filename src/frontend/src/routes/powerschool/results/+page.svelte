@@ -243,7 +243,7 @@
 		<div class="flex flex-wrap justify-evenly">
 			{#each Object.values(data[currentQuarter]) as classInfo}
 				{@const grade = classInfo['quarter_info']['overall_grade']}
-				{#if grade['name'] != 'N/A'}
+				{#if grade['name'] !== null}
 					{@const gradeNum = +grade['percent']}
 					<div
 						class="stats m-2 w-fit shadow-xl dark:text-black"
