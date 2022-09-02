@@ -51,22 +51,22 @@ jobs:
         uses: actions/cache@v2
         with:
           path: src/learnatvcs/.venv
-          key: learnatvcs-${{ runner.os }}-${{ hashFiles('src/learnatvcs/poetry.lock') }}
-          restore-keys: learnatvcs-${{ runner.os }}
+          key: ${{ runner.os }}-learnatvcs-${{ hashFiles('src/learnatvcs/poetry.lock') }}
+          restore-keys: ${{ runner.os }}-learnatvcs-
       - name: Load cached venv (powerschool)
         uses: actions/cache@v2
         with:
           path: src/powerschool/.venv
-          key: powerschool-${{ runner.os }}-${{ hashFiles('src/powerschool/poetry.lock') }}
-          restore-keys: powerschool-${{ runner.os }}
+          key: ${{ runner.os }}-powerschool-${{ hashFiles('src/powerschool/poetry.lock') }}
+          restore-keys: ${{ runner.os }}-powerschool-
       - name: Load cached node_modules
         uses: actions/cache@v3
         with:
           path: |
             src/frontend/node_modules
             ~/.pnpm-store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('src/frontend/pnpm-lock.yaml') }}
-          restore-keys: pnpm-${{ runner.os }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('src/frontend/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-
 
       - name: Install learn@vcs dependencies
         working-directory: src/learnatvcs
@@ -92,8 +92,8 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: cargo-${{ runner.os }}-${{ hashFiles('src/frontend/src-tauri/Cargo.lock') }}
-          restore-keys: cargo-${{ runner.os }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src/frontend/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - name: Build the app
         working-directory: src/frontend
         run: pnpm tauri build
