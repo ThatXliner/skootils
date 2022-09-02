@@ -8,7 +8,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        build_type: [debug, release]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -52,19 +51,22 @@ jobs:
         uses: actions/cache@v2
         with:
           path: src/learnatvcs/.venv
-          key: ${{ matrix.build_type }}-learnatvcs-${{ runner.os }}-${{ hashFiles('src/learnatvcs/poetry.lock') }}
+          key: learnatvcs-${{ runner.os }}-${{ hashFiles('src/learnatvcs/poetry.lock') }}
+          restore-keys: learnatvcs-${{ runner.os }}
       - name: Load cached venv (powerschool)
         uses: actions/cache@v2
         with:
           path: src/powerschool/.venv
-          key: ${{ matrix.build_type }}-powerschool-${{ runner.os }}-${{ hashFiles('src/powerschool/poetry.lock') }}
+          key: powerschool-${{ runner.os }}-${{ hashFiles('src/powerschool/poetry.lock') }}
+          restore-keys: powerschool-${{ runner.os }}
       - name: Load cached node_modules
         uses: actions/cache@v3
         with:
           path: |
             src/frontend/node_modules
             ~/.pnpm-store
-          key: ${{ matrix.build_type }}-pnpm-${{ runner.os }}-${{ hashFiles('src/frontend/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('src/frontend/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}
 
       - name: Install learn@vcs dependencies
         working-directory: src/learnatvcs
@@ -90,19 +92,14 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ matrix.build_type }}-cargo-${{ runner.os }}-${{ hashFiles('src/frontend/src-tauri/Cargo.lock') }}
-      - name: Build the app (release)
+          key: cargo-${{ runner.os }}-${{ hashFiles('src/frontend/src-tauri/Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}
+      - name: Build the app
         working-directory: src/frontend
-        if: matrix.build_type == 'release'
         run: pnpm tauri build
-      - name: Build the app (debug)
-        working-directory: src/frontend
-        if: matrix.build_type == 'debug'
-        run: pnpm tauri build --debug
 
-      - name: Upload artifacts (release)
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
-        if: matrix.build_type == 'release'
         with:
           name: ${{ runner.os }} ${{ runner.arch }} artifacts
           # No .app because it's pretty big and .dmg is nicer
@@ -111,16 +108,6 @@ jobs:
             src/frontend/src-tauri/target/release/bundle/*/*.AppImage
             src/frontend/src-tauri/target/release/bundle/*/*.deb
             src/frontend/src-tauri/target/release/bundle/*/*.msi
-      - name: Upload artifacts (debug)
-        uses: actions/upload-artifact@v3
-        if: matrix.build_type == 'debug'
-        with:
-          name: ${{ runner.os }} ${{ runner.arch }} artifacts (debug)
-          path: |
-            src/frontend/src-tauri/target/debug/bundle/*/*.dmg
-            src/frontend/src-tauri/target/debug/bundle/*/*.AppImage
-            src/frontend/src-tauri/target/debug/bundle/*/*.deb
-            src/frontend/src-tauri/target/debug/bundle/*/*.msi
       # - name: Build the app
       #   uses: tauri-apps/tauri-action@v0
       #   working-directory: src/frontend
