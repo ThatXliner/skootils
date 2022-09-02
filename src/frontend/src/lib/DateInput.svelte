@@ -1,4 +1,6 @@
 <script lang="ts">
+	import AlertWarning from './AlertWarning.svelte';
+
 	const YEAR = new Date().getFullYear();
 	const monthFormatter = new Intl.DateTimeFormat('default', { month: 'long' });
 	const MONTHS: Date[] = [...Array(12).keys()].map((n) => {
@@ -72,41 +74,35 @@
 		})
 	);
 	export let selectedDates: string[] = [];
+	let dateForrest: { [key: string]: { day: number; raw: [number, number, number] }[] } = {};
 	$: {
 		let sel = [];
+		dateForrest = {};
 		for (let [month, calendarMatrix] of calendarMatrices.entries()) {
+			const monthName = monthFormatter.format(MONTHS[month]);
+
 			for (let [i, row] of calendarMatrix.entries()) {
 				for (let [j, column] of row.entries()) {
 					if (selected[month][i][j]) {
-						sel.push(`${monthFormatter.format(MONTHS[month])} ${column.value}`);
+						if (!(monthName in dateForrest)) {
+							dateForrest[monthName] = [];
+						}
+						dateForrest[monthName] = [
+							...dateForrest[monthName],
+							{ day: column.value, raw: [month, i, j] }
+						];
+						sel.push(`${monthName} ${column.value}`);
 					}
 				}
 			}
 		}
 		selectedDates = sel;
 	}
-	$: placeholder = selectedDates.join(', ') || 'Select dates';
 </script>
 
-<div class="form-control">
-	<div class="dropdown">
-		<label class="input-group">
-			<input type="text" {placeholder} class="input input-bordered w-full max-w-xs" readonly /><span
-				><svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="inline h-5 w-5"
-					viewBox="0 0 20 20"
-					fill="currentColor"
-				>
-					<path
-						fill-rule="evenodd"
-						d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-						clip-rule="evenodd"
-					/>
-				</svg></span
-			></label
-		>
-		<div tabindex="0" class="dropdown-content card card-compact w-fit shadow bg-base-100">
+<div class="overflow-x-hidden">
+	<div class="flex w-full justify-evenly">
+		<div class="card card-compact w-fit">
 			<div class="card-body">
 				<h3 class="card-title mx-auto">
 					<button
@@ -172,7 +168,7 @@
 							<tr>
 								{#each week as day, j}
 									<td
-										class="table-cell btn btn-ghost text-center border-1 border-base-200"
+										class="table-cell btn btn-xs btn-ghost text-center border-1 border-base-200"
 										class:btn-disabled={!day.isInMonth}
 										class:btn-active={selected[selectedMonth][i][j]}
 										on:click={() => {
@@ -185,6 +181,44 @@
 					</tbody>
 				</table>
 			</div>
+		</div>
+		<div class="divider divider-horizontal" />
+		<div class="w-56">
+			{#if Object.entries(dateForrest).length == 0}
+				<AlertWarning message="No dates selected" />
+			{:else}
+				<ul class="menu h-fit max-h-64 overflow-y-auto p-2 shadow-lg rounded-box">
+					{#each Object.entries(dateForrest) as [month, days]}
+						<!-- {#if days.length > 0} -->
+						<li class="menu-title">
+							<span>{month}</span>
+						</li>
+						{#each days as day}
+							<li
+								on:click={() => {
+									selected[day.raw[0]][day.raw[1]][day.raw[2]] = false;
+								}}
+							>
+								<span
+									><svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+										class="w-5 h-5"
+									>
+										<path
+											fill-rule="evenodd"
+											d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+									{month}
+									{day.day}</span
+								>
+							</li>
+						{/each}
+					{/each}
+				</ul>{/if}
 		</div>
 	</div>
 </div>
