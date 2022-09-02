@@ -31,7 +31,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           cache: 'pnpm'
           cache-dependency-path: src/frontend/pnpm-lock.yaml
       - name: Setup Poetry
@@ -79,7 +79,7 @@ jobs:
         run: pnpm install
 
       - name: Build binaries
-        run: python scripts/build.py --verbose
+        run: timeout 600 python scripts/build.py --verbose
 
       - name: Verify binaries
         run: python scripts/verify_binaries.py
