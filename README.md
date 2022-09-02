@@ -1,6 +1,6 @@
 # Skootils
 
-[![DeepSource](https://deepsource.io/gh/ThatXliner/skootils.svg/?label=active+issues&show_trend=true&token=u1bC2s_2GPOsIJJOEL9QsePh)](https://deepsource.io/gh/ThatXliner/skootils/?ref=repository-badge) [![DeepSource](https://deepsource.io/gh/ThatXliner/skootils.svg/?label=resolved+issues&show_trend=true&token=u1bC2s_2GPOsIJJOEL9QsePh)](https://deepsource.io/gh/ThatXliner/skootils/?ref=repository-badge)
+[![DeepSource](https://deepsource.io/gh/ThatXliner/skootils.svg/?label=active+issues&show_trend=true&token=u1bC2s_2GPOsIJJOEL9QsePh)](https://deepsource.io/gh/ThatXliner/skootils/?ref=repository-badge) [![Binaries: Nightly](https://img.shields.io/badge/binaries-nightly-blueviolet)](https://nightly.link/ThatXliner/skootils/workflows/build/main) [![Build](https://github.com/ThatXliner/skootils/actions/workflows/build.yml/badge.svg)](https://github.com/ThatXliner/skootils/actions/workflows/build.yml)
 
 > Utilities for School
 
