@@ -36,8 +36,8 @@ def start_build(spec: Path) -> subprocess.Popen:
     return subprocess.Popen(
         ["pyinstaller", str(spec.name)],
         cwd=str(spec.parent),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stdout=None if "--verbose" in sys.argv else subprocess.DEVNULL,
+        stderr=None if "--verbose" in sys.argv else subprocess.DEVNULL,
     )
 
 
@@ -62,11 +62,7 @@ for target, prerequisites in targets.items():
             map(getmtime, prerequisites),
         )
     ):
-        if (
-            len(sys.argv) == 2
-            and sys.argv[1] == "--full"
-            and (target.parent / "build").exists()
-        ):
+        if "--full" in sys.argv and (target.parent / "build").exists():
             shutil.rmdir(target.parent / "build")
         jobs.add(Job(start_build(prerequisites[0]), target))
         print("Sent", prerequisites[0], "to build worker")
