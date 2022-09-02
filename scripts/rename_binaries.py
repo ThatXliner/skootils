@@ -1,7 +1,8 @@
+#!/usr/bin/env python
+import platform
 import re
 import subprocess
 from pathlib import Path
-import platform
 
 extension = ".exe" if platform.system() == "Windows" else ""
 

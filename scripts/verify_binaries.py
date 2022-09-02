@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 import subprocess
-from pathlib import Path
 import sys
+from pathlib import Path
 
 for file in list(Path("src/learnatvcs/dist").iterdir()) + list(
     Path("src/powerschool/dist").iterdir()

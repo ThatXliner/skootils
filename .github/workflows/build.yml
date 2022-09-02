@@ -58,12 +58,6 @@ jobs:
         with:
           path: src/powerschool/.venv
           key: ${{ matrix.build_type }}-powerschool-${{ runner.os }}-${{ hashFiles('src/powerschool/poetry.lock') }}
-      - name: Install learn@vcs dependencies
-        working-directory: src/learnatvcs
-        run: poetry install
-      - name: Install PowerSchool dependencies
-        working-directory: src/powerschool
-        run: poetry install
       - name: Load cached node_modules
         uses: actions/cache@v3
         with:
@@ -71,20 +65,22 @@ jobs:
             src/frontend/node_modules
             ~/.pnpm-store
           key: ${{ matrix.build_type }}-pnpm-${{ runner.os }}-${{ hashFiles('src/frontend/pnpm-lock.yaml') }}
+
+      - name: Install learn@vcs dependencies
+        working-directory: src/learnatvcs
+        run: poetry install
+      - name: Install PowerSchool dependencies
+        working-directory: src/powerschool
+        run: poetry install
       - name: Install frontend dependencies
         working-directory: src/frontend
         run: pnpm install
 
-      - name: Build learn@vcs
-        working-directory: src/learnatvcs
-        run: echo *.spec | xargs -n 1 pyinstaller
-      - name: Build PowerSchool
-        working-directory: src/powerschool
-        run: echo *.spec | xargs -n 1 pyinstaller
+      - name: Build binaries
+        run: python scripts/build.py
+
       - name: Verify binaries
         run: python scripts/verify_binaries.py
-      - name: Rename built binaries
-        run: python scripts/rename_binaries.py
 
       - name: Load cached Cargo
         uses: actions/cache@v3
