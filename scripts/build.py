@@ -75,7 +75,7 @@ while jobs:
     for job in list(jobs):
         proc = job.proc
         if proc.poll() == 0:
-            rename(str(job.output) + EXTENSION)
+            rename(job.output.with_suffix(EXTENSION))
             print("Finished building", proc.args[1])
             jobs.remove(job)
     time.sleep(0.5)
