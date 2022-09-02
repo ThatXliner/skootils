@@ -32,12 +32,16 @@ class Job(NamedTuple):
     output: Path
 
 
+def is_verbose():
+    return "--verbose" in sys.argv
+
+
 def start_build(spec: Path) -> subprocess.Popen:
     return subprocess.Popen(
         ["pyinstaller", str(spec.name)],
         cwd=str(spec.parent),
-        stdout=None if "--verbose" in sys.argv else subprocess.DEVNULL,
-        stderr=None if "--verbose" in sys.argv else subprocess.DEVNULL,
+        stdout=None if is_verbose() else subprocess.DEVNULL,
+        stderr=None if is_verbose() else subprocess.DEVNULL,
     )
 
 
@@ -49,6 +53,8 @@ targets = {
     + list((prereq.parent / prereq.parent.stem).glob("**/*.py"))
     for prereq in specfiles
 }
+if is_verbose():
+    print("Finished building target graph")
 jobs = set()
 for target, prerequisites in targets.items():
     expected_output = get_new_name(target)
@@ -62,6 +68,8 @@ for target, prerequisites in targets.items():
             map(getmtime, prerequisites),
         )
     ):
+        if is_verbose():
+            print(f"{target} needs to be built")
         if "--full" in sys.argv and (target.parent / "build").exists():
             shutil.rmdir(target.parent / "build")
         jobs.add(Job(start_build(prerequisites[0]), target))
@@ -73,10 +81,15 @@ print(f"Building {len(jobs)} binaries")
 start = time.time()
 while jobs:
     for job in list(jobs):
-        proc = job.proc
-        if proc.poll() == 0:
+        status = job.proc.poll()
+        if status == None:
+            continue
+        jobs.remove(job)
+        if status == 0:
             rename(job.output.with_suffix(EXTENSION))
-            print("Finished building", proc.args[1])
-            jobs.remove(job)
+            print("Finished building", job.output)
+        else:
+            print(f"ERROR: {job.output} failed to build")
+            sys.exit(1)
     time.sleep(0.5)
 print(f"Finished in {time.time() - start:0.2f} seconds (binaries unverified)")
