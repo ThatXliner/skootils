@@ -18,7 +18,7 @@ homepage = "https://github.com/ThatXliner/summarize"
 # keywords = ["awesome", "project"]  # Maximum of 5 keywords
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 sumy = "^0.10.0"
 transformers = "^4.21.2"
 torch = "^1.12.0"
