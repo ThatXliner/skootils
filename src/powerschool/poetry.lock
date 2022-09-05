@@ -762,7 +762,7 @@ jeepney = ">=0.6"
 
 [[package]]
 name = "shed"
-version = "0.10.1"
+version = "0.10.2"
 description = "`shed` canonicalises Python code."
 category = "dev"
 optional = false
@@ -770,11 +770,11 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 autoflake = ">=1.4"
-black = ">=22.3.0"
+black = ">=22.8.0"
 com2ann = {version = ">=0.3.0", markers = "python_version >= \"3.8\""}
 isort = ">=5.10.1"
-libcst = ">=0.4.0"
-pyupgrade = ">=2.32.0"
+libcst = ">=0.4.6"
+pyupgrade = ">=2.37.0"
 
 [[package]]
 name = "six"
@@ -919,7 +919,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "7d42878bfde50cdcd17584a1c3621e0a80a0a21c4d29580119240f5fc08b833c"
+content-hash = "4597412ae840eec9829ff2dd9cc0063ea0e9000410b210978b999f20b9929975"
 
 [metadata.files]
 aiohttp = [
@@ -1658,8 +1658,8 @@ SecretStorage = [
     {file = "SecretStorage-3.3.3.tar.gz", hash = "sha256:2403533ef369eca6d2ba81718576c5e0f564d5cca1b58f73a8b23e7d4eeebd77"},
 ]
 shed = [
-    {file = "shed-0.10.1-py3-none-any.whl", hash = "sha256:510d23c491265eebfc83458988ca796a78542750de3a118e1974b29822563d76"},
-    {file = "shed-0.10.1.tar.gz", hash = "sha256:7d06485742e9659d6e5ad6f5ecb44d9d6ddf441040adb422197c3d89b1da572a"},
+    {file = "shed-0.10.2-py3-none-any.whl", hash = "sha256:3465fc5a52937e339fb474ded441fc372c79d6721d9ac8ba2d9579f349d72965"},
+    {file = "shed-0.10.2.tar.gz", hash = "sha256:38525ec03c5590d281ec3c872a53df9d3607fcc20e3ccf30f61081537402b16d"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
