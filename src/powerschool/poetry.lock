@@ -367,7 +367,7 @@ trio = ["async_generator", "trio"]
 
 [[package]]
 name = "keyring"
-version = "23.9.0"
+version = "23.9.1"
 description = "Store and access your passwords safely."
 category = "main"
 optional = false
@@ -919,7 +919,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "7d42878bfde50cdcd17584a1c3621e0a80a0a21c4d29580119240f5fc08b833c"
+content-hash = "8c8086ed24d6f35e12a32c4f7a82a2e3399c49b159465f3b5fb8cb391107cd0a"
 
 [metadata.files]
 aiohttp = [
@@ -1316,8 +1316,8 @@ jeepney = [
     {file = "jeepney-0.8.0.tar.gz", hash = "sha256:5efe48d255973902f6badc3ce55e2aa6c5c3b3bc642059ef3a91247bcfcc5806"},
 ]
 keyring = [
-    {file = "keyring-23.9.0-py3-none-any.whl", hash = "sha256:98f060ec95ada2ab910c195a2d4317be6ef87936a766b239c46aa3c7aac4f0db"},
-    {file = "keyring-23.9.0.tar.gz", hash = "sha256:4c32a31174faaee48f43a7e2c7e9c3216ec5e95acf22a2bebfb4a1d05056ee44"},
+    {file = "keyring-23.9.1-py3-none-any.whl", hash = "sha256:3565b9e4ea004c96e158d2d332a49f466733d565bb24157a60fd2e49f41a0fd1"},
+    {file = "keyring-23.9.1.tar.gz", hash = "sha256:39e4f6572238d2615a82fcaa485e608b84b503cf080dc924c43bbbacb11c1c18"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.7.1.tar.gz", hash = "sha256:d609c75b986def706743cdebe5e47553f4a5a1da9c5ff66d76013ef396b5a8a4"},
