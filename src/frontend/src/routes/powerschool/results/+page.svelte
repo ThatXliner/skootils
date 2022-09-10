@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Command } from '@tauri-apps/api/shell';
+	import { writable, type Writable } from 'svelte/store';
 	import HomeButton from '$lib/HomeButton.svelte';
 	import WhatIf from '$lib/WhatIf.svelte';
 	import * as pkg from 'chart.js';
@@ -66,7 +67,7 @@
 	};
 
 	let quarters: string[];
-	let currentQuarter: string;
+	let currentQuarter: Writable<string> = writable();
 	type ClassInfo = {
 		// Class name
 		name: string;
@@ -90,7 +91,7 @@
 			}[];
 		};
 	};
-	let selectedClass: ClassInfo;
+	let selectedClass: Writable<ClassInfo> = writable();
 	let data: {
 		// Quarter (could be "Latest (X)")
 		[key: string]: {
@@ -100,9 +101,10 @@
 	} | null = null;
 	let allTimeGradeData: object; // multi quarter data
 	let quarterGradeData: object; // quarter data for class
-	$: if (currentQuarter !== undefined) {
+	currentQuarter.subscribe((value) => {
+		if (value === undefined) return;
 		let command = Command.sidecar('../../powerschool/dist/alltime', [
-			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter
+			value.startsWith('Latest') ? value.match(/\((\w+)\)/)![1] : value
 		]);
 		command.on('error', (error) => console.error(`command error: "${error}"`));
 		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
@@ -110,11 +112,14 @@
 			allTimeGradeData = JSON.parse(line);
 		});
 		command.spawn();
-	}
-	$: if (selectedClass !== undefined) {
+	});
+	selectedClass.subscribe((value) => {
+		if (value === undefined || $currentQuarter === undefined) return;
 		let command = Command.sidecar('../../powerschool/dist/for_class', [
-			currentQuarter.startsWith('Latest') ? currentQuarter.match(/\((\w+)\)/)![1] : currentQuarter,
-			selectedClass['class_name']
+			$currentQuarter.startsWith('Latest')
+				? $currentQuarter.match(/\((\w+)\)/)![1]
+				: $currentQuarter,
+			value['class_name']
 		]);
 		command.on('error', (error) => console.error(`command error: "${error}"`));
 		command.stderr.on('data', (line) => console.log(`command stderr: "${line}"`));
@@ -122,7 +127,7 @@
 			quarterGradeData = JSON.parse(line);
 		});
 		command.spawn();
-	}
+	});
 	let _allTimeChartElement: HTMLCanvasElement;
 	let allTimeChart: Chart;
 	$: if (allTimeGradeData !== undefined && _allTimeChartElement !== undefined) {
@@ -159,7 +164,7 @@
 		data = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
 		if (data === null) return;
 		quarters = Object.keys(data);
-		currentQuarter = quarters[0];
+		$currentQuarter = quarters[0];
 	});
 </script>
 
@@ -171,7 +176,7 @@
 
 	<div class="modal">
 		<div class="modal-box">
-			<h3 class="font-bold text-lg">{selectedClass?.class_name}</h3>
+			<h3 class="font-bold text-lg">{$selectedClass?.class_name}</h3>
 			<details>
 				<summary>Grade history this quarter</summary>
 				<div class="h-full w-full">
@@ -189,8 +194,8 @@
 					</div></summary
 				>
 				<WhatIf
-					currentScore={selectedClass?.quarter_info.overall_grade.percent}
-					assignmentCount={selectedClass?.quarter_info.scores.length}
+					currentScore={$selectedClass?.quarter_info.overall_grade.percent}
+					assignmentCount={$selectedClass?.quarter_info.scores.length}
 				/>
 			</details>
 
@@ -206,7 +211,7 @@
 		</div>
 		<div class="navbar-center">
 			{#if quarters.length == 1}
-				<span class="btn btn-info">{currentQuarter}</span>
+				<span class="btn btn-info">{$currentQuarter}</span>
 			{:else}
 				<div class="dropdown dropdown-hover">
 					<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
@@ -221,10 +226,10 @@
 							<li>
 								<span
 									on:click={() => {
-										currentQuarter = quarter;
+										$currentQuarter = quarter;
 										return false;
 									}}
-									class:active={quarter == currentQuarter}>{quarter}</span
+									class:active={quarter == $currentQuarter}>{quarter}</span
 								>
 							</li>
 						{/each}
@@ -241,7 +246,7 @@
 		<!-- <h1 class="text-3xl text-center">Quick look</h1> -->
 		<!-- MARK: Grades -->
 		<div class="flex flex-wrap justify-evenly">
-			{#each Object.values(data[currentQuarter]) as classInfo}
+			{#each Object.values(data[$currentQuarter]) as classInfo}
 				{@const grade = classInfo['quarter_info']['overall_grade']}
 				{#if grade['name'] !== null}
 					{@const gradeNum = +grade['percent']}
@@ -274,7 +279,7 @@
 									for="my-modal"
 									class="ml-3 float-right btn-xs btn btn-primary"
 									on:click={() => {
-										selectedClass = classInfo;
+										$selectedClass = classInfo;
 									}}>More</label
 								>
 								<!-- <button
