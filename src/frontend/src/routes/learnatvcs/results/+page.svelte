@@ -114,7 +114,6 @@
 					action="View"
 					href="#plans"
 				/>
-				<Card title="Summarize" summary="Generate a summary using AI" href="#summarize" />
 				<Card
 					title="Important dates"
 					summary="Search the lesson plan for due dates and assignments and automatically add those to
@@ -132,10 +131,6 @@
 							ADD_ATTR: ['target']
 						})}
 					</article>
-				</div>
-				<div id="summarize">
-					<h3 class="text-2xl font-bold">AI Summarizer</h3>
-					<p>TODO</p>
 				</div>
 				<div id="dates">
 					<h3 class="text-2xl font-bold">Export dates</h3>
