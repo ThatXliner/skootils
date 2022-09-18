@@ -23,7 +23,7 @@ def main():
         print("Program is valid")
         return
     dates = [Date.from_str(x) for x in json.loads(sys.argv[1]) or []]
-    print(json.dumps(scrape(for_dates=dates or None)))
+    print(json.dumps(scrape(for_dates=dates or None, quarter=json.loads(sys.argv[2]))))
 
 
 if __name__ == "__main__":
