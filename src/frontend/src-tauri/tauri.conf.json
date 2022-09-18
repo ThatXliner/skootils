@@ -18,7 +18,7 @@
 				"scope": [
 					{
 						"name": "../../learnatvcs/dist/learnatvcs",
-						"args": [{ "validator": "(null|\\[.*?\\])" }],
+						"args": [{ "validator": "(null|\\[.*?\\])" }, { "validator": "(null|\\d)" }],
 						"sidecar": true
 					},
 					{

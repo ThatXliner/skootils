@@ -4,6 +4,12 @@
 
 	let dateType: 'latest' | 'custom' = 'latest';
 	let dateList: string[] = [];
+	let quarter: string;
+	$: if (quarter == 'Latest') {
+		window.sessionStorage.removeItem('quarter');
+	} else {
+		window.sessionStorage.setItem('quarter', quarter);
+	}
 	$: if (dateType === 'custom') {
 		window.sessionStorage.setItem('config', JSON.stringify(dateList));
 	} else {
@@ -20,32 +26,53 @@
 			choose the <b> date(s) of the lesson plan(s)</b> you want to download and extract dates from.
 		</p>
 	</div>
-	<div class="form-control max-w-sm my-3">
-		<label class="label cursor-pointer"
-			><span class="text-2xl">Latest dates</span>
-			<input
-				type="radio"
-				class="radio radio-lg radio-primary"
-				value="latest"
-				bind:group={dateType}
-				checked
-			/>
-		</label>
-		<label class="label cursor-pointer"
-			><span class="text-2xl">Custom dates</span>
-			<input
-				type="radio"
-				class="radio radio-lg radio-primary"
-				value="custom"
-				bind:group={dateType}
-			/>
-		</label>
+	<div class="w-full flex">
+		<div class="w-1/2">
+			<div class="form-control max-w-sm my-3">
+				<label class="label cursor-pointer"
+					><span class="text-2xl">Latest dates</span>
+					<input
+						type="radio"
+						class="radio radio-lg radio-primary"
+						value="latest"
+						bind:group={dateType}
+						checked
+					/>
+				</label>
+				<label class="label cursor-pointer"
+					><span class="text-2xl">Custom dates</span>
+					<input
+						type="radio"
+						class="radio radio-lg radio-primary"
+						value="custom"
+						bind:group={dateType}
+					/>
+				</label>
+			</div>
+		</div>
+		<div class="mx-auto">
+			<div class="form-control">
+				<label class="label" for="quarter">
+					<span class="label-text">Lesson plan quarter</span>
+				</label>
+				<select class="select select-lg select-bordered" bind:value={quarter}>
+					<option selected>Latest</option>
+					<option>1</option>
+					<option>2</option>
+					<option>3</option>
+					<option>4</option>
+				</select>
+				<label for="quarter" class="label"
+					><span class="label-text-alt">Which quarter is it in?</span></label
+				>
+			</div>
+		</div>
 	</div>
 
 	{#if dateType == 'custom'}
 		<DateInput bind:selectedDates={dateList} />
 	{/if}
-	<!-- We're gonna leave some space for images -->
+
 	<a
 		class="my-5 btn btn-primary"
 		href="/learnatvcs/scrape"

@@ -59,7 +59,9 @@ reporter = interprog.TaskManager()
 
 
 def _scrape(
-    browser: web.BrowserContext, for_dates: Optional[list[Date]] = None
+    browser: web.BrowserContext,
+    for_dates: Optional[list[Date]] = None,
+    quarter: Optional[int] = None,
 ) -> RawOutput:
     """Pure logic in scraping learn@vcs"""
     output: RawOutput = {}
@@ -94,7 +96,14 @@ def _scrape(
         browser.go(to=link)
         try:
             browser.query_selector('a[title^="Lesson"]').click()
-            browser.query_selector_all(".activity.book.modtype_book a")[-1].click()
+            plan_links = browser.query_selector_all(".activity.book.modtype_book a")
+            if quarter is None:
+                plan_links[-1].click()
+            else:
+                for plan_link in plan_links:
+                    if str(quarter) in plan_link.soup().get_text():
+                        plan_link.click()
+                        break
         except (selenium.common.exceptions.NoSuchElementException, IndexError):
             reporter.error("No lesson plans")
             continue
@@ -132,7 +141,9 @@ def _scrape(
     return output
 
 
-def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
+def scrape(
+    for_dates: Optional[list[Date]] = None, quarter: Optional[int] = None
+) -> RawOutput:
     """Get raw scrape data. Manages browser, etc"""
     # TODO: Choose quarters
     reporter.add_task("Initalizing browser")
@@ -147,7 +158,7 @@ def scrape(for_dates: Optional[list[Date]] = None) -> RawOutput:
         input()
     reporter.finish()
 
-    return _scrape(browser=browser, for_dates=for_dates)
+    return _scrape(browser=browser, for_dates=for_dates, quarter=quarter)
 
 
 __version__ = "0.1.0"
