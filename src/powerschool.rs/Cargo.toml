@@ -1,0 +1,14 @@
+[package]
+name = "powerschool"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "^1.0.64"
+futures = "0.3.24"
+reqwest = "^0.11.11"
+# Use this or scraper (https://docs.rs/scraper/latest/scraper/)
+tl = "^0.7.7"
+tokio = { version = "1.21.0", features = ["full"] }
