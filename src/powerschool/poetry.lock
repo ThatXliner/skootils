@@ -845,7 +845,7 @@ python-versions = ">=3.6,<4.0"
 
 [[package]]
 name = "types-beautifulsoup4"
-version = "4.11.5"
+version = "4.11.6"
 description = "Typing stubs for beautifulsoup4"
 category = "dev"
 optional = false
@@ -919,7 +919,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "7d42878bfde50cdcd17584a1c3621e0a80a0a21c4d29580119240f5fc08b833c"
+content-hash = "9d3ce05f80235438c5a71689fdfcb17a26e490d3c8c00aca9ae4bea71fb32f94"
 
 [metadata.files]
 aiohttp = [
@@ -1694,8 +1694,8 @@ tomlkit = [
     {file = "tomlkit-0.11.4.tar.gz", hash = "sha256:3235a9010fae54323e727c3ac06fb720752fe6635b3426e379daec60fbd44a83"},
 ]
 types-beautifulsoup4 = [
-    {file = "types-beautifulsoup4-4.11.5.tar.gz", hash = "sha256:645963117b0f03f4a44bda36cf3da50cc0e25001e4d19c044d1e323a37c69d73"},
-    {file = "types_beautifulsoup4-4.11.5-py3-none-any.whl", hash = "sha256:4b97fce9049e5367ddf45333c8c7224e57d71a3f93162c714be52bf1aa538f0a"},
+    {file = "types-beautifulsoup4-4.11.6.tar.gz", hash = "sha256:2670dd71995df464041e2941fa9bbb694795271e3dedd7262b4766649a1cbe82"},
+    {file = "types_beautifulsoup4-4.11.6-py3-none-any.whl", hash = "sha256:ac9dd1383481201ea07f27c5a43e7b1ee71caf9c720b7ae951db15d60d126e80"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.3.0-py3-none-any.whl", hash = "sha256:25642c956049920a5aa49edcdd6ab1e06d7e5d467fc00e0506c44ac86fbfca02"},

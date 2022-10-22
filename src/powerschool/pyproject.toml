@@ -39,7 +39,7 @@ hypothesis = "^6.54.4"
 shed = "^0.10.1"
 pytest-cov = "^3.0.0"
 pytest-clarity = "^1.0.1"
-types-beautifulsoup4 = "^4.11.5"
+types-beautifulsoup4 = "^4.11.6"
 
 [tool.poe.tasks]
 # Code linting
