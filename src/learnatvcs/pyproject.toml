@@ -19,7 +19,7 @@ homepage = "https://github.com/ThatXliner/learnatvcs"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-attrs = "^21.4.0"
+attrs = "^22.1.0"
 beautifulsoup4 = "^4.11.1"
 platformdirs = "^2.5.2"
 data49 = "^0.4.4"
