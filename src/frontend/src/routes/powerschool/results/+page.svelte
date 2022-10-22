@@ -215,7 +215,7 @@
 			{:else}
 				<div class="dropdown dropdown-hover">
 					<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
-						>{currentQuarter}</label
+						>{$currentQuarter}</label
 					>
 					<ul
 						id="date-picker"
