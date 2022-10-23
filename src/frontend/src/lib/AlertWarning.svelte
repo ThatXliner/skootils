@@ -1,5 +1,6 @@
 <script lang="ts">
 	export let message: string;
+	export let raw: bool = false;
 	export let extraClasses = '';
 </script>
 
@@ -17,6 +18,8 @@
 				d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
 			/></svg
 		>
-		<span>{message}</span>
+		<span
+			>{#if raw}{@html message}{:else}{message}{/if}</span
+		>
 	</div>
 </div>
