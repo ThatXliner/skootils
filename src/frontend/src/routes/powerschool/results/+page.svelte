@@ -252,18 +252,22 @@
 					{@const gradeNum = +grade['percent']}
 					<div
 						class="stats m-2 w-fit shadow-xl dark:text-black"
-						class:bg-green-400={gradeNum >= 98}
-						class:bg-green-300={98 > gradeNum && gradeNum >= 90}
-						class:bg-yellow-400={90 > gradeNum && gradeNum >= 70}
 						class:bg-red-400={70 > gradeNum}
+						class:bg-yellow-400={90 > gradeNum && gradeNum >= 70}
+						class:bg-green-300={98 > gradeNum && gradeNum >= 90}
+						class:bg-green-400={gradeNum >= 98}
+						class:from-zinc-900={gradeNum >= 100}
+						class:via-neutral-200={gradeNum >= 100}
+						class:to-gray-700={gradeNum >= 100}
+						class:bg-gradient-to-br={gradeNum >= 100}
 					>
-						<div class="stat">
+						<div class="stat" class:text-white={gradeNum >= 100}>
 							<div class="stat-title">
 								{classInfo['class_name']}
 							</div>
 							<div class="stat-value text-center">
 								<!-- XXX: we might not even have a swap... if it intrudes user experience -->
-								<label class="swap">
+								<label class="swap text-5xl" class:gradient-hyper={gradeNum >= 100}>
 									<input type="checkbox" />
 									<div class="swap-on">
 										{grade['percent']}% <span class="text-sm text-gray-500">{grade['name']}</span>
