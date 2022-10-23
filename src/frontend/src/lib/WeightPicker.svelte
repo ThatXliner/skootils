@@ -1,17 +1,20 @@
 <script lang="ts">
-	'@hmr:keep-all';
+	import { onMount } from 'svelte';
 	import AlertWarning from './AlertWarning.svelte';
 
 	export let categories: string[];
-	let _categories = new Set(categories);
+	let _categories: Set<string> = new Set();
+	onMount(() => {
+		_categories = new Set(categories);
+	});
 	let name: string;
 	let weight: number;
-	export let weights: { [key: string]: number };
+	export let weights: { [key: string]: number } | null;
 	let _weights: { [key: string]: number } = {};
 	$: if (_categories.size > 0) {
 		// unweighted
 		if (Object.keys(_weights).length == 0) {
-			weights = Object.fromEntries(categories.map((e) => [e, 1 / categories.length]));
+			weights = null;
 		}
 		// TODO: auto calc
 		else {

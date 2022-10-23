@@ -3,13 +3,13 @@
 	import WeightPicker from './WeightPicker.svelte';
 	export let currentScore: number;
 	export let assignments: { percent?: number; type: string }[];
-	const categories: string[] = [...new Set(assignments.map((t) => t.type))];
+	$: categories = [...new Set(assignments.map((t) => t.type))];
 
 	let weights: { [key: string]: number } = {};
 	let artificialAssignments: [string, number][] = [];
 	$: realAssignments = assignments
 		.filter((x) => x.percent !== null)
-		.map((x) => [x.type, x.percent!]);
+		.map((x) => [x.type, +x.percent!]);
 	let got = 0;
 	$: if (got < 0) {
 		got = 0;
@@ -19,19 +19,23 @@
 	function sum(x: number[]): number {
 		let output = 0;
 		for (let item of x) {
-			output += item;
+			output += +item;
 		}
 		return output;
 	}
 	function weightedAverage(
 		assignments: [string, number][],
-		weights: { [key: string]: number }
+		weights: { [key: string]: number } | null
 	): number {
+		if (weights === null) {
+			return sum(assignments.map((e) => e[1])) / assignments.length;
+		}
 		let averages: { [key: string]: number[] } = Object.fromEntries(categories.map((e) => [e, []]));
 		assignments.forEach((e) => {
-			averages[e[0]].push(e[1]);
+			averages[e[0]].push(+e[1]);
 		});
-
+		// console.log('I cant debug', sum(assignments.map((e) => weights[e[0]] * e[1])));
+		// return sum(assignments.map((e) => weights[e[0]] * e[1])) / sum(Object.values(weights));
 		return (
 			sum(Object.entries(averages).map((e) => (weights[e[0]] * sum(e[1])) / e[1].length)) /
 			sum(Object.values(weights))

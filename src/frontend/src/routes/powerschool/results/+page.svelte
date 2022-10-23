@@ -166,6 +166,7 @@
 		quarters = Object.keys(data);
 		$currentQuarter = quarters[0];
 	});
+	// $: console.log($selectedClass?.quarter_info?.scores);
 </script>
 
 {#if data === null}
@@ -194,10 +195,12 @@
 								<span class="badge badge-warning">Beta</span>
 							</div></summary
 						>
-						<WhatIf
-							currentScore={parseInt($selectedClass.quarter_info.overall_grade.percent)}
-							assignments={$selectedClass.quarter_info.scores}
-						/>
+						{#key $selectedClass}
+							<WhatIf
+								currentScore={parseInt($selectedClass.quarter_info.overall_grade.percent)}
+								assignments={$selectedClass.quarter_info.scores}
+							/>
+						{/key}
 					</details>{/if}
 
 				<div class="modal-action">
