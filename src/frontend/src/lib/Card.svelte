@@ -3,7 +3,7 @@
 
 	export let title: string;
 	export let summary: string;
-	export let action: string = 'Go!';
+	export let action = 'Go!';
 	export let href: string | null = null;
 	const dispatch = createEventDispatcher();
 </script>

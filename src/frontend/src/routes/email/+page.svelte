@@ -12,11 +12,11 @@
 	});
 	let selectedTeacher: string;
 	let assignmentName: string;
-	let copied: boolean = false;
+	let copied = false;
 
 	type Grade = '6th' | '7th' | '8th' | 'Freshman' | 'Sophomore' | 'Junior' | 'Senior';
 	let getAuthorInfo: Promise<{ name: string; grade: Grade }> = invoke('get_user_info');
-	let hasInfo: boolean = false;
+	let hasInfo = false;
 	let authorGrade: Grade;
 	let authorName: string;
 	$: formValid =
@@ -40,10 +40,10 @@
 			/\(|\)/g,
 			''
 		)}`; // TODO: due date
-	let _add_teacher_name: string = '';
-	let _add_teacher_email: string = '';
-	let _add_teacher_period: string = '';
-	let _add_teacher_class: string = '';
+	let _add_teacher_name = '';
+	let _add_teacher_email = '';
+	let _add_teacher_period = '';
+	let _add_teacher_class = '';
 </script>
 
 <input type="checkbox" id="add-teachers" class="modal-toggle" />

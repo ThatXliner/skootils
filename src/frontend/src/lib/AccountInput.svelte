@@ -3,8 +3,8 @@
 
 	let dispatch = createEventDispatcher();
 
-	let username: string = '';
-	let password: string = '';
+	let username = '';
+	let password = '';
 	let _showPassword = false;
 </script>
 

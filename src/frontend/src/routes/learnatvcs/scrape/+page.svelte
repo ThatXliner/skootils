@@ -12,7 +12,7 @@
 		name: string;
 		progress: boolean | null | [number, number] | string;
 	}[] = [];
-	let hasCredentials: boolean = true;
+	let hasCredentials = true;
 
 	onMount(() => {
 		window.sessionStorage.removeItem('output'); // Don't use old data when failed

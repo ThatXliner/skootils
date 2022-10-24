@@ -61,14 +61,20 @@
 			<p>
 				Bryan Hu (@ThatXliner). <br /><br /> <b>Logo credits:</b> The logo's pencil is from
 				>Twitter's open source
-				<a href="https://twemoji.twitter.com" target="_blank" class="link">Twemoji emoji set</a>
+				<a href="https://twemoji.twitter.com" target="_blank" rel="noreferrer" class="link"
+					>Twemoji emoji set</a
+				>
 				(License: CC BY-SA 4.0). I have only rotated the pencil and added the S.
 			</p>
 		</div>
 		<div class="w-3/4">
 			<span class="footer-title">Social</span>
 			<div class="grid grid-flow-col gap-4">
-				<a href="https://github.com/ThatXliner/skootils" target="_blank" title="Github Repository"
+				<a
+					href="https://github.com/ThatXliner/skootils"
+					target="_blank"
+					rel="noreferrer"
+					title="Github Repository"
 					><svg
 						xmlns="http://www.w3.org/2000/svg"
 						aria-hidden="true"
