@@ -4,16 +4,16 @@ updates:
   - package-ecosystem: "pip"
     directory: "/src/learnatvcs"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
   - package-ecosystem: "pip"
     directory: "/src/powerschool"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
   - package-ecosystem: "npm"
     directory: "/src/frontend"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
   - package-ecosystem: "cargo"
     directory: "/src/frontend/src-tauri"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
