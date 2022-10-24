@@ -37,7 +37,7 @@ pylint = "*"
 toml = "^0.10.2"
 hypothesis = "^6.56.3"
 shed = "^0.10.5"
-pytest-cov = "^3.0.0"
+pytest-cov = "^4.0.0"
 pytest-clarity = "^1.0.1"
 types-beautifulsoup4 = "^4.11.6"
 
