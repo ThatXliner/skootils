@@ -12,13 +12,13 @@ pub struct Session {
 impl Session {
     pub async fn new(username: String, password: String) -> Result<Self> {
         let client = reqwest::Client::new();
-        let i = client
+        let doc = client
             .get(format!("{}/login/index.php", &BASE_URL))
             .send()
             .await?
             .text()
             .await?;
-        let dom = tl::parse(i.as_str(), tl::ParserOptions::default())?;
+        let dom = tl::parse(doc.as_str(), tl::ParserOptions::default())?;
         // get login token from BASE_URL
         let login_token = dom
             .query_selector(r#"[name="logintoken"]"#)
