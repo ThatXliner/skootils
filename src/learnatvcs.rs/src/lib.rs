@@ -1,3 +1,4 @@
+use anyhow::Result; // TODO: Handle erros normally
 use reqwest;
 use std::collections::HashMap;
 use tl;
@@ -9,7 +10,7 @@ struct Session {
     client: reqwest::Client,
 }
 impl Session {
-    async fn new(username: String, password: String) {
+    async fn new(username: String, password: String) -> Result<Self> {
         let client = reqwest::Client::new();
         let dom = tl::parse(
             client
@@ -20,20 +21,19 @@ impl Session {
                 .await?
                 .to_str(),
             tl::ParserOptions::default(),
-        )
-        .expect("Could not parse document");
+        )?;
         // get login token from BASE_URL
         let login_token = dom
             .query_selector(r#"[name="logintoken"]"#)
             .and_then(|mut iter| iter.next())
-            .expect("No login token found")
+            .unwrap()
             .get(dom.parser())
             .unwrap()
             .as_tag()
             .unwrap()
             .attributes()
             .get("value")
-            .expect("No login token found");
+            .unwrap();
         let mut auth = HashMap::new();
         auth.insert("username", username);
         auth.insert("password", password);
@@ -43,7 +43,7 @@ impl Session {
             .form(&auth)
             .send()
             .await?;
-        Session { client }
+        Ok(Session { client })
     }
 }
 #[cfg(test)]
