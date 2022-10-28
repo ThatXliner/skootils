@@ -3,9 +3,7 @@ use reqwest;
 use std::collections::HashMap;
 use tl;
 const BASE_URL: &str = "https://learn.vcs.net";
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+
 pub struct Session {
     client: reqwest::Client,
 }
@@ -49,10 +47,4 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
 }
