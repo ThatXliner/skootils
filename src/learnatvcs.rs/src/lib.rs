@@ -155,7 +155,7 @@ impl Session {
         let link = page
             .select(&LESSON_PLAN_LINK_SELECTOR)
             .next()
-            .and_then(|element| Some(element.value().attr("href").unwrap()))
+            .map(|element| element.value().attr("href").unwrap())
             .ok_or(LearnAtVcsError::NoLessonPlans)?; // shouldn't happen
         let plan_quarters = Html::parse_document(self.get_page(link).await?.as_str());
         let quarter_element = match quarter {
@@ -169,7 +169,7 @@ impl Session {
                         element.select(&LESSON_PLAN_QUARTER_TEXT_SELECTOR).next() else {continue};
                     let Some(text_node) = text_element.text().next() else {continue};
 
-                    if text_node.find(&quarter_num.to_string()).is_some() {
+                    if text_node.contains(&quarter_num.to_string()) {
                         eprintln!("Quarter found");
                         break 'output Some(element);
                     }
@@ -201,7 +201,7 @@ impl Session {
                         .ok_or(LearnAtVcsError::StructureChanged)?,
                     date.value()
                         .attr("href")
-                        .and_then(|link| Some(format!("{}/mod/book/{}", BASE_URL, link)))
+                        .map(|link| format!("{}/mod/book/{}", BASE_URL, link))
                         .or_else(|| Some(url.to_string()))
                         .unwrap(),
                 ))
@@ -228,7 +228,7 @@ impl Session {
         Html::parse_document(self.get_page(url).await?.as_str())
             .select(&LESSON_PLAN_CONTENTS_SELECTOR)
             .next()
-            .and_then(|element| Some(element.inner_html()))
+            .map(|element| element.inner_html())
             .ok_or(LearnAtVcsError::StructureChanged)
     }
 }
