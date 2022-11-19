@@ -2,8 +2,8 @@ use learnatvcs::Session;
 use serde_json;
 use std::env;
 use tokio;
-static LEARNATVCS_USERNAME: &'static str = "LEARNATVCS_USERNAME";
-static LEARNATVCS_PASSWORD: &'static str = "LEARNATVCS_PASSWORD";
+static LEARNATVCS_USERNAME: &str = "LEARNATVCS_USERNAME";
+static LEARNATVCS_PASSWORD: &str = "LEARNATVCS_PASSWORD";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let session = Session::new(
