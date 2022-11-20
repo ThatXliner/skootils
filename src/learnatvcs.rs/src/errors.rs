@@ -6,7 +6,7 @@ pub enum LearnAtVcsError {
     NoLessonPlans,
     #[error("No lesson plans could be found")]
     InvalidQuarter,
-    #[error("Network error")]
+    #[error("Network error or errors related to the internal library")]
     ReqwestError(ReqwestError),
     #[error("Page structure had changed")]
     StructureChanged,
