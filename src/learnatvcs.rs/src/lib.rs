@@ -2,7 +2,10 @@
 #![warn(missing_docs)]
 //! Fast request-based scraping API for learn@vcs
 
-mod errors;
+/// Date models
+pub mod datematcher;
+/// Error types
+pub mod errors;
 use errors::LearnAtVcsError;
 
 /// A `Result` alias where the `Err` case is `errors::ScrapeError`.
