@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         env::var(LEARNATVCS_PASSWORD).expect("Need"),
     )
     .await?;
-    let output = session.scrape(None).await?;
+    let output = session.scrape(None, learnatvcs::TargetDate::All).await?;
     println!("{}", serde_json::to_string(&output).unwrap());
     Ok(())
 }

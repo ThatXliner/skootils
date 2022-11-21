@@ -6,14 +6,25 @@
 pub mod datematcher;
 /// Error types
 pub mod errors;
+use datematcher::{ClassDay, Date};
+/// Choose a date to scrape
+pub enum TargetDate {
+    /// Scrape latest dates
+    Latest,
+    /// Scrape all dates
+    All,
+    /// Scrape selected dates
+    Selected(Vec<Date>),
+}
 use errors::LearnAtVcsError;
+use std::str::FromStr;
 
 /// A `Result` alias where the `Err` case is `errors::ScrapeError`.
 pub type Result<T> = std::result::Result<T, LearnAtVcsError>;
 use futures::future::join_all;
 use lazy_static::lazy_static;
 use reqwest;
-use scraper::{ElementRef, Html, Selector};
+use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::io::{self, Write};
 /// Closely follows learn@vcs's structure
@@ -118,7 +129,7 @@ impl Session {
     }
 
     /// TODO: Scrape spec and multiple quarters and dates
-    pub async fn scrape(&self, quarter: Option<usize>) -> Result<Output> {
+    pub async fn scrape(&self, quarter: Option<usize>, dates: TargetDate) -> Result<Output> {
         let dom = Html::parse_document(self.cached_homepage.as_str());
 
         let mut tasks = Vec::new();
@@ -134,10 +145,12 @@ impl Session {
                 break;
             }
             let url = class_link.value().attr("href").unwrap();
+            let dates_ref = &dates;
             eprintln!("Class: {}, url: {}", name, url);
             // we do minimal parsing here
-            tasks.push(async move { (name, self.scrape_page(url, quarter, |_| true).await.ok()) });
+            tasks.push(async move { (name, self.scrape_page(url, quarter, dates_ref).await.ok()) });
         }
+        eprintln!("LEVEL 1: Root scrape loop");
         // Concurrent; not parallel. May make it parallel in the future if it's even faster
         for (key, value) in join_all(tasks).await {
             output.insert(key, value);
@@ -145,15 +158,12 @@ impl Session {
         Ok(output)
     }
     /// Given URL of learn@vcs page, find lesson plans
-    async fn scrape_page<F>(
+    async fn scrape_page(
         &self,
         url: &str,
         quarter: Option<usize>,
-        filter: F,
-    ) -> Result<HashMap<String, Option<String>>>
-    where
-        F: FnMut(&ElementRef) -> bool,
-    {
+        dates: &TargetDate,
+    ) -> Result<HashMap<String, Option<String>>> {
         let page = Html::parse_document(self.get_page(url).await?.as_str());
         let link = page
             .select(&LESSON_PLAN_LINK_SELECTOR)
@@ -182,52 +192,89 @@ impl Session {
         }
         .ok_or(LearnAtVcsError::InvalidQuarter)?;
         Ok(self
-            .scrape_plans(quarter_element.value().attr("href").unwrap(), filter)
+            .scrape_plans(quarter_element.value().attr("href").unwrap(), &dates)
             .await?)
     }
-    async fn scrape_plans<F>(&self, url: &str, filter: F) -> Result<HashMap<String, Option<String>>>
-    where
-        F: FnMut(&ElementRef) -> bool,
-    {
+    async fn scrape_plans(
+        &self,
+        url: &str,
+        dates: &TargetDate,
+    ) -> Result<HashMap<String, Option<String>>> {
         let lesson_plans = Html::parse_document(self.get_page(url).await?.as_str());
         let mut tasks = Vec::new();
-        // For every date, match the text with the given date
-        for res in lesson_plans
-            .select(&LESSON_PLAN_DATE_SELECTOR)
-            .filter(filter)
-            .map(|date| {
-                Ok::<(&str, String), LearnAtVcsError>((
-                    // https://learn.vcs.net/mod/book/view.php?id=272663
-                    date.value()
+        let links = lesson_plans.select(&LESSON_PLAN_DATE_SELECTOR);
+        let mut add_task = |date_name: String, plan_url: String| {
+            tasks.push(async move { (date_name, self.scrape_plan(plan_url.as_str()).await.ok()) });
+        };
+        match dates {
+            TargetDate::Latest => {
+                let res = links.last().ok_or(LearnAtVcsError::StructureChanged)?;
+                let date_name = res
+                    .value()
+                    .attr("title")
+                    .or_else(|| res.text().next())
+                    .ok_or(LearnAtVcsError::StructureChanged)?;
+                let plan_url = res
+                    .value()
+                    .attr("href")
+                    .map(|link| format!("{}/mod/book/{}", BASE_URL, link))
+                    .or_else(|| Some(url.to_string()))
+                    .unwrap();
+                eprintln!("Scraping for {date_name} (url: {plan_url})");
+                add_task(date_name.to_string(), plan_url);
+            }
+            remaining => {
+                // For every date, match the text with the given date
+                for res in links.filter(|element| match remaining {
+                    TargetDate::Selected(dates) => {
+                        let class_day = ClassDay::from_str(
+                            element
+                                .value()
+                                .attr("title")
+                                .or_else(|| element.text().next())
+                                .unwrap(),
+                        )
+                        .unwrap();
+                        for date in dates {
+                            if class_day.matches(&date) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    TargetDate::All => {
+                        return true;
+                    }
+                    _ => {
+                        unreachable!()
+                    }
+                }) {
+                    let date_name = res
+                        .value()
                         .attr("title")
-                        .or_else(|| date.text().next())
-                        .ok_or(LearnAtVcsError::StructureChanged)?,
-                    date.value()
+                        .or_else(|| res.text().next())
+                        .ok_or(LearnAtVcsError::StructureChanged)?;
+                    let plan_url = res
+                        .value()
                         .attr("href")
                         .map(|link| format!("{}/mod/book/{}", BASE_URL, link))
                         .or_else(|| Some(url.to_string()))
-                        .unwrap(),
-                ))
-            })
-        {
-            if let Ok((date_name, plan_url)) = res {
-                eprintln!("Scraping for {date_name} (url: {plan_url})");
-                tasks.push(
-                    async move { (date_name, self.scrape_plan(plan_url.as_str()).await.ok()) },
-                );
-            } else if let Err(err) = res {
-                return Err(err);
+                        .unwrap();
+                    // eprintln!("Scraping for {date_name} (url: {plan_url})");
+                    add_task(date_name.to_string(), plan_url);
+                }
             }
         }
+        eprintln!("LEVEL 2: Per-date scrape loop");
         let mut output = HashMap::new();
         for (key, value) in join_all(tasks).await {
-            output.insert(key.to_string(), value);
+            output.insert(key, value);
         }
         Ok(output)
     }
 
     async fn scrape_plan(&self, url: &str) -> Result<String> {
-        eprintln!("Parsing lesson plans for {url}");
+        // eprintln!("Parsing lesson plans for {url}");
         Html::parse_document(self.get_page(url).await?.as_str())
             .select(&LESSON_PLAN_CONTENTS_SELECTOR)
             .next()
