@@ -48,7 +48,7 @@ async fn scrape_plans(
 ) -> Result<HashMap<String, Option<String>>> {
     // TODO: Remove unnecessary requests by reusing `lesson_plans` via Box::pin(future) and Box(dyn future)
     let tasks = {
-        let lesson_plans = Html::parse_document(&get_page(&client, url).await?);
+        let lesson_plans = Html::parse_document(&fetch(&client, url).await?);
         let mut tasks = Vec::new();
         let links = lesson_plans.select(&LESSON_PLAN_DATE_SELECTOR);
 
@@ -128,7 +128,7 @@ async fn scrape_plans(
     }
     Ok(output)
 }
-async fn get_page(client: &reqwest::Client, url: &str) -> Result<String> {
+async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     tracing::info!("Fetching {url}");
     Ok(client
         .get(url)
@@ -139,14 +139,41 @@ async fn get_page(client: &reqwest::Client, url: &str) -> Result<String> {
         .await
         .map_err(|e| LearnAtVcsError::ReqwestError(e))?)
 }
+fn get_quarter_url(contents: &String, target_quarter: Option<usize>) -> Result<String> {
+    let plan_quarters = Html::parse_document(&contents);
+    let quarter_element = match target_quarter {
+        None => plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR).last(),
+        Some(quarter_num) => 'output: {
+            // XXX: This is probably highly inefficient
+
+            // For every link we have, find the link with the quarter number in its name
+            for element in plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR) {
+                let Some(text_element) =
+                        element.select(&LESSON_PLAN_QUARTER_TEXT_SELECTOR).next() else {continue};
+                let Some(text_node) = text_element.text().next() else {continue};
+
+                if text_node.contains(&quarter_num.to_string()) {
+                    tracing::info!("Quarter found");
+                    break 'output Some(element);
+                }
+            }
+            None
+        }
+    }
+    .ok_or(LearnAtVcsError::InvalidQuarter)?;
+    Ok(quarter_element.value().attr("href").unwrap().to_owned())
+}
+/// Given the teacher's learn@vcs page, scrape lesson plans
 async fn scrape_page(
     client: Arc<reqwest::Client>,
     url: &str,
     quarter: Option<usize>,
     dates: &TargetDate,
 ) -> Result<HashMap<String, Option<String>>> {
-    let contents = get_page(&client, url).await?;
+    let contents = fetch(&client, url).await?;
     let link = {
+        // gets the link of the lesson plan tab
+        // TODO: Cache
         Html::parse_document(&contents)
             .select(&LESSON_PLAN_LINK_SELECTOR)
             .next()
@@ -154,42 +181,38 @@ async fn scrape_page(
             .ok_or(LearnAtVcsError::NoLessonPlans)? // shouldn't happen
             .to_owned()
     };
-    let learnatvcs_page_contents = get_page(&client, &link).await?;
-    let quarter_url = {
-        let plan_quarters = Html::parse_document(&learnatvcs_page_contents);
-        let quarter_element = match quarter {
-            None => plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR).last(),
-            Some(quarter_num) => 'output: {
-                // XXX: This is probably highly inefficient
-
-                // For every link we have, find the link with the quarter number in its name
-                for element in plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR) {
-                    let Some(text_element) =
-                        element.select(&LESSON_PLAN_QUARTER_TEXT_SELECTOR).next() else {continue};
-                    let Some(text_node) = text_element.text().next() else {continue};
-
-                    if text_node.contains(&quarter_num.to_string()) {
-                        tracing::info!("Quarter found");
-                        break 'output Some(element);
-                    }
-                }
-                None
-            }
-        }
-        .ok_or(LearnAtVcsError::InvalidQuarter)?;
-        quarter_element.value().attr("href").unwrap().to_owned()
-    };
+    let learnatvcs_page_contents = fetch(&client, &link).await?;
+    let quarter_url = get_quarter_url(&learnatvcs_page_contents, quarter)?;
     Ok(scrape_plans(client, &quarter_url, &dates).await?)
 }
 async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
-    tracing::info!("Parsing lesson plans for {url}");
-    Html::parse_document(&get_page(&client, url).await?)
+    Html::parse_document(&fetch(&client, url).await?)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
         .next()
         .map(|element| element.inner_html())
         .ok_or(LearnAtVcsError::StructureChanged)
 }
-/// Scrape
+/// Given the contents of BASE_URL, return the links and names of classes
+fn get_teacher_pages(contents: &String) -> Vec<(String, String)> {
+    let dom = Html::parse_document(contents);
+    let mut output = Vec::new();
+    // Skip "VCJH iPad Program Home Page" and "VCJH Student Home Page"
+    // We might remove this entirely and just ditch a class
+    // when a class doesn't have a "lesson plan" tab or when
+    // it's name doesn't have a "-"
+    for class_link in dom.select(&CLASS_LIST_ITEM_SELECTOR).skip(2) {
+        let name = class_link.value().attr("title").unwrap().to_string();
+        // Otherwise it's not a class...
+        if name.find("-") == None {
+            break;
+        }
+
+        let url = class_link.value().attr("href").unwrap().to_owned();
+        output.push((name, url));
+    }
+    output
+}
+/// Scrape all lesson plans
 pub async fn scrape(
     username: String,
     password: String,
@@ -212,7 +235,7 @@ pub async fn scrape(
         .text()
         .await
         .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
-    let dom = Html::parse_document(doc.as_str());
+    let dom = Html::parse_document(&doc);
     // get login token from BASE_URL
     let login_token = dom
         .select(&LOGIN_TOKEN_SELECTOR)
@@ -242,38 +265,24 @@ pub async fn scrape(
         .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
     tracing::info!("done");
 
-    let dom = Html::parse_document(cached_homepage.as_str());
-
-    let mut tasks = Vec::new();
-    let mut output = HashMap::new();
     let client_arc = Arc::new(client);
-    // Skip "VCJH iPad Program Home Page" and "VCJH Student Home Page"
-    // We might remove this entirely and just ditch a class
-    // when a class doesn't have a "lesson plan" tab or when
-    // it's name doesn't have a "-"
-
-    for class_link in dom.select(&CLASS_LIST_ITEM_SELECTOR).skip(2) {
-        let name = class_link.value().attr("title").unwrap().to_string();
-        // Otherwise it's not a class...
-        if name.find("-") == None {
-            break;
-        }
-
-        let url = class_link.value().attr("href").unwrap().to_owned();
-        tracing::info!("Class: {}, url: {}", name, url);
-        let dates_clone = dates.clone();
-        let arc_clone = client_arc.clone();
-        tasks.push(tokio::spawn(async move {
-            (
-                name,
-                scrape_page(arc_clone, &url, quarter, &dates_clone)
-                    .await
-                    .ok(),
-            )
-        }));
-    }
+    let tasks = get_teacher_pages(&cached_homepage)
+        .into_iter()
+        .map(|x: (String, String)| {
+            let (name, url) = x;
+            let arc_clone = client_arc.clone();
+            let dates_clone = dates.clone();
+            tokio::spawn(async move {
+                (
+                    name,
+                    scrape_page(arc_clone, &url, quarter, &dates_clone)
+                        .await
+                        .ok(),
+                )
+            })
+        });
     tracing::info!("LEVEL 1: Root scrape loop");
-    // Concurrent; not parallel. May make it parallel in the future if it's even faster
+    let mut output = HashMap::new();
     for res in join_all(tasks).await {
         if let Ok((key, value)) = res {
             output.insert(key, value);
