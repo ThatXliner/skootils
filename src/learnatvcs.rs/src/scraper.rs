@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use reqwest;
 use scraper::{Html, Selector};
 use std::collections::HashMap;
-use std::io::{self, Write};
+
 use std::str::FromStr;
 use std::sync::Arc;
 use tokio;
