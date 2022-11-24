@@ -193,7 +193,7 @@ async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
 /// Given the contents of BASE_URL, return the links and names of classes
 fn get_teacher_pages(contents: &String) -> Vec<(String, String)> {
     let dom = Html::parse_document(contents);
-    let mut output = Vec::new();
+    let mut output = Vec::with_capacity(8);
     // Skip "VCJH iPad Program Home Page" and "VCJH Student Home Page"
     // We might remove this entirely and just ditch a class
     // when a class doesn't have a "lesson plan" tab or when
