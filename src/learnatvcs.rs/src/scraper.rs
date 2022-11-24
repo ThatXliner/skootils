@@ -7,7 +7,6 @@ use scraper::{Html, Selector};
 use std::collections::HashMap;
 
 use std::str::FromStr;
-use std::sync::Arc;
 use tokio;
 use tracing;
 /// A `Result` alias where the `Err` case is `errors::ScrapeError`.
@@ -42,7 +41,7 @@ lazy_static! {
 /// This is the URL of learn@vcs
 pub const BASE_URL: &str = "https://learn.vcs.net";
 async fn scrape_plans(
-    client: Arc<reqwest::Client>,
+    client: reqwest::Client,
     url: &str,
     dates: &TargetDate,
 ) -> Result<HashMap<String, Option<String>>> {
@@ -53,9 +52,9 @@ async fn scrape_plans(
         let links = lesson_plans.select(&LESSON_PLAN_DATE_SELECTOR);
 
         let mut add_task = |date_name: String, plan_url: String| {
-            let arc_clone = client.clone();
+            let client_clone = client.clone();
             tasks.push(tokio::spawn(async move {
-                (date_name, scrape_plan(&arc_clone, &plan_url).await.ok())
+                (date_name, scrape_plan(&client_clone, &plan_url).await.ok())
             }));
         };
         match dates {
@@ -72,7 +71,6 @@ async fn scrape_plans(
                     .map(|link| format!("{}/mod/book/{}", BASE_URL, link))
                     .or_else(|| Some(url.to_string()))
                     .unwrap();
-                tracing::info!("Scraping for {date_name} (url: {plan_url})");
                 add_task(date_name.to_string(), plan_url);
             }
             remaining => {
@@ -112,7 +110,6 @@ async fn scrape_plans(
                         .map(|link| format!("{}/mod/book/{}", BASE_URL, link))
                         .or_else(|| Some(url.to_string()))
                         .unwrap();
-                    tracing::info!("Scraping for {date_name} (url: {plan_url})");
                     add_task(date_name.to_string(), plan_url);
                 }
             }
@@ -130,14 +127,16 @@ async fn scrape_plans(
 }
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     tracing::info!("Fetching {url}");
-    Ok(client
+    let output = client
         .get(url)
         .send()
         .await
         .map_err(|e| LearnAtVcsError::ReqwestError(e))?
         .text()
         .await
-        .map_err(|e| LearnAtVcsError::ReqwestError(e))?)
+        .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
+    tracing::info!("Finished fetching {url}");
+    Ok(output)
 }
 fn get_quarter_url(contents: &String, target_quarter: Option<usize>) -> Result<String> {
     let plan_quarters = Html::parse_document(&contents);
@@ -153,7 +152,6 @@ fn get_quarter_url(contents: &String, target_quarter: Option<usize>) -> Result<S
                 let Some(text_node) = text_element.text().next() else {continue};
 
                 if text_node.contains(&quarter_num.to_string()) {
-                    tracing::info!("Quarter found");
                     break 'output Some(element);
                 }
             }
@@ -165,7 +163,7 @@ fn get_quarter_url(contents: &String, target_quarter: Option<usize>) -> Result<S
 }
 /// Given the teacher's learn@vcs page, scrape lesson plans
 async fn scrape_page(
-    client: Arc<reqwest::Client>,
+    client: reqwest::Client,
     url: &str,
     quarter: Option<usize>,
     dates: &TargetDate,
@@ -206,7 +204,6 @@ fn get_teacher_pages(contents: &String) -> Vec<(String, String)> {
         if name.find("-") == None {
             break;
         }
-
         let url = class_link.value().attr("href").unwrap().to_owned();
         output.push((name, url));
     }
@@ -245,7 +242,7 @@ pub async fn scrape(
         .attr("value")
         .unwrap()
         .to_string();
-    tracing::info!("done: {login_token}");
+    tracing::info!("Login token: {login_token}");
     let mut auth = HashMap::new();
     auth.insert("username", username);
     auth.insert("password", password);
@@ -263,19 +260,18 @@ pub async fn scrape(
         .text()
         .await
         .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
-    tracing::info!("done");
+    tracing::info!("Finished logging in");
 
-    let client_arc = Arc::new(client);
     let tasks = get_teacher_pages(&cached_homepage)
         .into_iter()
         .map(|x: (String, String)| {
             let (name, url) = x;
-            let arc_clone = client_arc.clone();
+            let client_clone = client.clone();
             let dates_clone = dates.clone();
             tokio::spawn(async move {
                 (
                     name,
-                    scrape_page(arc_clone, &url, quarter, &dates_clone)
+                    scrape_page(client_clone, &url, quarter, &dates_clone)
                         .await
                         .ok(),
                 )
