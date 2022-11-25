@@ -27,9 +27,9 @@ enabled = true
   runtime_version = "3.x.x"
   max_line_length = 100
 
-[[transformers]]
-name = "rustfmt"
-enabled = true
+# [[transformers]]
+# name = "rustfmt"
+# enabled = true
 
 [[transformers]]
 name = "prettier"
