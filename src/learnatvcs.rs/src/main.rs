@@ -1,9 +1,9 @@
 use learnatvcs::scrape;
-use serde_json;
+
 use std::env;
 use std::io;
-use tokio;
-use tracing_subscriber;
+
+
 static LEARNATVCS_USERNAME: &str = "LEARNATVCS_USERNAME";
 static LEARNATVCS_PASSWORD: &str = "LEARNATVCS_PASSWORD";
 #[tokio::main]

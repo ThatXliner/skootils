@@ -26,17 +26,17 @@ lazy_static! {
     ]);
 }
 fn validate(month: u8, day: u8) -> Result<(), DateError> {
-    if !(1 <= day && day <= 31) {
+    if !(1..=31).contains(&day) {
         return Err(DateError::InvalidDate);
     }
-    if !(1 <= month && month <= 12) {
+    if !(1..=12).contains(&month) {
         return Err(DateError::InvalidDate);
     }
     Ok(())
 }
 fn normalize_month(month: &str) -> u8 {
     *(MONTH2INT
-        .get(&month[0..3].to_lowercase().to_string())
+        .get(&month[0..3].to_lowercase())
         .unwrap())
 }
 /// Represents a date on the calendar
@@ -62,7 +62,7 @@ impl Date {
 }
 impl ToString for Date {
     fn to_string(&self) -> String {
-        return format!("{} {}", &self.month, &self.day);
+        format!("{} {}", &self.month, &self.day)
     }
 }
 impl FromStr for Date {
@@ -79,7 +79,7 @@ impl FromStr for Date {
             .parse::<u8>()
             .or(Err(DateError::ParseError))?;
         validate(month, day)?;
-        return Ok(Date { month, day });
+        Ok(Date { month, day })
     }
 }
 

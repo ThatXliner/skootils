@@ -2,14 +2,14 @@ use crate::datematcher::{ClassDay, Date};
 use crate::errors::LearnAtVcsError;
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use reqwest;
+
 use scraper::{Html, Selector};
 use std::collections::HashMap;
 use std::time;
 
 use std::str::FromStr;
-use tokio;
-use tracing;
+
+
 /// A `Result` alias where the `Err` case is `errors::ScrapeError`.
 pub type Result<T> = std::result::Result<T, LearnAtVcsError>;
 /// Choose a date to scrape
@@ -89,14 +89,14 @@ async fn scrape_plans(
                         )
                         .unwrap();
                         for date in dates {
-                            if class_day.matches(&date) {
+                            if class_day.matches(date) {
                                 return true;
                             }
                         }
-                        return false;
+                        false
                     }
                     TargetDate::All => {
-                        return true;
+                        true
                     }
                     _ => {
                         unreachable!()
@@ -136,10 +136,10 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
         .get(url)
         .send()
         .await
-        .map_err(|e| LearnAtVcsError::ReqwestError(e))?
+        .map_err(LearnAtVcsError::ReqwestError)?
         .text()
         .await
-        .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
+        .map_err(LearnAtVcsError::ReqwestError)?;
     tracing::info!(
         "Finished fetching {} (finished in {})",
         url,
@@ -148,7 +148,7 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     Ok(output)
 }
 fn get_quarter_url(contents: &String, target_quarter: Option<usize>) -> Result<String> {
-    let plan_quarters = Html::parse_document(&contents);
+    let plan_quarters = Html::parse_document(contents);
     let quarter_element = match target_quarter {
         None => plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR).last(),
         Some(quarter_num) => 'output: {
@@ -191,11 +191,11 @@ async fn scrape_page(
     };
     let learnatvcs_page_contents = fetch(&client, &link).await?;
     let quarter_url = get_quarter_url(&learnatvcs_page_contents, quarter)?;
-    Ok(scrape_plans(client, &quarter_url, &dates).await?)
+    scrape_plans(client, &quarter_url, dates).await
 }
 #[tracing::instrument]
 async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
-    Html::parse_document(&fetch(&client, url).await?)
+    Html::parse_document(&fetch(client, url).await?)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
         .next()
         .map(|element| element.inner_html())
@@ -212,7 +212,7 @@ fn get_teacher_pages(contents: &String) -> Vec<(String, String)> {
     for class_link in dom.select(&CLASS_LIST_ITEM_SELECTOR).skip(2) {
         let name = class_link.value().attr("title").unwrap().to_string();
         // Otherwise it's not a class...
-        if name.find("-") == None {
+        if name.find('-').is_none() {
             break;
         }
         let url = class_link.value().attr("href").unwrap().to_owned();
@@ -232,7 +232,7 @@ pub async fn scrape(
     let client = reqwest::Client::builder()
         .cookie_store(true)
         .build()
-        .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
+        .map_err(LearnAtVcsError::ReqwestError)?;
 
     tracing::info!("Getting login token... ");
 
@@ -240,10 +240,10 @@ pub async fn scrape(
         .get(format!("{}/login/index.php", BASE_URL))
         .send()
         .await
-        .map_err(|e| LearnAtVcsError::ReqwestError(e))?
+        .map_err(LearnAtVcsError::ReqwestError)?
         .text()
         .await
-        .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
+        .map_err(LearnAtVcsError::ReqwestError)?;
     let dom = Html::parse_document(&doc);
     // get login token from BASE_URL
     let login_token = dom
@@ -268,10 +268,10 @@ pub async fn scrape(
         .form(&auth)
         .send()
         .await
-        .map_err(|e| LearnAtVcsError::ReqwestError(e))?
+        .map_err(LearnAtVcsError::ReqwestError)?
         .text()
         .await
-        .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
+        .map_err(LearnAtVcsError::ReqwestError)?;
     tracing::info!("Finished logging in");
 
     let tasks = get_teacher_pages(&cached_homepage)
