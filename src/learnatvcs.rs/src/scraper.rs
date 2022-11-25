@@ -118,10 +118,8 @@ async fn scrape_plans(
     };
     tracing::info!("LEVEL 2: Per-date scrape loop");
     let mut output = HashMap::new();
-    for res in join_all(tasks).await {
-        if let Ok((key, value)) = res {
-            output.insert(key, value);
-        }
+    for (key, value) in (join_all(tasks).await).into_iter().flatten() {
+        output.insert(key, value);
     }
     Ok(output)
 }
@@ -144,7 +142,7 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     );
     Ok(output)
 }
-fn get_quarter_url(contents: &String, target_quarter: Option<usize>) -> Result<String> {
+fn get_quarter_url(contents: &str, target_quarter: Option<usize>) -> Result<String> {
     let plan_quarters = Html::parse_document(contents);
     let quarter_element = match target_quarter {
         None => plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR).last(),
@@ -199,7 +197,7 @@ async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
         .ok_or(LearnAtVcsError::StructureChanged)
 }
 /// Given the contents of BASE_URL, return the links and names of classes
-fn get_teacher_pages(contents: &String) -> Vec<(String, String)> {
+fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
     let dom = Html::parse_document(contents);
     let mut output = Vec::with_capacity(8);
     // Skip "VCJH iPad Program Home Page" and "VCJH Student Home Page"
@@ -288,10 +286,8 @@ pub async fn scrape(
         });
     tracing::info!("LEVEL 1: Root scrape loop");
     let mut output = HashMap::new();
-    for res in join_all(tasks).await {
-        if let Ok((key, value)) = res {
-            output.insert(key, value);
-        }
+    for (key, value) in (join_all(tasks).await).into_iter().flatten() {
+        output.insert(key, value);
     }
     Ok(output)
 }

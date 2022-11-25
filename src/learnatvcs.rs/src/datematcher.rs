@@ -47,9 +47,6 @@ impl PartialEq for Date {
     fn eq(&self, other: &Date) -> bool {
         self.month == other.month && self.day == other.day
     }
-    fn ne(&self, other: &Date) -> bool {
-        !self.eq(other)
-    }
 }
 impl Date {
     /// Construct a Date model
@@ -106,9 +103,6 @@ impl ClassDay {
 impl PartialEq for ClassDay {
     fn eq(&self, other: &ClassDay) -> bool {
         other.a == self.a || other.b == self.b
-    }
-    fn ne(&self, other: &ClassDay) -> bool {
-        !self.eq(other)
     }
 }
 impl FromStr for ClassDay {
