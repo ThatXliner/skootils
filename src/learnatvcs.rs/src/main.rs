@@ -3,7 +3,6 @@ use learnatvcs::scrape;
 use std::env;
 use std::io;
 
-
 static LEARNATVCS_USERNAME: &str = "LEARNATVCS_USERNAME";
 static LEARNATVCS_PASSWORD: &str = "LEARNATVCS_PASSWORD";
 #[tokio::main]

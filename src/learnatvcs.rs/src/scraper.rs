@@ -9,7 +9,6 @@ use std::time;
 
 use std::str::FromStr;
 
-
 /// A `Result` alias where the `Err` case is `errors::ScrapeError`.
 pub type Result<T> = std::result::Result<T, LearnAtVcsError>;
 /// Choose a date to scrape
@@ -95,9 +94,7 @@ async fn scrape_plans(
                         }
                         false
                     }
-                    TargetDate::All => {
-                        true
-                    }
+                    TargetDate::All => true,
                     _ => {
                         unreachable!()
                     }

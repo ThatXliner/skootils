@@ -35,9 +35,7 @@ fn validate(month: u8, day: u8) -> Result<(), DateError> {
     Ok(())
 }
 fn normalize_month(month: &str) -> u8 {
-    *(MONTH2INT
-        .get(&month[0..3].to_lowercase())
-        .unwrap())
+    *(MONTH2INT.get(&month[0..3].to_lowercase()).unwrap())
 }
 /// Represents a date on the calendar
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
