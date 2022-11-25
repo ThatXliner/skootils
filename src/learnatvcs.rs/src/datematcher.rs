@@ -35,7 +35,7 @@ fn normalize_month(month: &str) -> u8 {
     *(MONTH2INT.get(&month[0..3].to_lowercase()).unwrap())
 }
 /// Represents a date on the calendar
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Date {
     month: u8,
     day: u8,
@@ -90,8 +90,8 @@ impl ClassDay {
     }
     /// Matches a `Date` against the `ClassDay`
     pub fn matches(&self, other: &Date) -> bool {
-        if let Some(b_day) = self.b {
-            *other == self.a || *other == b_day
+        if let Some(b_day) = &self.b {
+            *other == self.a || *other == *b_day
         } else {
             *other == self.a
         }
