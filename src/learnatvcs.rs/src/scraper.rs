@@ -5,6 +5,7 @@ use lazy_static::lazy_static;
 use reqwest;
 use scraper::{Html, Selector};
 use std::collections::HashMap;
+use std::time;
 
 use std::str::FromStr;
 use tokio;
@@ -12,7 +13,7 @@ use tracing;
 /// A `Result` alias where the `Err` case is `errors::ScrapeError`.
 pub type Result<T> = std::result::Result<T, LearnAtVcsError>;
 /// Choose a date to scrape
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum TargetDate {
     /// Scrape latest dates
     Latest,
@@ -40,6 +41,8 @@ lazy_static! {
 
 /// This is the URL of learn@vcs
 pub const BASE_URL: &str = "https://learn.vcs.net";
+
+#[tracing::instrument]
 async fn scrape_plans(
     client: reqwest::Client,
     url: &str,
@@ -125,8 +128,10 @@ async fn scrape_plans(
     }
     Ok(output)
 }
+#[tracing::instrument]
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     tracing::info!("Fetching {url}");
+    let now = time::Instant::now();
     let output = client
         .get(url)
         .send()
@@ -135,7 +140,11 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
         .text()
         .await
         .map_err(|e| LearnAtVcsError::ReqwestError(e))?;
-    tracing::info!("Finished fetching {url}");
+    tracing::info!(
+        "Finished fetching {} (finished in {})",
+        url,
+        now.elapsed().as_micros()
+    );
     Ok(output)
 }
 fn get_quarter_url(contents: &String, target_quarter: Option<usize>) -> Result<String> {
@@ -162,6 +171,7 @@ fn get_quarter_url(contents: &String, target_quarter: Option<usize>) -> Result<S
     Ok(quarter_element.value().attr("href").unwrap().to_owned())
 }
 /// Given the teacher's learn@vcs page, scrape lesson plans
+#[tracing::instrument]
 async fn scrape_page(
     client: reqwest::Client,
     url: &str,
@@ -183,6 +193,7 @@ async fn scrape_page(
     let quarter_url = get_quarter_url(&learnatvcs_page_contents, quarter)?;
     Ok(scrape_plans(client, &quarter_url, &dates).await?)
 }
+#[tracing::instrument]
 async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
     Html::parse_document(&fetch(&client, url).await?)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
@@ -210,6 +221,7 @@ fn get_teacher_pages(contents: &String) -> Vec<(String, String)> {
     output
 }
 /// Scrape all lesson plans
+#[tracing::instrument]
 pub async fn scrape(
     username: String,
     password: String,
