@@ -26,10 +26,7 @@ lazy_static! {
     ]);
 }
 fn validate(month: u8, day: u8) -> Result<(), DateError> {
-    if !(1..=31).contains(&day) {
-        return Err(DateError::InvalidDate);
-    }
-    if !(1..=12).contains(&month) {
+    if !(1..=31).contains(&day) || !(1..=12).contains(&month) {
         return Err(DateError::InvalidDate);
     }
     Ok(())
