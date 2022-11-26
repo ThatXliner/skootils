@@ -1,20 +1,14 @@
 <script lang="ts">
+	import AssignmentInput from './AssignmentInput.svelte';
 	import AlertError from './AlertError.svelte';
 	import WeightPicker from './WeightPicker.svelte';
+
 	export let currentScore: number;
 	export let assignments: { score: { total: number; recieved?: number }; type: string }[];
 	$: categories = [...new Set(assignments.map((t) => t.type))];
 
 	let weights: { [key: string]: number } | null = null;
 	let artificialAssignments: { score: { total: number; recieved: number }; type: string }[] = [];
-	let got = 0;
-	$: if (got < 0) {
-		got = 0;
-	}
-	let total = 5;
-	$: if (total < 0) {
-		total = 0;
-	}
 	function sum(x: number[]): number {
 		let output = 0;
 		for (let item of x) {
@@ -22,12 +16,10 @@
 		}
 		return output;
 	}
-	let selectedCategory: string;
 	function calculateScore(
 		assignments: { score: { recieved: number; total: number }; type: string }[],
 		weights: { [key: string]: number } | null
 	) {
-		console.log(assignments);
 		if (weights === null) {
 			// unweighted
 			return (
@@ -40,7 +32,6 @@
 			const totalEarned = sum(totalAssignments.map((e) => e.score.recieved));
 			const totalPoints = sum(totalAssignments.map((e) => e.score.total));
 			const categoryAverage = totalEarned / totalPoints || 1;
-			console.log(category, categoryAverage);
 			output += categoryAverage * weight;
 		}
 		return output;
@@ -48,6 +39,7 @@
 	// todo: semester support
 	$: newScore =
 		calculateScore(
+			// @ts-ignore
 			assignments.filter((e) => e.score.recieved !== null).concat(artificialAssignments),
 			weights
 		) * 100;
@@ -68,13 +60,12 @@
 		>
 			{#each artificialAssignments as given, i}
 				{@const type = given.type}
-				{@const score = (given.score.recieved / (given.score.total || 1)) * 100}
 				<span
 					class="bg-info shadow-md p-2 m-1 rounded w-fit dark:text-black"
 					on:click={() => {
 						artificialAssignments = artificialAssignments.filter((_, index) => index != i);
 					}}
-					>{score}% ({type})<svg
+					>{given.score.recieved}/{given.score.total} ({type})<svg
 						xmlns="http://www.w3.org/2000/svg"
 						class="h-5 w-5 inline"
 						viewBox="0 0 20 20"
@@ -92,42 +83,13 @@
 	{:else}
 		<AlertError message="Please enter some theoretical scores" extraClasses="mx-auto" />
 	{/if}
+	<button
+		class="mx-auto mt-3 btn btn-error"
+		disabled={artificialAssignments.length == 0}
+		on:click={() => {
+			artificialAssignments = [];
+		}}>Clear all</button
+	>
 
-	<div class="bg-base-300 rounded-box p-3 max-w-fit mx-auto">
-		<div>
-			<h2 class="text-lg font-bold mb-1">Add assignment</h2>
-			<input class="rounded bg-base-200 w-20 p-2 text-lg" type="number" min="0" bind:value={got} />
-			<span class="font-bold">out of</span>
-			<input
-				class="rounded bg-base-200 w-20 p-2 text-lg"
-				type="number"
-				min="0"
-				bind:value={total}
-			/>
-			<button
-				class="mx-2 float-right btn btn-primary"
-				disabled={selectedCategory == 'Pick one'}
-				on:click={() => {
-					artificialAssignments = [
-						...artificialAssignments,
-						{ type: selectedCategory, score: { recieved: got, total } }
-					];
-					selectedCategory = 'Pick one';
-				}}>Add</button
-			>
-		</div>
-		<select class="select select-bordered w-full mt-3" bind:value={selectedCategory}>
-			<option disabled selected>Pick one</option>
-			{#each categories as category}
-				<option>{category}</option>
-			{/each}
-		</select>
-	</div>
+	<AssignmentInput bind:categories bind:artificialAssignments unweighted={weights === null} />
 </div>
-<button
-	class="mx-auto mt-3 btn btn-error"
-	disabled={artificialAssignments.length == 0}
-	on:click={() => {
-		artificialAssignments = [];
-	}}>Clear all</button
->

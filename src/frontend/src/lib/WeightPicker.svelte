@@ -16,7 +16,8 @@
 		if (Object.keys(_weights).length == 0) {
 			weights = null;
 		}
-		// TODO: auto calc
+		// TODO: Use algebra from previous scrapes
+		// or "flex" fill the rest
 		else {
 			console.warn('Not implemented');
 			// throw new Error('Not implemented');
