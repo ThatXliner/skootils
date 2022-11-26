@@ -2,20 +2,19 @@
 	import AlertError from './AlertError.svelte';
 	import WeightPicker from './WeightPicker.svelte';
 	export let currentScore: number;
-	export let assignments: { percent?: number; type: string }[];
+	export let assignments: { score: { total: number; recieved?: number }; type: string }[];
 	$: categories = [...new Set(assignments.map((t) => t.type))];
 
-	let weights: { [key: string]: number } = {};
-	let artificialAssignments: [string, number][] = [];
-	$: realAssignments = assignments
-		.filter((x) => x.percent !== null)
-		.map((x) => [x.type, +x.percent!]);
+	let weights: { [key: string]: number } | null = null;
+	let artificialAssignments: { score: { total: number; recieved: number }; type: string }[] = [];
 	let got = 0;
 	$: if (got < 0) {
 		got = 0;
 	}
-
 	let total = 5;
+	$: if (total < 0) {
+		total = 0;
+	}
 	function sum(x: number[]): number {
 		let output = 0;
 		for (let item of x) {
@@ -23,27 +22,35 @@
 		}
 		return output;
 	}
-	function weightedAverage(
-		assignments: [string, number][],
-		weights: { [key: string]: number } | null
-	): number {
-		if (weights === null) {
-			return sum(assignments.map((e) => e[1])) / assignments.length;
-		}
-		let averages: { [key: string]: number[] } = Object.fromEntries(categories.map((e) => [e, []]));
-		assignments.forEach((e) => {
-			averages[e[0]].push(+e[1]);
-		});
-		// console.log('I cant debug', sum(assignments.map((e) => weights[e[0]] * e[1])));
-		// return sum(assignments.map((e) => weights[e[0]] * e[1])) / sum(Object.values(weights));
-		return (
-			sum(Object.entries(averages).map((e) => (weights[e[0]] * sum(e[1])) / e[1].length)) /
-			sum(Object.values(weights))
-		);
-	}
 	let selectedCategory: string;
-	// todo: new equation
-	$: newScore = weightedAverage(realAssignments.concat(artificialAssignments), weights);
+	function calculateScore(
+		assignments: { score: { recieved: number; total: number }; type: string }[],
+		weights: { [key: string]: number } | null
+	) {
+		console.log(assignments);
+		if (weights === null) {
+			// unweighted
+			return (
+				sum(assignments.map((e) => e.score.recieved)) / sum(assignments.map((e) => e.score.total))
+			);
+		}
+		let output = 0;
+		for (let [category, weight] of Object.entries(weights)) {
+			const totalAssignments = assignments.filter((e) => e.type === category);
+			const totalEarned = sum(totalAssignments.map((e) => e.score.recieved));
+			const totalPoints = sum(totalAssignments.map((e) => e.score.total));
+			const categoryAverage = totalEarned / totalPoints || 1;
+			console.log(category, categoryAverage);
+			output += categoryAverage * weight;
+		}
+		return output;
+	}
+	// todo: semester support
+	$: newScore =
+		calculateScore(
+			assignments.filter((e) => e.score.recieved !== null).concat(artificialAssignments),
+			weights
+		) * 100;
 </script>
 
 <div class="space-y-3">
@@ -59,13 +66,15 @@
 		<div
 			class="bg-base-200 mx-auto shadow-lg p-2 rounded-box max-h-40 overflow-y-auto flex flex-wrap w-full"
 		>
-			{#each artificialAssignments as [type, score], i}
+			{#each artificialAssignments as given, i}
+				{@const type = given.type}
+				{@const score = (given.score.recieved / (given.score.total || 1)) * 100}
 				<span
-					class="bg-info shadow-md p-2 m-1 rounded w-fit"
+					class="bg-info shadow-md p-2 m-1 rounded w-fit dark:text-black"
 					on:click={() => {
 						artificialAssignments = artificialAssignments.filter((_, index) => index != i);
 					}}
-					>{score}%<svg
+					>{score}% ({type})<svg
 						xmlns="http://www.w3.org/2000/svg"
 						class="h-5 w-5 inline"
 						viewBox="0 0 20 20"
@@ -92,7 +101,7 @@
 			<input
 				class="rounded bg-base-200 w-20 p-2 text-lg"
 				type="number"
-				min="1"
+				min="0"
 				bind:value={total}
 			/>
 			<button
@@ -101,7 +110,7 @@
 				on:click={() => {
 					artificialAssignments = [
 						...artificialAssignments,
-						[selectedCategory, (got / total) * 100]
+						{ type: selectedCategory, score: { recieved: got, total } }
 					];
 					selectedCategory = 'Pick one';
 				}}>Add</button

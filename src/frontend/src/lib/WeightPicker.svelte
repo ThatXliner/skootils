@@ -9,7 +9,7 @@
 	});
 	let name: string;
 	let weight: number;
-	export let weights: { [key: string]: number } | null;
+	export let weights: { [key: string]: number } | null = null;
 	let _weights: { [key: string]: number } = {};
 	$: if (_categories.size > 0) {
 		// unweighted
@@ -18,8 +18,10 @@
 		}
 		// TODO: auto calc
 		else {
-			weights = _weights;
-			// weights = Object.fromEntries(categories.map((e) => [e, 1]));
+			console.warn('Not implemented');
+			// throw new Error('Not implemented');
+			// weights = _weights;
+			// weights = Object.fromEntries(categories.map((e) => [e, 1 / categories.length])); // same as unweighted?
 		}
 	} else {
 		weights = _weights;
@@ -42,7 +44,7 @@
 			<div class="form-control w-full">
 				<label class="label" for="name"
 					><span class="label-text">Weight value</span><span class="label-text-alt"
-						>in decimal format</span
+						>in decimal form</span
 					></label
 				>
 				<input type="number" bind:value={weight} class="rounded bg-base-200 p-2 text-lg" />
