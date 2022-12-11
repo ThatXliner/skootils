@@ -207,7 +207,7 @@ fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
     for class_link in dom.select(&CLASS_LIST_ITEM_SELECTOR).skip(2) {
         let name = class_link.value().attr("title").unwrap().to_string();
         // Otherwise it's not a class...
-        if name.contains('-') {
+        if !name.contains('-') {
             break;
         }
         let url = class_link.value().attr("href").unwrap().to_owned();
