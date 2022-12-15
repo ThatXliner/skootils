@@ -138,7 +138,7 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     tracing::info!(
         "Finished fetching {} (finished in {})",
         url,
-        now.elapsed().as_micros()
+        now.elapsed().as_secs()
     );
     Ok(output)
 }
