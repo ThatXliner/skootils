@@ -18,7 +18,7 @@ Landing page coming soon! Get your binaries [here](https://nightly.link/ThatXlin
 
 <details>
 
-<summary>Click to view demo images</summary>
+<summary>Click to view (outdated) demo images</summary>
 
 ![](./demo/skootils.png)
 ![](./demo/skootils2.png)
