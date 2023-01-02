@@ -1,11 +1,10 @@
 use crate::datematcher::{ClassDay, Date};
 use crate::errors::LearnAtVcsError;
-use futures::future::join_all;
 use lazy_static::lazy_static;
+use tokio::task::JoinSet;
 
 use scraper::{Html, Selector};
 use std::collections::HashMap;
-use std::time;
 
 use std::str::FromStr;
 
@@ -47,17 +46,18 @@ async fn scrape_plans(
     url: &str,
     dates: &TargetDate,
 ) -> Result<HashMap<String, Option<String>>> {
+    tracing::debug!("START scrape_plans");
     // TODO: Remove unnecessary requests by reusing `lesson_plans` via Box::pin(future) and Box(dyn future)
-    let tasks = {
+    let mut tasks = {
         let lesson_plans = Html::parse_document(&fetch(&client, url).await?);
-        let mut tasks = Vec::new();
+        let mut tasks = JoinSet::new();
         let links = lesson_plans.select(&LESSON_PLAN_DATE_SELECTOR);
 
         let mut add_task = |date_name: String, plan_url: String| {
             let client_clone = client.clone();
-            tasks.push(tokio::spawn(async move {
-                (date_name, scrape_plan(&client_clone, &plan_url).await.ok())
-            }));
+            tasks.spawn(
+                async move { (date_name, scrape_plan(&client_clone, &plan_url).await.ok()) },
+            );
         };
         match dates {
             TargetDate::Latest => {
@@ -116,17 +116,17 @@ async fn scrape_plans(
         };
         tasks
     };
-    tracing::info!("LEVEL 2: Per-date scrape loop");
     let mut output = HashMap::new();
-    for (key, value) in (join_all(tasks).await).into_iter().flatten() {
+    while let Some(handle) = tasks.join_next().await {
+        let (key, value) = handle.expect("Join failed");
         output.insert(key, value);
     }
+    tracing::debug!("END scrape_plans");
     Ok(output)
 }
 #[tracing::instrument]
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
-    tracing::info!("Fetching {url}");
-    let now = time::Instant::now();
+    tracing::debug!("START fetch");
     let output = client
         .get(url)
         .send()
@@ -135,11 +135,7 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
         .text()
         .await
         .map_err(LearnAtVcsError::ReqwestError)?;
-    tracing::info!(
-        "Finished fetching {} (finished in {})",
-        url,
-        now.elapsed().as_secs()
-    );
+    tracing::debug!("END fetch");
     Ok(output)
 }
 fn get_quarter_url(contents: &str, target_quarter: Option<usize>) -> Result<String> {
@@ -173,6 +169,7 @@ async fn scrape_page(
     quarter: Option<usize>,
     dates: &TargetDate,
 ) -> Result<HashMap<String, Option<String>>> {
+    tracing::debug!("START scrape_page");
     let contents = fetch(&client, url).await?;
     let link = {
         // gets the link of the lesson plan tab
@@ -186,15 +183,20 @@ async fn scrape_page(
     };
     let learnatvcs_page_contents = fetch(&client, &link).await?;
     let quarter_url = get_quarter_url(&learnatvcs_page_contents, quarter)?;
-    scrape_plans(client, &quarter_url, dates).await
+    let output = scrape_plans(client, &quarter_url, dates).await;
+    tracing::debug!("END scrape_page");
+    output
 }
 #[tracing::instrument]
 async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
-    Html::parse_document(&fetch(client, url).await?)
+    tracing::debug!("START scrape_plan");
+    let output = Html::parse_document(&fetch(client, url).await?)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
         .next()
         .map(|element| element.inner_html())
-        .ok_or(LearnAtVcsError::StructureChanged)
+        .ok_or(LearnAtVcsError::StructureChanged);
+    tracing::debug!("END scrape_plan");
+    output
 }
 /// Given the contents of BASE_URL, return the links and names of classes
 fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
@@ -223,13 +225,11 @@ pub async fn scrape(
     quarter: Option<usize>,
     dates: TargetDate,
 ) -> Result<Output> {
-    tracing::info!("Initializing...");
+    tracing::debug!("START scrape");
     let client = reqwest::Client::builder()
         .cookie_store(true)
         .build()
         .map_err(LearnAtVcsError::ReqwestError)?;
-
-    tracing::info!("Getting login token... ");
 
     let doc = client
         .get(format!("{}/login/index.php", BASE_URL))
@@ -249,12 +249,10 @@ pub async fn scrape(
         .attr("value")
         .unwrap()
         .to_string();
-    tracing::info!("Login token: {login_token}");
     let mut auth = HashMap::new();
     auth.insert("username", username);
     auth.insert("password", password);
     auth.insert("logintoken", login_token);
-    tracing::info!("Logging in... ");
 
     // Since authenticating also returns
     // the homepage, we might as well re-use that
@@ -267,27 +265,25 @@ pub async fn scrape(
         .text()
         .await
         .map_err(LearnAtVcsError::ReqwestError)?;
-    tracing::info!("Finished logging in");
 
-    let tasks = get_teacher_pages(&cached_homepage)
-        .into_iter()
-        .map(|x: (String, String)| {
-            let (name, url) = x;
-            let client_clone = client.clone();
-            let dates_clone = dates.clone();
-            tokio::spawn(async move {
-                (
-                    name,
-                    scrape_page(client_clone, &url, quarter, &dates_clone)
-                        .await
-                        .ok(),
-                )
-            })
+    let mut tasks = JoinSet::new();
+    for (name, url) in get_teacher_pages(&cached_homepage) {
+        let client_clone = client.clone();
+        let dates_clone = dates.clone();
+        tasks.spawn(async move {
+            (
+                name,
+                scrape_page(client_clone, &url, quarter, &dates_clone)
+                    .await
+                    .ok(),
+            )
         });
-    tracing::info!("LEVEL 1: Root scrape loop");
+    }
     let mut output = HashMap::new();
-    for (key, value) in (join_all(tasks).await).into_iter().flatten() {
+    while let Some(handle) = tasks.join_next().await {
+        let (key, value) = handle.expect("Join failed");
         output.insert(key, value);
     }
+    tracing::debug!("END scrape");
     Ok(output)
 }
