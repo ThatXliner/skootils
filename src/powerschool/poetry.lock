@@ -310,7 +310,7 @@ python-versions = "*"
 
 [[package]]
 name = "interprog"
-version = "0.1.1"
+version = "0.2.0"
 description = "Inter-process progress reports made easy"
 category = "main"
 optional = false
@@ -888,7 +888,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a2ce0fdaea9a15e594673afc52afb4434e71c5e1b7f7ac3bd789b12819fb8a48"
+content-hash = "46fdceadf377c1e4d686f2f61a39de4faeb3b60a386e873576e1169aa2082f3d"
 
 [metadata.files]
 aiohttp = [
@@ -1289,8 +1289,8 @@ iniconfig = [
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
 interprog = [
-    {file = "interprog-0.1.1-py3-none-any.whl", hash = "sha256:e115eb45ff9e2a0b54b001a291a334052897d2e0d858cef5787c16f2541d4772"},
-    {file = "interprog-0.1.1.tar.gz", hash = "sha256:4ebeecbc4f62f41feb91df3cd9a47d1da039233acc1f583d6e7b813f97e09564"},
+    {file = "interprog-0.2.0-py3-none-any.whl", hash = "sha256:95e63eda3c440637f490773ff548ef69180a878dc089239daff54e7afa5e4c3c"},
+    {file = "interprog-0.2.0.tar.gz", hash = "sha256:b5359ac006ff00a8f4e8dd5f5de05997b0cb44e789c054cb8d7d40853c33d7e3"},
 ]
 isort = [
     {file = "isort-5.11.2-py3-none-any.whl", hash = "sha256:e486966fba83f25b8045f8dd7455b0a0d1e4de481e1d7ce4669902d9fb85e622"},
