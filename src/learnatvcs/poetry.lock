@@ -267,7 +267,7 @@ python-versions = ">=3.8,<4.0"
 
 [[package]]
 name = "isort"
-version = "5.11.2"
+version = "5.11.4"
 description = "A Python utility / library to sort Python imports."
 category = "dev"
 optional = false
@@ -818,7 +818,7 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "8c3b655ab4f6589b81f4455d1c0716b5f5b958087f98c7ddb42f012e05d07865"
+content-hash = "e5e4e22718b54659381846a8f6d7b7fbb7d66c482044a9fc464d232e1ba27e88"
 
 [metadata.files]
 astroid = [
@@ -1030,8 +1030,8 @@ interprog = [
     {file = "interprog-0.1.1.tar.gz", hash = "sha256:4ebeecbc4f62f41feb91df3cd9a47d1da039233acc1f583d6e7b813f97e09564"},
 ]
 isort = [
-    {file = "isort-5.11.2-py3-none-any.whl", hash = "sha256:e486966fba83f25b8045f8dd7455b0a0d1e4de481e1d7ce4669902d9fb85e622"},
-    {file = "isort-5.11.2.tar.gz", hash = "sha256:dd8bbc5c0990f2a095d754e50360915f73b4c26fc82733eb5bfc6b48396af4d2"},
+    {file = "isort-5.11.4-py3-none-any.whl", hash = "sha256:c033fd0edb91000a7f09527fe5c75321878f98322a77ddcc81adbd83724afb7b"},
+    {file = "isort-5.11.4.tar.gz", hash = "sha256:6db30c5ded9815d813932c04c2f85a360bcdd35fed496f4d8f35495ef0a261b6"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.8.0.tar.gz", hash = "sha256:c219a00245af0f6fa4e95901ed28044544f50152840c5b6a3e7b2568db34d156"},
