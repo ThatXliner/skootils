@@ -20,6 +20,15 @@ pub enum TargetDate {
     /// Scrape selected dates
     Selected(Vec<Date>),
 }
+/// Choose a quarter to scrape
+pub enum TargetQuarter {
+    /// Scrape latest dates
+    Latest,
+    /// Scrape all quarters
+    All,
+    /// Scrape selected quarters
+    Selected(Vec<usize>),
+}
 /// Closely follows learn@vcs's structure
 pub type Output = HashMap<String, Option<HashMap<String, Option<String>>>>;
 lazy_static! {
@@ -77,6 +86,7 @@ async fn scrape_plans(
             }
             remaining => {
                 // For every date, match the text with the given date
+                // TODO: If date doesn't exist, don't fail silently?
                 for res in links.filter(|element| match remaining {
                     TargetDate::Selected(dates) => {
                         let class_day = ClassDay::from_str(
@@ -143,7 +153,7 @@ fn get_quarter_url(contents: &str, target_quarter: Option<usize>) -> Result<Stri
     let quarter_element = match target_quarter {
         None => plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR).last(),
         Some(quarter_num) => 'output: {
-            // XXX: This is probably highly inefficient
+            // TODO: This is probably highly inefficient
 
             // For every link we have, find the link with the quarter number in its name
             for element in plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR) {
@@ -222,7 +232,7 @@ fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
 pub async fn scrape(
     username: String,
     password: String,
-    quarter: Option<usize>,
+    quarter: Option<usize>, // TODO: TargetQuarter
     dates: TargetDate,
 ) -> Result<Output> {
     tracing::debug!("START scrape");
