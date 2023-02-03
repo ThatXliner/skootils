@@ -232,12 +232,9 @@ async fn scrape_page(
         TargetQuarter::All => {
             let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
             let mut output = HashMap::new();
-            let x = (quarter_urls
-                .get(0)
-                .clone()
-                .ok_or(LearnAtVcsError::InvalidQuarter)?)
-            .as_ref()
-            .expect("This should never happen");
+            let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
+                .as_ref()
+                .expect("This should never happen");
 
             output.insert(
                 String::from("all"),
