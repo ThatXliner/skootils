@@ -21,7 +21,7 @@ tauri = { version = "1.2.4", features = ["shell-open", "shell-sidecar"] }
 directories = "4.0.1"
 lazy_static = "1.4.0"
 trash = "3.0.1"
-keyring = "1.2.0"
+keyring = "1.2.1"
 
 [features]
 # by default Tauri runs in production mode
