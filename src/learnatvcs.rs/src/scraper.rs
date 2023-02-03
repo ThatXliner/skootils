@@ -83,7 +83,7 @@ async fn scrape_plans(
                 let plan_url = res
                     .value()
                     .attr("href")
-                    .map(|link| format!("{}/mod/book/{}", BASE_URL, link))
+                    .map(|link| format!("{BASE_URL}/mod/book/{link}"))
                     .or_else(|| Some(url.to_string()))
                     .unwrap();
                 add_task(date_name.to_string(), plan_url);
@@ -121,7 +121,7 @@ async fn scrape_plans(
                     let plan_url = res
                         .value()
                         .attr("href")
-                        .map(|link| format!("{}/mod/book/{}", BASE_URL, link))
+                        .map(|link| format!("{BASE_URL}/mod/book/{link}"))
                         .or_else(|| Some(url.to_string()))
                         .unwrap();
                     add_task(date_name.to_string(), plan_url);
@@ -217,14 +217,13 @@ async fn scrape_page(
             let mut output = HashMap::new();
             let x = (quarter_urls
                 .get(0)
-                .clone()
                 .ok_or(LearnAtVcsError::InvalidQuarter)?)
             .as_ref()
             .expect("This should never happen");
 
             output.insert(
                 String::from("latest"),
-                Some(scrape_plans(client, &x, dates).await?),
+                Some(scrape_plans(client, x, dates).await?),
             );
             tracing::debug!("END scrape_page");
             Ok(output)
@@ -238,7 +237,7 @@ async fn scrape_page(
 
             output.insert(
                 String::from("all"),
-                Some(scrape_plans(client, &x, dates).await?),
+                Some(scrape_plans(client, x, dates).await?),
             );
             tracing::debug!("END scrape_page");
             Ok(output)
@@ -248,14 +247,13 @@ async fn scrape_page(
             let mut output = HashMap::new();
             let x = (quarter_urls
                 .get(0)
-                .clone()
                 .ok_or(LearnAtVcsError::InvalidQuarter)?)
             .as_ref()
             .expect("This should never happen");
 
             output.insert(
                 String::from("all"),
-                Some(scrape_plans(client, &x, dates).await?),
+                Some(scrape_plans(client, x, dates).await?),
             );
             tracing::debug!("END scrape_page");
             Ok(output)
@@ -307,7 +305,7 @@ pub async fn scrape(
         .map_err(LearnAtVcsError::ReqwestError)?;
 
     let doc = client
-        .get(format!("{}/login/index.php", BASE_URL))
+        .get(format!("{BASE_URL}/login/index.php"))
         .send()
         .await
         .map_err(LearnAtVcsError::ReqwestError)?
@@ -332,7 +330,7 @@ pub async fn scrape(
     // Since authenticating also returns
     // the homepage, we might as well re-use that
     let cached_homepage = client
-        .post(format!("{}/login/index.php", BASE_URL))
+        .post(format!("{BASE_URL}/login/index.php"))
         .form(&auth)
         .send()
         .await
