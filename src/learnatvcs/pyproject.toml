@@ -24,7 +24,7 @@ beautifulsoup4 = "^4.11.1"
 platformdirs = "^2.5.4"
 data49 = "^0.4.4"
 webdriver-manager = "^3.8.5"
-interprog = "^0.1.0"
+interprog = "^0.2.0"
 
 [tool.poetry.scripts]
 learnatvcs = "learnatvcs.__main__:main"
