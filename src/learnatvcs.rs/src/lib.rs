@@ -7,7 +7,7 @@ pub mod datematcher;
 /// Error types
 pub mod errors;
 mod scraper;
-pub use crate::scraper::{scrape, TargetDate};
+pub use crate::scraper::{scrape, TargetDate, TargetQuarter};
 #[cfg(test)]
 mod tests {
     // use super::*;

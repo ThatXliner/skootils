@@ -21,8 +21,9 @@ pub enum TargetDate {
     Selected(Vec<Date>),
 }
 /// Choose a quarter to scrape
+#[derive(Clone, Debug)]
 pub enum TargetQuarter {
-    /// Scrape latest dates
+    /// Scrape latest quarter
     Latest,
     /// Scrape all quarters
     All,
@@ -30,7 +31,10 @@ pub enum TargetQuarter {
     Selected(Vec<usize>),
 }
 /// Closely follows learn@vcs's structure
-pub type Output = HashMap<String, Option<HashMap<String, Option<String>>>>;
+/// Class, Quarter, Date, Contents
+pub type Output = HashMap<String, Option<TeacherPage>>;
+pub type TeacherPage = HashMap<String, Option<QuarterOutput>>;
+pub type QuarterOutput = HashMap<String, Option<String>>;
 lazy_static! {
     static ref LOGIN_TOKEN_SELECTOR: Selector = Selector::parse(r#"[name="logintoken"]"#).unwrap();
     static ref CLASS_LIST_ITEM_SELECTOR: Selector = Selector::parse("ul.unlist > li a").unwrap();
@@ -148,37 +152,52 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     tracing::debug!("END fetch");
     Ok(output)
 }
-fn get_quarter_url(contents: &str, target_quarter: Option<usize>) -> Result<String> {
+fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<String>> {
     let plan_quarters = Html::parse_document(contents);
-    let quarter_element = match target_quarter {
-        None => plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR).last(),
-        Some(quarter_num) => 'output: {
-            // TODO: This is probably highly inefficient
+    match target_quarter {
+        TargetQuarter::Latest => vec![plan_quarters
+            .select(&LESSON_PLAN_QUARTER_SELECTOR)
+            .last()
+            .map(|x| x.value().attr("href").unwrap().to_owned())],
+        TargetQuarter::Selected(quarter_nums) => {
+            let mut output = Vec::new();
+            let mut found = false;
+            for quarter_num in quarter_nums {
+                // TODO: This is probably highly inefficient
 
-            // For every link we have, find the link with the quarter number in its name
-            for element in plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR) {
-                let Some(text_element) =
+                // For every link we have, find the link with the quarter number in its name
+                for element in plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR) {
+                    let Some(text_element) =
                         element.select(&LESSON_PLAN_QUARTER_TEXT_SELECTOR).next() else {continue};
-                let Some(text_node) = text_element.text().next() else {continue};
+                    let Some(text_node) = text_element.text().next() else {continue};
 
-                if text_node.contains(&quarter_num.to_string()) {
-                    break 'output Some(element);
+                    if text_node.contains(&quarter_num.to_string()) {
+                        output.push(Some(element.value().attr("href").unwrap().to_owned()));
+                        found = true;
+                        break;
+                    }
+                }
+                if !found {
+                    output.push(None);
                 }
             }
-            None
+            output
         }
+        TargetQuarter::All => plan_quarters
+            .select(&LESSON_PLAN_QUARTER_SELECTOR)
+            .map(|element| Some(element.value().attr("href").unwrap().to_owned()))
+            .collect(),
     }
-    .ok_or(LearnAtVcsError::InvalidQuarter)?;
-    Ok(quarter_element.value().attr("href").unwrap().to_owned())
 }
 /// Given the teacher's learn@vcs page, scrape lesson plans
 #[tracing::instrument]
 async fn scrape_page(
     client: reqwest::Client,
     url: &str,
-    quarter: Option<usize>,
+    quarter: TargetQuarter,
     dates: &TargetDate,
-) -> Result<HashMap<String, Option<String>>> {
+    // quarter: date: contents
+) -> Result<TeacherPage> {
     tracing::debug!("START scrape_page");
     let contents = fetch(&client, url).await?;
     let link = {
@@ -192,10 +211,59 @@ async fn scrape_page(
             .to_owned()
     };
     let learnatvcs_page_contents = fetch(&client, &link).await?;
-    let quarter_url = get_quarter_url(&learnatvcs_page_contents, quarter)?;
-    let output = scrape_plans(client, &quarter_url, dates).await;
-    tracing::debug!("END scrape_page");
-    output
+    match &quarter {
+        TargetQuarter::Latest => {
+            let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
+            let mut output = HashMap::new();
+            let x = (quarter_urls
+                .get(0)
+                .clone()
+                .ok_or(LearnAtVcsError::InvalidQuarter)?)
+            .as_ref()
+            .expect("This should never happen");
+
+            output.insert(
+                String::from("latest"),
+                Some(scrape_plans(client, &x, dates).await?),
+            );
+            tracing::debug!("END scrape_page");
+            Ok(output)
+        }
+        TargetQuarter::All => {
+            let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
+            let mut output = HashMap::new();
+            let x = (quarter_urls
+                .get(0)
+                .clone()
+                .ok_or(LearnAtVcsError::InvalidQuarter)?)
+            .as_ref()
+            .expect("This should never happen");
+
+            output.insert(
+                String::from("all"),
+                Some(scrape_plans(client, &x, dates).await?),
+            );
+            tracing::debug!("END scrape_page");
+            Ok(output)
+        }
+        quarter => {
+            let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
+            let mut output = HashMap::new();
+            let x = (quarter_urls
+                .get(0)
+                .clone()
+                .ok_or(LearnAtVcsError::InvalidQuarter)?)
+            .as_ref()
+            .expect("This should never happen");
+
+            output.insert(
+                String::from("all"),
+                Some(scrape_plans(client, &x, dates).await?),
+            );
+            tracing::debug!("END scrape_page");
+            Ok(output)
+        }
+    }
 }
 #[tracing::instrument]
 async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
@@ -232,7 +300,7 @@ fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
 pub async fn scrape(
     username: String,
     password: String,
-    quarter: Option<usize>, // TODO: TargetQuarter
+    quarter: TargetQuarter,
     dates: TargetDate,
 ) -> Result<Output> {
     tracing::debug!("START scrape");
@@ -280,10 +348,11 @@ pub async fn scrape(
     for (name, url) in get_teacher_pages(&cached_homepage) {
         let client_clone = client.clone();
         let dates_clone = dates.clone();
+        let quarter_clone = quarter.clone();
         tasks.spawn(async move {
             (
                 name,
-                scrape_page(client_clone, &url, quarter, &dates_clone)
+                scrape_page(client_clone, &url, quarter_clone, &dates_clone)
                     .await
                     .ok(),
             )
