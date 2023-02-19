@@ -41,7 +41,7 @@ lazy_static! {
     static ref LESSON_PLAN_LINK_SELECTOR: Selector =
         Selector::parse(r#"a[title^="Lesson"]"#).unwrap();
     static ref QUARTER_SELECTOR: Selector = Selector::parse(".aalink").unwrap();
-    static ref QUARTER_TEXT_SELECTOR: Selector = Selector::parse("span.instance_name").unwrap();
+    static ref QUARTER_TEXT_SELECTOR: Selector = Selector::parse("span.instancename").unwrap();
     static ref LESSON_PLAN_DATE_SELECTOR: Selector =
         Selector::parse(".book_toc a,.book_toc strong").unwrap();
     static ref LESSON_PLAN_CONTENTS_SELECTOR: Selector = Selector::parse("[role='main']").unwrap();
@@ -56,12 +56,31 @@ async fn scrape_plans(
     url: &str,
     dates: &TargetDate,
 ) -> Result<HashMap<String, Option<String>>> {
-    tracing::info!("START scrape_plans");
     // TODO: Remove unnecessary requests by reusing `lesson_plans` via Box::pin(future) and Box(dyn future)
     let mut tasks = {
         let lesson_plans = Html::parse_document(&fetch(&client, url).await?);
         let mut tasks = JoinSet::new();
-        let links = lesson_plans.select(&LESSON_PLAN_DATE_SELECTOR);
+        let links = lesson_plans
+            .select(&LESSON_PLAN_DATE_SELECTOR)
+            .map(|link| {
+                (
+                    link.value()
+                        .attr("title")
+                        .map(|x| x.to_string())
+                        .or_else(|| link.text().next().map(|x| x.to_string()))
+                        .expect("This should never happen"), // XXX? use StructureChanged?
+                    link.value()
+                        .attr("href")
+                        .map(|link| format!("{BASE_URL}/mod/book/{link}"))
+                        .or_else(|| Some(url.to_string()))
+                        .unwrap(),
+                )
+            })
+            .collect::<Vec<_>>();
+        if links.len() == 0 {
+            return Ok(HashMap::new());
+            // return Err(LearnAtVcsError::NoLessonPlans);
+        }
 
         let mut add_task = |date_name: String, plan_url: String| {
             let client_clone = client.clone();
@@ -71,58 +90,33 @@ async fn scrape_plans(
         };
         match dates {
             TargetDate::Latest => {
-                let res = links.last().ok_or(LearnAtVcsError::StructureChanged)?;
-                let date_name = res
-                    .value()
-                    .attr("title")
-                    .or_else(|| res.text().next())
-                    .ok_or(LearnAtVcsError::StructureChanged)?;
-                let plan_url = res
-                    .value()
-                    .attr("href")
-                    .map(|link| format!("{BASE_URL}/mod/book/{link}"))
-                    .or_else(|| Some(url.to_string()))
-                    .unwrap();
-                add_task(date_name.to_string(), plan_url);
+                let (date_name, plan_url) = links.last().unwrap();
+                tracing::info!("Task added {plan_url}");
+                add_task(date_name.to_string(), plan_url.to_string());
             }
             remaining => {
                 // For every date, match the text with the given date
-                // TODO: If date doesn't exist, don't fail silently?
-                for res in links.filter(|element| match remaining {
-                    TargetDate::Selected(dates) => {
-                        let class_day = ClassDay::from_str(
-                            element
-                                .value()
-                                .attr("title")
-                                .or_else(|| element.text().next())
-                                .unwrap(),
-                        )
-                        .unwrap();
-                        for date in dates {
-                            if class_day.matches(date) {
-                                return true;
+                links
+                    .iter()
+                    .filter(|(date_name, _)| match remaining {
+                        TargetDate::Selected(dates) => {
+                            let class_day = ClassDay::from_str(date_name).unwrap();
+                            for date in dates {
+                                if class_day.matches(date) {
+                                    return true;
+                                }
                             }
+                            // TODO: If date doesn't exist, don't fail silently?
+                            false
                         }
-                        false
-                    }
-                    TargetDate::All => true,
-                    _ => {
-                        unreachable!()
-                    }
-                }) {
-                    let date_name = res
-                        .value()
-                        .attr("title")
-                        .or_else(|| res.text().next())
-                        .ok_or(LearnAtVcsError::StructureChanged)?;
-                    let plan_url = res
-                        .value()
-                        .attr("href")
-                        .map(|link| format!("{BASE_URL}/mod/book/{link}"))
-                        .or_else(|| Some(url.to_string()))
-                        .unwrap();
-                    add_task(date_name.to_string(), plan_url);
-                }
+                        TargetDate::All => true,
+                        _ => {
+                            unreachable!()
+                        }
+                    })
+                    .for_each(|(date_name, plan_url)| {
+                        add_task(date_name.to_string(), plan_url.to_string())
+                    });
             }
         };
         tasks
@@ -132,12 +126,10 @@ async fn scrape_plans(
         let (key, value) = handle.expect("Join failed");
         output.insert(key, value);
     }
-    tracing::info!("END scrape_plans");
     Ok(output)
 }
 #[tracing::instrument]
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
-    // tracing::info!("START fetch");
     let output = client
         .get(url)
         .send()
@@ -146,23 +138,25 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
         .text()
         .await
         .map_err(LearnAtVcsError::ReqwestError)?;
-    // tracing::info!("END fetch");
     Ok(output)
 }
 fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<String>> {
     let quarters = Html::parse_document(contents);
     let quarters = quarters // shadowed on purpose
-            .select(&QUARTER_SELECTOR)
+        .select(&QUARTER_SELECTOR)
         .filter_map(|element| {
-                    let Some(text_element) =
+            let Some(text_element) =
                         element.select(&QUARTER_TEXT_SELECTOR).next() else {return None};
             let Some(text_node) = text_element.text().next() else {return None};
-            if !text_node.contains("Quarter") {
-                return None;
-                    }
-            Some((text_node, element.value().attr("href")))
+
+            if text_node.contains("Quarter") {
+                Some((text_node, element.value().attr("href")))
+            } else {
+                None
+            }
         })
         .collect::<Vec<_>>();
+    tracing::info!("{quarters:?}");
     match target_quarter {
         TargetQuarter::Latest => vec![quarters
             .last()
@@ -173,7 +167,7 @@ fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<
                 for quarter_num in &quarter_nums {
                     if text.contains(&quarter_num.to_string()) {
                         return Some(link.map(|x| x.to_owned()));
-                }
+                    }
                 }
                 return None;
             })
@@ -193,7 +187,6 @@ async fn scrape_page(
     dates: &TargetDate,
     // quarter: date: contents
 ) -> Result<TeacherPage> {
-    tracing::info!("START scrape_page");
     let contents = fetch(&client, url).await?;
     let link = {
         // gets the link of the lesson plan tab
@@ -205,61 +198,56 @@ async fn scrape_page(
             .ok_or(LearnAtVcsError::NoLessonPlans)? // shouldn't happen
             .to_owned()
     };
-    let learnatvcs_page_contents = fetch(&client, &link).await?;
+    tracing::info!("{url} Finished redirecting");
+    let contents = fetch(&client, &link).await?; // shadow on purpose
     match &quarter {
         TargetQuarter::Latest => {
-            let quarter_url = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
-            let mut output = HashMap::new();
-            let x = (quarter_url.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
+            let quarter_url = get_quarter_url(&contents, quarter.clone());
+            tracing::info!("{quarter_url:?}");
+            let x = quarter_url[0]
                 .as_ref()
                 .ok_or(LearnAtVcsError::NoLessonPlans)?;
-
-            output.insert(
+            tracing::info!("{url} got quarter url");
+            Ok(HashMap::from([(
                 String::from("latest"),
-                Some(scrape_plans(client, x, dates).await?),
-            );
-            tracing::info!("END scrape_page");
-            Ok(output)
+                Some(scrape_plans(client, x, dates).await.expect(url)),
+            )]))
         }
-        TargetQuarter::All => {
-            let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
-            let mut output = HashMap::new();
-            let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
-                .as_ref()
-                .ok_or(LearnAtVcsError::NoLessonPlans)?;
+        _ => todo!(), // TargetQuarter::All => {
+                      //     let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
+                      //     let mut output = HashMap::new();
+                      //     let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
+                      //         .as_ref()
+                      //         .ok_or(LearnAtVcsError::NoLessonPlans)?;
 
-            output.insert(
-                String::from("all"),
-                Some(scrape_plans(client, x, dates).await?),
-            );
-            tracing::info!("END scrape_page");
-            Ok(output)
-        }
-        quarter => {
-            let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
-            let mut output = HashMap::new();
-            let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
-                .as_ref()
-                .ok_or(LearnAtVcsError::NoLessonPlans)?;
+                      //     output.insert(
+                      //         String::from("all"),
+                      //         Some(scrape_plans(client, x, dates).await?),
+                      //     );
+                      //     Ok(output)
+                      // }
+                      // quarter => {
+                      //     let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
+                      //     let mut output = HashMap::new();
+                      //     let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
+                      //         .as_ref()
+                      //         .ok_or(LearnAtVcsError::NoLessonPlans)?;
 
-            output.insert(
-                String::from("all"),
-                Some(scrape_plans(client, x, dates).await?),
-            );
-            tracing::info!("END scrape_page");
-            Ok(output)
-        }
+                      //     output.insert(
+                      //         String::from("all"),
+                      //         Some(scrape_plans(client, x, dates).await?),
+                      //     );
+                      //     Ok(output)
+                      // }
     }
 }
 #[tracing::instrument]
 async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
-    tracing::info!("START scrape_plan");
     let output = Html::parse_document(&fetch(client, url).await?)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
         .next()
         .map(|element| element.inner_html())
         .ok_or(LearnAtVcsError::StructureChanged);
-    tracing::info!("END scrape_plan");
     output
 }
 /// Given the contents of BASE_URL, return the links and names of classes
@@ -290,7 +278,6 @@ pub async fn scrape(
     quarter: TargetQuarter,
     dates: TargetDate,
 ) -> Result<Output> {
-    tracing::info!("START scrape");
     let client = reqwest::Client::builder()
         .cookie_store(true)
         .build()
@@ -336,12 +323,15 @@ pub async fn scrape(
         let client_clone = client.clone();
         let dates_clone = dates.clone();
         let quarter_clone = quarter.clone();
+        tracing::info!("{name} = {url}");
         tasks.spawn(async move {
             (
                 name,
-                scrape_page(client_clone, &url, quarter_clone, &dates_clone)
-                    .await
-                    .ok(),
+                Some(
+                    scrape_page(client_clone, &url, quarter_clone, &dates_clone)
+                        .await
+                        .expect(&format!("Ur mom {url}")),
+                ),
             )
         });
     }
@@ -350,6 +340,5 @@ pub async fn scrape(
         let (key, value) = handle.expect("Join failed");
         output.insert(key, value);
     }
-    tracing::info!("END scrape");
     Ok(output)
 }
