@@ -150,40 +150,38 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     Ok(output)
 }
 fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<String>> {
-    let plan_quarters = Html::parse_document(contents);
-    match target_quarter {
-        TargetQuarter::Latest => vec![plan_quarters
+    let quarters = Html::parse_document(contents);
+    let quarters = quarters // shadowed on purpose
             .select(&QUARTER_SELECTOR)
-            .last()
-            .map(|x| x.value().attr("href").unwrap().to_owned())],
-        TargetQuarter::Selected(quarter_nums) => {
-            let mut output = Vec::new();
-            let mut found = false;
-            for quarter_num in quarter_nums {
-                // TODO: This is probably highly inefficient
-
-                // For every link we have, find the link with the quarter number in its name
-                for element in plan_quarters.select(&QUARTER_SELECTOR) {
+        .filter_map(|element| {
                     let Some(text_element) =
-                        element.select(&QUARTER_TEXT_SELECTOR).next() else {continue};
-                    let Some(text_node) = text_element.text().next() else {continue};
-
-                    if text_node.contains(&quarter_num.to_string()) {
-                        output.push(Some(element.value().attr("href").unwrap().to_owned()));
-                        found = true;
-                        break;
+                        element.select(&QUARTER_TEXT_SELECTOR).next() else {return None};
+            let Some(text_node) = text_element.text().next() else {return None};
+            if !text_node.contains("Quarter") {
+                return None;
                     }
+            Some((text_node, element.value().attr("href")))
+        })
+        .collect::<Vec<_>>();
+    match target_quarter {
+        TargetQuarter::Latest => vec![quarters
+            .last()
+            .and_then(|(_, link)| link.map(|x| x.to_owned()))],
+        TargetQuarter::Selected(quarter_nums) => quarters
+            .iter()
+            .filter_map(|(text, link)| {
+                for quarter_num in &quarter_nums {
+                    if text.contains(&quarter_num.to_string()) {
+                        return Some(link.map(|x| x.to_owned()));
                 }
-                if !found {
-                    output.push(None);
                 }
-            }
-            output
-        }
-        TargetQuarter::All => plan_quarters
-            .select(&QUARTER_SELECTOR)
-            .map(|element| Some(element.value().attr("href").unwrap().to_owned()))
-            .collect(),
+                return None;
+            })
+            .collect::<Vec<_>>(),
+        TargetQuarter::All => quarters
+            .iter()
+            .map(|(_, link)| link.map(|x| x.to_owned()))
+            .collect::<Vec<_>>(),
     }
 }
 /// Given the teacher's learn@vcs page, scrape lesson plans
