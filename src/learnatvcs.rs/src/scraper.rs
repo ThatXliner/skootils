@@ -40,14 +40,11 @@ lazy_static! {
     static ref CLASS_LIST_ITEM_SELECTOR: Selector = Selector::parse("ul.unlist > li a").unwrap();
     static ref LESSON_PLAN_LINK_SELECTOR: Selector =
         Selector::parse(r#"a[title^="Lesson"]"#).unwrap();
-    static ref LESSON_PLAN_QUARTER_SELECTOR: Selector =
-        Selector::parse(".activity.book.modtype_book a").unwrap();
-    static ref LESSON_PLAN_QUARTER_TEXT_SELECTOR: Selector =
-        Selector::parse("span.instance_name").unwrap();
+    static ref QUARTER_SELECTOR: Selector = Selector::parse(".aalink").unwrap();
+    static ref QUARTER_TEXT_SELECTOR: Selector = Selector::parse("span.instance_name").unwrap();
     static ref LESSON_PLAN_DATE_SELECTOR: Selector =
         Selector::parse(".book_toc a,.book_toc strong").unwrap();
-    static ref LESSON_PLAN_CONTENTS_SELECTOR: Selector =
-        Selector::parse("section#region-main > div[role='main']").unwrap();
+    static ref LESSON_PLAN_CONTENTS_SELECTOR: Selector = Selector::parse("[role='main']").unwrap();
 }
 
 /// This is the URL of learn@vcs
@@ -156,7 +153,7 @@ fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<
     let plan_quarters = Html::parse_document(contents);
     match target_quarter {
         TargetQuarter::Latest => vec![plan_quarters
-            .select(&LESSON_PLAN_QUARTER_SELECTOR)
+            .select(&QUARTER_SELECTOR)
             .last()
             .map(|x| x.value().attr("href").unwrap().to_owned())],
         TargetQuarter::Selected(quarter_nums) => {
@@ -166,9 +163,9 @@ fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<
                 // TODO: This is probably highly inefficient
 
                 // For every link we have, find the link with the quarter number in its name
-                for element in plan_quarters.select(&LESSON_PLAN_QUARTER_SELECTOR) {
+                for element in plan_quarters.select(&QUARTER_SELECTOR) {
                     let Some(text_element) =
-                        element.select(&LESSON_PLAN_QUARTER_TEXT_SELECTOR).next() else {continue};
+                        element.select(&QUARTER_TEXT_SELECTOR).next() else {continue};
                     let Some(text_node) = text_element.text().next() else {continue};
 
                     if text_node.contains(&quarter_num.to_string()) {
@@ -184,7 +181,7 @@ fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<
             output
         }
         TargetQuarter::All => plan_quarters
-            .select(&LESSON_PLAN_QUARTER_SELECTOR)
+            .select(&QUARTER_SELECTOR)
             .map(|element| Some(element.value().attr("href").unwrap().to_owned()))
             .collect(),
     }
@@ -213,9 +210,9 @@ async fn scrape_page(
     let learnatvcs_page_contents = fetch(&client, &link).await?;
     match &quarter {
         TargetQuarter::Latest => {
-            let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
+            let quarter_url = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
             let mut output = HashMap::new();
-            let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
+            let x = (quarter_url.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
                 .as_ref()
                 .ok_or(LearnAtVcsError::NoLessonPlans)?;
 
