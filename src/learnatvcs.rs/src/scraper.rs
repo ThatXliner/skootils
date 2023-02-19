@@ -91,7 +91,6 @@ async fn scrape_plans(
         match dates {
             TargetDate::Latest => {
                 let (date_name, plan_url) = links.last().unwrap();
-                tracing::info!("Task added {plan_url}");
                 add_task(date_name.to_string(), plan_url.to_string());
             }
             remaining => {
@@ -156,7 +155,6 @@ fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<
             }
         })
         .collect::<Vec<_>>();
-    tracing::info!("{quarters:?}");
     match target_quarter {
         TargetQuarter::Latest => vec![quarters
             .last()
@@ -195,19 +193,16 @@ async fn scrape_page(
             .select(&LESSON_PLAN_LINK_SELECTOR)
             .next()
             .map(|element| element.value().attr("href").unwrap())
-            .ok_or(LearnAtVcsError::NoLessonPlans)? // shouldn't happen
+            .ok_or(LearnAtVcsError::NoLessonPlans)? // shouldn't happen, except for Ms. Arild
             .to_owned()
     };
-    tracing::info!("{url} Finished redirecting");
     let contents = fetch(&client, &link).await?; // shadow on purpose
     match &quarter {
         TargetQuarter::Latest => {
             let quarter_url = get_quarter_url(&contents, quarter.clone());
-            tracing::info!("{quarter_url:?}");
             let x = quarter_url[0]
                 .as_ref()
                 .ok_or(LearnAtVcsError::NoLessonPlans)?;
-            tracing::info!("{url} got quarter url");
             Ok(HashMap::from([(
                 String::from("latest"),
                 Some(scrape_plans(client, x, dates).await.expect(url)),
@@ -323,15 +318,12 @@ pub async fn scrape(
         let client_clone = client.clone();
         let dates_clone = dates.clone();
         let quarter_clone = quarter.clone();
-        tracing::info!("{name} = {url}");
         tasks.spawn(async move {
             (
                 name,
-                Some(
-                    scrape_page(client_clone, &url, quarter_clone, &dates_clone)
-                        .await
-                        .expect(&format!("Ur mom {url}")),
-                ),
+                scrape_page(client_clone, &url, quarter_clone, &dates_clone)
+                    .await
+                    .ok(),
             )
         });
     }
