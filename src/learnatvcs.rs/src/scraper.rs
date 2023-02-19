@@ -59,7 +59,7 @@ async fn scrape_plans(
     url: &str,
     dates: &TargetDate,
 ) -> Result<HashMap<String, Option<String>>> {
-    tracing::debug!("START scrape_plans");
+    tracing::info!("START scrape_plans");
     // TODO: Remove unnecessary requests by reusing `lesson_plans` via Box::pin(future) and Box(dyn future)
     let mut tasks = {
         let lesson_plans = Html::parse_document(&fetch(&client, url).await?);
@@ -135,12 +135,12 @@ async fn scrape_plans(
         let (key, value) = handle.expect("Join failed");
         output.insert(key, value);
     }
-    tracing::debug!("END scrape_plans");
+    tracing::info!("END scrape_plans");
     Ok(output)
 }
 #[tracing::instrument]
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
-    tracing::debug!("START fetch");
+    // tracing::info!("START fetch");
     let output = client
         .get(url)
         .send()
@@ -149,7 +149,7 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
         .text()
         .await
         .map_err(LearnAtVcsError::ReqwestError)?;
-    tracing::debug!("END fetch");
+    // tracing::info!("END fetch");
     Ok(output)
 }
 fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<String>> {
@@ -198,7 +198,7 @@ async fn scrape_page(
     dates: &TargetDate,
     // quarter: date: contents
 ) -> Result<TeacherPage> {
-    tracing::debug!("START scrape_page");
+    tracing::info!("START scrape_page");
     let contents = fetch(&client, url).await?;
     let link = {
         // gets the link of the lesson plan tab
@@ -215,17 +215,15 @@ async fn scrape_page(
         TargetQuarter::Latest => {
             let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
             let mut output = HashMap::new();
-            let x = (quarter_urls
-                .get(0)
-                .ok_or(LearnAtVcsError::InvalidQuarter)?)
-            .as_ref()
-            .expect("This should never happen");
+            let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
+                .as_ref()
+                .ok_or(LearnAtVcsError::NoLessonPlans)?;
 
             output.insert(
                 String::from("latest"),
                 Some(scrape_plans(client, x, dates).await?),
             );
-            tracing::debug!("END scrape_page");
+            tracing::info!("END scrape_page");
             Ok(output)
         }
         TargetQuarter::All => {
@@ -233,58 +231,57 @@ async fn scrape_page(
             let mut output = HashMap::new();
             let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
                 .as_ref()
-                .expect("This should never happen");
+                .ok_or(LearnAtVcsError::NoLessonPlans)?;
 
             output.insert(
                 String::from("all"),
                 Some(scrape_plans(client, x, dates).await?),
             );
-            tracing::debug!("END scrape_page");
+            tracing::info!("END scrape_page");
             Ok(output)
         }
         quarter => {
             let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
             let mut output = HashMap::new();
-            let x = (quarter_urls
-                .get(0)
-                .ok_or(LearnAtVcsError::InvalidQuarter)?)
-            .as_ref()
-            .expect("This should never happen");
+            let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
+                .as_ref()
+                .ok_or(LearnAtVcsError::NoLessonPlans)?;
 
             output.insert(
                 String::from("all"),
                 Some(scrape_plans(client, x, dates).await?),
             );
-            tracing::debug!("END scrape_page");
+            tracing::info!("END scrape_page");
             Ok(output)
         }
     }
 }
 #[tracing::instrument]
 async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
-    tracing::debug!("START scrape_plan");
+    tracing::info!("START scrape_plan");
     let output = Html::parse_document(&fetch(client, url).await?)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
         .next()
         .map(|element| element.inner_html())
         .ok_or(LearnAtVcsError::StructureChanged);
-    tracing::debug!("END scrape_plan");
+    tracing::info!("END scrape_plan");
     output
 }
 /// Given the contents of BASE_URL, return the links and names of classes
 fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
     let dom = Html::parse_document(contents);
     let mut output = Vec::with_capacity(8);
-    // Skip "VCJH iPad Program Home Page" and "VCJH Student Home Page"
     // We might remove this entirely and just ditch a class
     // when a class doesn't have a "lesson plan" tab or when
     // it's name doesn't have a "-"
-    for class_link in dom.select(&CLASS_LIST_ITEM_SELECTOR).skip(2) {
+    for class_link in dom.select(&CLASS_LIST_ITEM_SELECTOR) {
         let name = class_link.value().attr("title").unwrap().to_string();
+
         // Otherwise it's not a class...
         if !name.contains('-') {
-            break;
+            continue;
         }
+
         let url = class_link.value().attr("href").unwrap().to_owned();
         output.push((name, url));
     }
@@ -298,7 +295,7 @@ pub async fn scrape(
     quarter: TargetQuarter,
     dates: TargetDate,
 ) -> Result<Output> {
-    tracing::debug!("START scrape");
+    tracing::info!("START scrape");
     let client = reqwest::Client::builder()
         .cookie_store(true)
         .build()
@@ -358,6 +355,6 @@ pub async fn scrape(
         let (key, value) = handle.expect("Join failed");
         output.insert(key, value);
     }
-    tracing::debug!("END scrape");
+    tracing::info!("END scrape");
     Ok(output)
 }
