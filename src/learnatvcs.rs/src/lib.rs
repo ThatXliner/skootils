@@ -4,6 +4,7 @@
 
 /// Date models
 pub mod datematcher;
+pub use datematcher::Date;
 /// Error types
 pub mod errors;
 mod scraper;

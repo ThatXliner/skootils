@@ -5,8 +5,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
 lazy_static! {
+    // TODO: Some classes go amonth.aday/bmonth.bday
     static ref CLASS_DAY_RE: Regex = Regex::new(
-        r"(?P<amonth>[a-zA-Z]+) (?P<aday>\d+)(?:/(?P<bmonth>[a-zA-Z]+)?[ ]?(?P<bday>\d+))?"
+        r"(?P<amonth>[a-zA-Z]+) (?P<aday>\d+)(?:[/\-](?P<bmonth>[a-zA-Z]+)?[ ]?(?P<bday>\d+))?"
     )
     .unwrap();
     static ref DATE_RE: Regex = Regex::new(r"(?P<month>[a-zA-Z]+) (?P<day>\d+)").unwrap();
@@ -31,8 +32,8 @@ fn validate(month: u8, day: u8) -> Result<(), DateError> {
     }
     Ok(())
 }
-fn normalize_month(month: &str) -> u8 {
-    *(MONTH2INT.get(&month[0..3].to_lowercase()).unwrap())
+fn normalize_month(month: &str) -> Option<u8> {
+    MONTH2INT.get(&month[0..3].to_lowercase()).map(|x| *x)
 }
 /// Represents a date on the calendar
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -62,7 +63,8 @@ impl FromStr for Date {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let caps = DATE_RE.captures(s).ok_or(DateError::ParseError)?;
         // normalize month
-        let month = normalize_month(caps.name("month").unwrap().as_str());
+        let month =
+            normalize_month(caps.name("month").unwrap().as_str()).ok_or(DateError::ParseError)?;
         // parse day into integer
         let day = caps
             .name("day")
@@ -106,7 +108,8 @@ impl FromStr for ClassDay {
     type Err = DateError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let caps = CLASS_DAY_RE.captures(s).ok_or(DateError::ParseError)?;
-        let a_month = normalize_month(caps.name("amonth").unwrap().as_str());
+        let a_month =
+            normalize_month(caps.name("amonth").unwrap().as_str()).ok_or(DateError::ParseError)?;
         let a_day = caps
             .name("aday")
             .unwrap()
@@ -119,11 +122,10 @@ impl FromStr for ClassDay {
                 .name("bday")
                 .and_then(|day| day.as_str().parse::<u8>().ok())
                 .and_then(|b_day| {
-                    let b_month = caps
-                        .name("bmonth")
+                    caps.name("bmonth")
                         .map(|m| normalize_month(m.as_str()))
-                        .unwrap_or(a_month);
-                    Date::new(b_month, b_day).ok()
+                        .unwrap_or(Some(a_month))
+                        .and_then(|b_month| Date::new(b_month, b_day).ok())
                 }),
         })
     }

@@ -1,8 +1,8 @@
-use learnatvcs::scrape;
-
+use learnatvcs::{scrape, Date};
 use std::env;
+use std::fs;
 use std::io;
-
+use tracing::Level;
 static LEARNATVCS_USERNAME: &str = "LEARNATVCS_USERNAME";
 static LEARNATVCS_PASSWORD: &str = "LEARNATVCS_PASSWORD";
 #[tokio::main]
@@ -10,6 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // let subscriber = tracing_subscriber::FmtSubscriber::new();
     let subscriber = tracing_subscriber::fmt()
         // .pretty()
+        .with_max_level(Level::INFO)
         // Display source code file paths
         .with_file(true)
         // Display source code line numbers
@@ -24,10 +25,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output = scrape(
         env::var(LEARNATVCS_USERNAME).expect("Need"),
         env::var(LEARNATVCS_PASSWORD).expect("Need"),
-        learnatvcs::TargetQuarter::All,
-        learnatvcs::TargetDate::All,
+        learnatvcs::TargetQuarter::Latest,
+        learnatvcs::TargetDate::Selected(vec![Date::new(1, 20).unwrap()]),
     )
     .await?;
-    println!("{}", serde_json::to_string(&output).unwrap());
+    let data = serde_json::to_string(&output)?;
+    fs::write("output.json", data).expect("msg");
     Ok(())
 }
