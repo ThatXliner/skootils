@@ -184,7 +184,6 @@ fn get_quarter_urls(contents: &str, target_quarter: TargetQuarter) -> Vec<String
                         return Some(link.to_string());
                     }
                 }
-                // XXX: Not silently?
                 return None;
             })
             .collect::<Vec<_>>(),
