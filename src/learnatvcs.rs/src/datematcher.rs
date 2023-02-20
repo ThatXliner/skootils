@@ -6,6 +6,8 @@ use std::collections::HashMap;
 use std::str::FromStr;
 lazy_static! {
     // TODO: Some classes go amonth.aday/bmonth.bday
+    // TODO: or `Team Handball (Small Gym) 10.10 - 10.28`
+    // or `Ultimate (Softball Field) 11.28 - 12.16`
     static ref CLASS_DAY_RE: Regex = Regex::new(
         r"(?P<amonth>[a-zA-Z]+) (?P<aday>\d+)(?:[/\-](?P<bmonth>[a-zA-Z]+)?[ ]?(?P<bday>\d+))?"
     )
@@ -33,7 +35,7 @@ fn validate(month: u8, day: u8) -> Result<(), DateError> {
     Ok(())
 }
 fn normalize_month(month: &str) -> Option<u8> {
-    MONTH2INT.get(&month[0..3].to_lowercase()).map(|x| *x)
+    MONTH2INT.get(&month[0..3].to_lowercase()).copied()
 }
 /// Represents a date on the calendar
 #[derive(Serialize, Deserialize, Debug, Clone)]
