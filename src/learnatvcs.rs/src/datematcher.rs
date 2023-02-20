@@ -147,12 +147,12 @@ impl FromStr for ClassDay {
                     }
                     None => {
                         // It's actually a day
-                        if let Ok(b_day) = b_month.as_str().parse::<u8>() {
-                            Some(Date::new(a_month, b_day).expect("Invalid date"))
-                        } else {
-                            // Examples: January 4 - U7
-                            None
-                        }
+                        b_month
+                            .as_str()
+                            .parse::<u8>()
+                            // Examples of cases that return None: January 4 - U7
+                            .ok()
+                            .map(|b_day| Date::new(a_month, b_day).expect("Invalid date"))
                     }
                 }
             }

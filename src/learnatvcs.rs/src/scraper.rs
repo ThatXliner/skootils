@@ -168,15 +168,10 @@ fn get_quarter_urls(contents: &str) -> HashMap<String, String> {
             let Some(text_element) =
                         element.select(&QUARTER_TEXT_SELECTOR).next() else {return None};
             let Some(text_node) = text_element.text().next() else {return None};
-            if let Some(captures) = QUARTER_NAME_RE.captures(text_node) {
-                // normalize quarter names
-                Some((
+            QUARTER_NAME_RE.captures(text_node).map(|captures| (
                     captures.get(0).unwrap().as_str().into(),
                     element.value().attr("href").unwrap().into(),
                 ))
-            } else {
-                None
-            }
         })
         .collect::<_>();
     quarters
