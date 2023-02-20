@@ -2,8 +2,10 @@ use crate::datematcher::{ClassDay, Date};
 use crate::errors::LearnAtVcsError;
 use async_recursion::async_recursion;
 use lazy_static::lazy_static;
+use rand::{thread_rng, Rng};
 use regex::Regex;
 use scraper::{Html, Selector};
+use std::cmp::max;
 use std::collections::HashMap;
 use std::str::FromStr;
 use tokio::task::JoinSet;
@@ -132,6 +134,8 @@ async fn scrape_plans(
 #[tracing::instrument]
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     const MAX_RETRIES: u8 = 5;
+    const BACKOFF_BASE: u32 = 500;
+    const JITTER_PERCENT: f32 = 0.3; // 30%
     #[async_recursion]
     async fn _fetch(client: &reqwest::Client, url: &str, retries_left: u8) -> Result<String> {
         match client
@@ -148,10 +152,17 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
                     tracing::warn!(
                         "{url} errored, exponential backoff with {retries_left} retries left"
                     );
-                    sleep(Duration::from_millis(
-                        200_u64.pow((MAX_RETRIES - retries_left).into()),
-                    ))
-                    .await;
+
+                    let delay = {
+                        let base_delay: u64 =
+                            BACKOFF_BASE.pow((MAX_RETRIES - retries_left).into()).into();
+                        let jitter_amount: u64 = (base_delay as f32 * JITTER_PERCENT) as u64;
+                        thread_rng().gen_range(
+                            max(0, base_delay - jitter_amount)..=base_delay + jitter_amount,
+                        )
+                    };
+                    // add jitter
+                    sleep(Duration::from_millis(delay)).await;
                     _fetch(client, url, retries_left - 1).await
                 }
             }
@@ -168,10 +179,12 @@ fn get_quarter_urls(contents: &str) -> HashMap<String, String> {
             let Some(text_element) =
                         element.select(&QUARTER_TEXT_SELECTOR).next() else {return None};
             let Some(text_node) = text_element.text().next() else {return None};
-            QUARTER_NAME_RE.captures(text_node).map(|captures| (
+            QUARTER_NAME_RE.captures(text_node).map(|captures| {
+                (
                     captures.get(0).unwrap().as_str().into(),
                     element.value().attr("href").unwrap().into(),
-                ))
+                )
+            })
         })
         .collect::<_>();
     quarters
