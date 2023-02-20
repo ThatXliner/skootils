@@ -5,11 +5,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
 lazy_static! {
-    // TODO: Some classes go amonth.aday/bmonth.bday
-    // TODO: or `Team Handball (Small Gym) 10.10 - 10.28`
-    // or `Ultimate (Softball Field) 11.28 - 12.16`
+    /// 1. `amonth.aday/bmonth.bday`
+    /// 2. `amonth.aday - bmonth.bday`
+    /// 3. `amonth aday/bday`
+    /// 4. `amonth aday/bmonth bday`
     static ref CLASS_DAY_RE: Regex = Regex::new(
-        r"(?P<amonth>[a-zA-Z]+) (?P<aday>\d+)(?:[/\-](?P<bmonth>[a-zA-Z]+)?[ ]?(?P<bday>\d+))?"
+        r"(?:(?P<amonth>[a-zA-Z0-9]+)[. ](?P<aday>\d+))(?:(?:/|-| - )(?P<bmonthorday>[a-zA-Z0-9]+)(?:[. ](?P<bday>\d+))?)?"
     )
     .unwrap();
     static ref DATE_RE: Regex = Regex::new(r"(?P<month>[a-zA-Z]+) (?P<day>\d+)").unwrap();
@@ -35,7 +36,11 @@ fn validate(month: u8, day: u8) -> Result<(), DateError> {
     Ok(())
 }
 fn normalize_month(month: &str) -> Option<u8> {
-    MONTH2INT.get(&month[0..3].to_lowercase()).copied()
+    MONTH2INT
+        .get(&month[0..3].to_lowercase())
+        .copied()
+        // Perhaps it's a numeric month
+        .or_else(|| month.parse::<u8>().ok())
 }
 /// Represents a date on the calendar
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -118,17 +123,34 @@ impl FromStr for ClassDay {
             .as_str()
             .parse::<u8>()
             .or(Err(DateError::ParseError))?;
+        let b_day = match caps.name("bmonthorday") {
+            Some(b_month) => {
+                match caps.name("bday") {
+                    Some(b_day) => Some(
+                        Date::new(
+                            normalize_month(b_month.as_str()).ok_or(DateError::ParseError)?,
+                            b_day.as_str().parse::<u8>().expect("Parse error"),
+                        )
+                        .expect("Invalid date"),
+                    ),
+                    None => {
+                        // It's actually a day
+                        let b_day = b_month;
+                        Some(
+                            Date::new(a_month, b_day.as_str().parse::<u8>().expect("Parse error"))
+                                .expect("Invalid date"),
+                        )
+                    }
+                }
+            }
+            None => {
+                // Just one day (doesn't actually matter if it happens to be an A-day or a B-day)
+                None
+            }
+        };
         Ok(ClassDay {
-            a: Date::new(a_month, a_day)?,
-            b: caps
-                .name("bday")
-                .and_then(|day| day.as_str().parse::<u8>().ok())
-                .and_then(|b_day| {
-                    caps.name("bmonth")
-                        .map(|m| normalize_month(m.as_str()))
-                        .unwrap_or(Some(a_month))
-                        .and_then(|b_month| Date::new(b_month, b_day).ok())
-                }),
+            a: Date::new(a_month, a_day).unwrap(),
+            b: b_day,
         })
     }
 }
