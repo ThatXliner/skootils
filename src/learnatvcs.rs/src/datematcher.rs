@@ -9,8 +9,10 @@ lazy_static! {
     /// 2. `amonth.aday - bmonth.bday`
     /// 3. `amonth aday/bday`
     /// 4. `amonth aday/bmonth bday`
+    ///
+    /// The regex can be found at https://regex101.com/r/HjMkar/1
     static ref CLASS_DAY_RE: Regex = Regex::new(
-        r"(?:(?P<amonth>[a-zA-Z0-9]+)[. ](?P<aday>\d+))(?:(?:/|-| - )(?P<bmonthorday>[a-zA-Z0-9]+)(?:[. ](?P<bday>\d+))?)?"
+        r"(?:(?P<amonth>[a-zA-Z0-9]+)[. ](?P<aday>\d+))(?:(?:\s*(?:/|-| \-))\s*((?P<bmonthorday>(?:[a-zA-Z]+|[0-9]+))(?:[. ](?P<bday>\d+))?)?)?"
     )
     .unwrap();
     static ref DATE_RE: Regex = Regex::new(r"(?P<month>[a-zA-Z]+) (?P<day>\d+)").unwrap();
@@ -36,11 +38,11 @@ fn validate(month: u8, day: u8) -> Result<(), DateError> {
     Ok(())
 }
 fn normalize_month(month: &str) -> Option<u8> {
-    MONTH2INT
-        .get(&month[0..3].to_lowercase())
-        .copied()
-        // Perhaps it's a numeric month
-        .or_else(|| month.parse::<u8>().ok())
+    // Try numeric month first
+    month
+        .parse::<u8>()
+        .ok()
+        .or_else(|| MONTH2INT.get(&month[0..3].to_lowercase()).copied())
 }
 /// Represents a date on the calendar
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -126,25 +128,37 @@ impl FromStr for ClassDay {
         let b_day = match caps.name("bmonthorday") {
             Some(b_month) => {
                 match caps.name("bday") {
-                    Some(b_day) => Some(
-                        Date::new(
-                            normalize_month(b_month.as_str()).ok_or(DateError::ParseError)?,
-                            b_day.as_str().parse::<u8>().expect("Parse error"),
-                        )
-                        .expect("Invalid date"),
-                    ),
+                    Some(b_day) => {
+                        if let Some(b_month) = normalize_month(b_month.as_str()) {
+                            Some(
+                                Date::new(
+                                    b_month,
+                                    b_day
+                                        .as_str()
+                                        .parse::<u8>()
+                                        .map_err(|_| DateError::ParseError)?,
+                                )
+                                .expect("Invalid date"),
+                            )
+                        } else {
+                            // Examples: January 4 - Intro, February 7 - Unit 2, etc
+                            None
+                        }
+                    }
                     None => {
                         // It's actually a day
-                        let b_day = b_month;
-                        Some(
-                            Date::new(a_month, b_day.as_str().parse::<u8>().expect("Parse error"))
-                                .expect("Invalid date"),
-                        )
+                        if let Ok(b_day) = b_month.as_str().parse::<u8>() {
+                            Some(Date::new(a_month, b_day).expect("Invalid date"))
+                        } else {
+                            // Examples: January 4 - U7
+                            None
+                        }
                     }
                 }
             }
             None => {
-                // Just one day (doesn't actually matter if it happens to be an A-day or a B-day)
+                // Just one day
+                // It doesn't actually matter if it happens to be an actual A-day or a B-day
                 None
             }
         };

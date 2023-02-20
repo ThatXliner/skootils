@@ -98,16 +98,11 @@ async fn scrape_plans(
                     .iter()
                     // For every date, match the text with the given date
                     .filter(|(date_name, _)| {
-                        // tracing::info!("{date_name}");
                         let Ok(class_day) = ClassDay::from_str(date_name) else {
+                            // TODO: Yearbook has its dates like `Quarter 3`
                             tracing::warn!("Could not parse {date_name}");
                             return false
                         };
-                        // .map_err(|err| {
-                        //     tracing::error!("{date_name} for {url} did not parse");
-                        //     err
-                        // })
-                        // .unwrap();
                         for date in dates {
                             if class_day.matches(date) {
                                 return true;
