@@ -77,7 +77,7 @@ async fn scrape_plans(
                 )
             })
             .collect::<Vec<_>>();
-        if links.len() == 0 {
+        if links.is_empty() {
             return Ok(HashMap::new());
             // return Err(LearnAtVcsError::NoLessonPlans);
         }
@@ -171,7 +171,7 @@ fn get_quarter_urls(contents: &str, target_quarter: TargetQuarter) -> Vec<String
             }
         })
         .collect::<Vec<_>>();
-    if quarters.len() == 0 {
+    if quarters.is_empty() {
         return vec![];
     }
     match target_quarter {
@@ -184,7 +184,7 @@ fn get_quarter_urls(contents: &str, target_quarter: TargetQuarter) -> Vec<String
                         return Some(link.to_string());
                     }
                 }
-                return None;
+                None
             })
             .collect::<Vec<_>>(),
         TargetQuarter::All => quarters
