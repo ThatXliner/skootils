@@ -1,12 +1,12 @@
 use crate::datematcher::{ClassDay, Date};
 use crate::errors::LearnAtVcsError;
+use async_recursion::async_recursion;
 use lazy_static::lazy_static;
-use tokio::task::JoinSet;
-
 use scraper::{Html, Selector};
 use std::collections::HashMap;
-
 use std::str::FromStr;
+use tokio::task::JoinSet;
+use tokio::time::{sleep, Duration};
 
 /// A `Result` alias where the `Err` case is `errors::ScrapeError`.
 pub type Result<T> = std::result::Result<T, LearnAtVcsError>;
@@ -49,7 +49,7 @@ lazy_static! {
 
 /// This is the URL of learn@vcs
 pub const BASE_URL: &str = "https://learn.vcs.net";
-
+// Within the lesson plan book page, scrape the selected dates
 #[tracing::instrument]
 async fn scrape_plans(
     client: reqwest::Client,
@@ -73,7 +73,7 @@ async fn scrape_plans(
                         .attr("href")
                         .map(|link| format!("{BASE_URL}/mod/book/{link}"))
                         .or_else(|| Some(url.to_string()))
-                        .unwrap(),
+                        .expect("This should never happen"),
                 )
             })
             .collect::<Vec<_>>();
@@ -93,29 +93,28 @@ async fn scrape_plans(
                 let (date_name, plan_url) = links.last().unwrap();
                 add_task(date_name.to_string(), plan_url.to_string());
             }
-            remaining => {
-                // For every date, match the text with the given date
+            TargetDate::Selected(dates) => {
                 links
                     .iter()
-                    .filter(|(date_name, _)| match remaining {
-                        TargetDate::Selected(dates) => {
-                            let class_day = ClassDay::from_str(date_name).unwrap();
-                            for date in dates {
-                                if class_day.matches(date) {
-                                    return true;
-                                }
+                    // For every date, match the text with the given date
+                    .filter(|(date_name, _)| {
+                        let class_day = ClassDay::from_str(date_name).unwrap();
+                        for date in dates {
+                            if class_day.matches(date) {
+                                return true;
                             }
-                            // TODO: If date doesn't exist, don't fail silently?
-                            false
                         }
-                        TargetDate::All => true,
-                        _ => {
-                            unreachable!()
-                        }
+                        // TODO: If date doesn't exist, don't fail silently?
+                        false
                     })
                     .for_each(|(date_name, plan_url)| {
                         add_task(date_name.to_string(), plan_url.to_string())
                     });
+            }
+            TargetDate::All => {
+                links.iter().for_each(|(date_name, plan_url)| {
+                    add_task(date_name.to_string(), plan_url.to_string())
+                });
             }
         };
         tasks
@@ -129,17 +128,36 @@ async fn scrape_plans(
 }
 #[tracing::instrument]
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
-    let output = client
-        .get(url)
-        .send()
-        .await
-        .map_err(LearnAtVcsError::ReqwestError)?
-        .text()
-        .await
-        .map_err(LearnAtVcsError::ReqwestError)?;
-    Ok(output)
+    const MAX_RETRIES: u8 = 5;
+    #[async_recursion]
+    async fn _fetch(client: &reqwest::Client, url: &str, retries_left: u8) -> Result<String> {
+        match client
+            .get(url)
+            .send()
+            .await
+            .map_err(LearnAtVcsError::ReqwestError)?
+            .error_for_status()
+        {
+            Err(_res) => {
+                if retries_left == 0 {
+                    Err(LearnAtVcsError::ReqwestError(_res))
+                } else {
+                    tracing::warn!(
+                        "{url} errored, exponential back off with {retries_left} retries left"
+                    );
+                    sleep(Duration::from_millis(
+                        200_u64.pow((MAX_RETRIES - retries_left).into()),
+                    ))
+                    .await;
+                    _fetch(client, url, retries_left - 1).await
+                }
+            }
+            Ok(res) => Ok(res.text().await.map_err(LearnAtVcsError::ReqwestError)?),
+        }
+    }
+    _fetch(client, url, MAX_RETRIES).await
 }
-fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<String>> {
+fn get_quarter_urls(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<String>> {
     let quarters = Html::parse_document(contents);
     let quarters = quarters // shadowed on purpose
         .select(&QUARTER_SELECTOR)
@@ -147,32 +165,33 @@ fn get_quarter_url(contents: &str, target_quarter: TargetQuarter) -> Vec<Option<
             let Some(text_element) =
                         element.select(&QUARTER_TEXT_SELECTOR).next() else {return None};
             let Some(text_node) = text_element.text().next() else {return None};
-
             if text_node.contains("Quarter") {
-                Some((text_node, element.value().attr("href")))
+                Some((
+                    text_node,
+                    element.value().attr("href").expect("Structure changed man"),
+                ))
             } else {
                 None
             }
         })
         .collect::<Vec<_>>();
     match target_quarter {
-        TargetQuarter::Latest => vec![quarters
-            .last()
-            .and_then(|(_, link)| link.map(|x| x.to_owned()))],
+        TargetQuarter::Latest => vec![quarters.last().and_then(|(_, link)| Some(link.to_string()))],
         TargetQuarter::Selected(quarter_nums) => quarters
             .iter()
             .filter_map(|(text, link)| {
                 for quarter_num in &quarter_nums {
                     if text.contains(&quarter_num.to_string()) {
-                        return Some(link.map(|x| x.to_owned()));
+                        return Some(Some(link.to_string()));
                     }
                 }
+                // XXX: Not silently?
                 return None;
             })
             .collect::<Vec<_>>(),
         TargetQuarter::All => quarters
             .iter()
-            .map(|(_, link)| link.map(|x| x.to_owned()))
+            .map(|(_, link)| Some(link.to_string()))
             .collect::<Vec<_>>(),
     }
 }
@@ -192,24 +211,27 @@ async fn scrape_page(
         Html::parse_document(&contents)
             .select(&LESSON_PLAN_LINK_SELECTOR)
             .next()
-            .map(|element| element.value().attr("href").unwrap())
             .ok_or(LearnAtVcsError::NoLessonPlans)? // shouldn't happen, except for Ms. Arild
+            // We may already be on the lesson plan page
+            .value()
+            .attr("href")
+            .unwrap_or(url) // actually, an .unwrap would suffice
             .to_owned()
     };
-    let contents = fetch(&client, &link).await?; // shadow on purpose
+    let contents = fetch(&client, &link).await?; // shadowing on purpose
     match &quarter {
         TargetQuarter::Latest => {
-            let quarter_url = get_quarter_url(&contents, quarter.clone());
-            let x = quarter_url[0]
+            let quarter_urls = get_quarter_urls(&contents, quarter.clone());
+            let x = quarter_urls[0]
                 .as_ref()
                 .ok_or(LearnAtVcsError::NoLessonPlans)?;
             Ok(HashMap::from([(
                 String::from("latest"),
-                Some(scrape_plans(client, x, dates).await.expect(url)),
+                Some(scrape_plans(client, x, dates).await?),
             )]))
         }
         _ => todo!(), // TargetQuarter::All => {
-                      //     let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
+                      //     let quarter_urls = get_quarter_urls(&learnatvcs_page_contents, quarter.clone());
                       //     let mut output = HashMap::new();
                       //     let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
                       //         .as_ref()
@@ -222,7 +244,7 @@ async fn scrape_page(
                       //     Ok(output)
                       // }
                       // quarter => {
-                      //     let quarter_urls = get_quarter_url(&learnatvcs_page_contents, quarter.clone());
+                      //     let quarter_urls = get_quarter_urls(&learnatvcs_page_contents, quarter.clone());
                       //     let mut output = HashMap::new();
                       //     let x = (quarter_urls.get(0).ok_or(LearnAtVcsError::InvalidQuarter)?)
                       //         .as_ref()
@@ -238,16 +260,16 @@ async fn scrape_page(
 }
 #[tracing::instrument]
 async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
-    let output = Html::parse_document(&fetch(client, url).await?)
+    Ok(Html::parse_document(&fetch(client, url).await?)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
         .next()
         .map(|element| element.inner_html())
-        .ok_or(LearnAtVcsError::StructureChanged);
-    output
+        .expect("Oh no, we need to fix the scrapers"))
 }
 /// Given the contents of BASE_URL, return the links and names of classes
 fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
     let dom = Html::parse_document(contents);
+    // There's at least 8 classes
     let mut output = Vec::with_capacity(8);
     // We might remove this entirely and just ditch a class
     // when a class doesn't have a "lesson plan" tab or when

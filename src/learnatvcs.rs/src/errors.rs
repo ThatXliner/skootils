@@ -13,9 +13,6 @@ pub enum LearnAtVcsError {
     /// Network error or errors related to the internal library
     #[error("Network error or errors related to the internal library")]
     ReqwestError(ReqwestError),
-    /// Page structure had changed
-    #[error("Page structure had changed")]
-    StructureChanged,
 }
 /// All errors related to the
 /// date model
