@@ -42,11 +42,11 @@ lazy_static! {
     static ref LOGIN_TOKEN_SELECTOR: Selector = Selector::parse(r#"[name="logintoken"]"#).unwrap();
     static ref CLASS_LIST_ITEM_SELECTOR: Selector = Selector::parse("ul.unlist > li a").unwrap();
     static ref LESSON_PLAN_LINK_SELECTOR: Selector =
-        Selector::parse(r#"a[title^="Lesson"]"#).unwrap();
+        Selector::parse(r#"a[title*="Lesson"]"#).unwrap();
     static ref QUARTER_SELECTOR: Selector = Selector::parse(".aalink").unwrap();
     static ref QUARTER_TEXT_SELECTOR: Selector = Selector::parse("span.instancename").unwrap();
     static ref LESSON_PLAN_DATE_SELECTOR: Selector =
-        Selector::parse(".book_toc a,.book_toc strong").unwrap();
+        Selector::parse(".book_toc a,.book_toc strong,.menuwrapper a").unwrap();
     static ref LESSON_PLAN_CONTENTS_SELECTOR: Selector = Selector::parse("[role='main']").unwrap();
     static ref QUARTER_NAME_RE: Regex = Regex::new(r"Quarter \d").unwrap();
 }
