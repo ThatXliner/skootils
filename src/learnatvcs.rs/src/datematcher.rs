@@ -9,8 +9,11 @@ lazy_static! {
     /// 2. `amonth.aday - bmonth.bday`
     /// 3. `amonth aday/bday`
     /// 4. `amonth aday/bmonth bday`
+    /// 5. `amonthaday` (e.g. `WK#1 Jan4-6 (Zoom Jan5)` gets `Jan 4-6` and `Jan5`)
     ///
-    /// The regex can be found at https://regex101.com/r/HjMkar/1
+    /// The regex can be found at https://regex101.com/r/HjMkar/2
+    ///
+    /// TODO: Support `Unit 2: Continued January 4/5`. Think of iterating through all captures
     static ref CLASS_DAY_RE: Regex = Regex::new(
         r"(?:(?P<amonth>[a-zA-Z0-9]+)[. ](?P<aday>\d+))(?:(?:\s*(?:/|-| \-))\s*((?P<bmonthorday>(?:[a-zA-Z]+|[0-9]+))(?:[. ](?P<bday>\d+))?)?)?"
     )
@@ -39,13 +42,14 @@ fn validate(month: u8, day: u8) -> Result<(), DateError> {
 }
 fn normalize_month(month: &str) -> Option<u8> {
     // Try numeric month first
+    month.parse::<u8>().ok().or_else(|| {
     month
-        .parse::<u8>()
-        .ok()
-        .or_else(|| MONTH2INT.get(&month[0..3].to_lowercase()).copied())
+            .get(0..3)
+            .and_then(|month| MONTH2INT.get(&month.to_lowercase()).copied())
+    })
 }
 /// Represents a date on the calendar
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub struct Date {
     month: u8,
     day: u8,
@@ -87,6 +91,7 @@ impl FromStr for Date {
 }
 
 /// Represents a date on the lesson plans
+#[derive(Copy, Clone)]
 pub struct ClassDay {
     /// The A day, or just the primary day
     a: Date,
