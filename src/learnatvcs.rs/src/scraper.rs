@@ -60,9 +60,9 @@ async fn scrape_plans(
     url: &str,
     dates: &TargetDate,
 ) -> Result<HashMap<String, Option<String>>> {
-    // TODO: Remove unnecessary requests by reusing `lesson_plans` via Box::pin(future) and Box(dyn future)
     let mut tasks = {
-        let lesson_plans = Html::parse_document(&fetch(&client, url).await?);
+        let contents = fetch(&client, url).await?;
+        let lesson_plans = Html::parse_document(&contents);
         let mut tasks = JoinSet::new();
         let links = lesson_plans
             .select(&LESSON_PLAN_DATE_SELECTOR)
@@ -83,12 +83,16 @@ async fn scrape_plans(
             .collect::<Vec<_>>();
         if links.is_empty() {
             return Ok(HashMap::new());
-            // return Err(LearnAtVcsError::NoLessonPlans);
         }
 
         let mut add_task = |date_name: String, plan_url: String| {
             let client = client.clone();
-            tasks.spawn(async move { (date_name, scrape_plan(&client, &plan_url).await.ok()) });
+            let contents = contents.clone();
+            if &plan_url == url {
+                tasks.spawn(async move { (date_name, Some(parse_plan(contents))) });
+            } else {
+                tasks.spawn(async move { (date_name, scrape_plan(&client, &plan_url).await.ok()) });
+            }
         };
         match dates {
             TargetDate::Latest => {
@@ -113,12 +117,12 @@ async fn scrape_plans(
                         false
                     })
                     .for_each(|(date_name, plan_url)| {
-                        add_task(date_name.to_string(), plan_url.to_string())
+                        add_task(date_name.to_string(), plan_url.to_string());
                     });
             }
             TargetDate::All => {
                 links.iter().for_each(|(date_name, plan_url)| {
-                    add_task(date_name.to_string(), plan_url.to_string())
+                    add_task(date_name.to_string(), plan_url.to_string());
                 });
             }
         };
@@ -171,8 +175,23 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     }
     _fetch(client, url, MAX_RETRIES).await
 }
-fn get_quarter_urls(contents: &str) -> HashMap<String, String> {
-    let quarters = Html::parse_document(contents);
+async fn get_quarter_urls(client: &reqwest::Client, url: &str) -> Result<HashMap<String, String>> {
+    // TODO: Cache this function
+    let contents = fetch(&client, url).await?;
+    let link = {
+        // gets the link of the lesson plan tab
+        Html::parse_document(&contents)
+            .select(&LESSON_PLAN_LINK_SELECTOR)
+            .next()
+            .ok_or(LearnAtVcsError::NoLessonPlans)? // shouldn't happen, except for Ms. Arild
+            // We may already be on the lesson plan page
+            .value()
+            .attr("href")
+            .unwrap_or(url) // actually, an .unwrap would suffice
+            .to_owned()
+    };
+    let contents = fetch(&client, &link).await?;
+    let quarters = Html::parse_document(&contents);
     let quarters = quarters // shadowed on purpose
         .select(&QUARTER_SELECTOR)
         .filter_map(|element| {
@@ -187,35 +206,13 @@ fn get_quarter_urls(contents: &str) -> HashMap<String, String> {
             })
         })
         .collect::<_>();
-    quarters
+    Ok(quarters)
 }
-/// Given the teacher's learn@vcs page, scrape lesson plans
-#[tracing::instrument]
-async fn scrape_page(
-    client: reqwest::Client,
-    url: &str,
+fn filter_quarter_urls(
+    quarter_urls: HashMap<String, String>,
     quarter: TargetQuarter,
-    dates: &TargetDate,
-    // quarter: date: contents
-) -> Result<TeacherPage> {
-    let contents = fetch(&client, url).await?;
-    let link = {
-        // gets the link of the lesson plan tab
-        // TODO: Cache
-        Html::parse_document(&contents)
-            .select(&LESSON_PLAN_LINK_SELECTOR)
-            .next()
-            .ok_or(LearnAtVcsError::NoLessonPlans)? // shouldn't happen, except for Ms. Arild
-            // We may already be on the lesson plan page
-            .value()
-            .attr("href")
-            .unwrap_or(url) // actually, an .unwrap would suffice
-            .to_owned()
-    };
-    let contents = fetch(&client, &link).await?; // shadowing on purpose
-
-    let quarter_urls = get_quarter_urls(&contents);
-    let filtered_quarters: HashMap<String, String> = match quarter {
+) -> HashMap<String, String> {
+    match quarter {
         TargetQuarter::Latest => {
             let mut output = HashMap::with_capacity(1);
             let mut test_quarter = 4;
@@ -242,7 +239,19 @@ async fn scrape_page(
             output
         }
         TargetQuarter::All => quarter_urls,
-    };
+    }
+}
+/// Given the teacher's learn@vcs page, scrape lesson plans
+#[tracing::instrument]
+async fn scrape_page(
+    client: reqwest::Client,
+    url: &str,
+    quarter: TargetQuarter,
+    dates: &TargetDate,
+    // quarter: date: contents
+) -> Result<TeacherPage> {
+    let quarter_urls = get_quarter_urls(&client, url).await?;
+    let filtered_quarters: HashMap<String, String> = filter_quarter_urls(quarter_urls, quarter);
     let mut tasks = JoinSet::new();
     for (name, quarter_url) in filtered_quarters.iter() {
         let name = name.to_string().clone();
@@ -259,13 +268,16 @@ async fn scrape_page(
     }
     Ok(output)
 }
-#[tracing::instrument]
-async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
-    Ok(Html::parse_document(&fetch(client, url).await?)
+fn parse_plan(contents: String) -> String {
+    Html::parse_document(&contents)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
         .next()
         .map(|element| element.inner_html())
-        .expect("Oh no, we need to fix the scrapers"))
+        .expect("Oh no, we need to fix the scrapers")
+}
+#[tracing::instrument]
+async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
+    Ok(parse_plan(fetch(client, url).await?))
 }
 /// Given the contents of BASE_URL, return the links and names of classes
 fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
