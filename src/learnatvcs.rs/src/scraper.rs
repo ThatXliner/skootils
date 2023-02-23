@@ -63,14 +63,17 @@ async fn scrape_plans(
             .filter(&links)
             .for_each(|(date_name, plan_url): (String, String)| {
                 let client = client.clone();
-                let contents = contents.clone();
                 if plan_url == url {
-                    tasks.spawn(async move { (date_name, Some(utils::parse_plan(contents))) });
+                    let contents = contents.clone();
+                    tasks.spawn(async move { (date_name, Some(utils::parse_plan(&contents))) });
                 } else {
                     tasks.spawn(async move {
                         (
                             date_name,
-                            fetch(&client, &plan_url).await.map(utils::parse_plan).ok(),
+                            fetch(&client, &plan_url)
+                                .await
+                                .map(|x| utils::parse_plan(&x))
+                                .ok(),
                         )
                     });
                 }
@@ -176,17 +179,18 @@ async fn scrape_page(
     // quarter: date: contents
 ) -> Result<TeacherPage> {
     let quarter_urls = get_quarter_urls(&client, url).await?;
+
     let filtered_quarters: HashMap<String, String> =
         utils::filter_quarter_urls(quarter_urls, quarter);
     let mut tasks = JoinSet::new();
-    for (name, quarter_url) in filtered_quarters.iter() {
-        let name = name.to_string().clone();
+    for (name, quarter_url) in filtered_quarters.into_iter() {
+        let name = name;
         let client = client.clone();
-        let quarter_url = quarter_url.clone();
         let dates = dates.clone();
 
         tasks.spawn(async move { (name, scrape_plans(client, &quarter_url, &dates).await.ok()) });
     }
+
     let mut output = HashMap::new();
     while let Some(handle) = tasks.join_next().await {
         let (key, value) = handle.expect("Join failed");
