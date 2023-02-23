@@ -1,5 +1,6 @@
-use crate::datematcher::{ClassDay, Date};
 use crate::errors::LearnAtVcsError;
+use crate::models::{TargetDate, TargetQuarter};
+use crate::utils;
 use async_recursion::async_recursion;
 use lazy_static::lazy_static;
 use rand::{thread_rng, Rng};
@@ -7,52 +8,22 @@ use regex::Regex;
 use scraper::{Html, Selector};
 use std::cmp::max;
 use std::collections::HashMap;
-use std::str::FromStr;
+
 use tokio::task::JoinSet;
 use tokio::time::{sleep, Duration};
 
 /// A `Result` alias where the `Err` case is `errors::ScrapeError`.
 pub type Result<T> = std::result::Result<T, LearnAtVcsError>;
-/// Choose a date to scrape
-#[derive(Clone, Debug)]
-pub enum TargetDate {
-    /// Scrape latest dates
-    Latest,
-    /// Scrape all dates
-    All,
-    /// Scrape selected dates
-    Selected(Vec<Date>),
-}
-/// Choose a quarter to scrape
-#[derive(Clone, Debug)]
-pub enum TargetQuarter {
-    /// Scrape latest quarter
-    Latest,
-    /// Scrape all quarters
-    All,
-    /// Scrape selected quarters
-    Selected(Vec<usize>),
-}
+
 /// Closely follows learn@vcs's structure
 /// Class, Quarter, Date, Contents
 pub type Output = HashMap<String, Option<TeacherPage>>;
 pub type TeacherPage = HashMap<String, Option<QuarterOutput>>;
 pub type QuarterOutput = HashMap<String, Option<String>>;
-lazy_static! {
-    static ref LOGIN_TOKEN_SELECTOR: Selector = Selector::parse(r#"[name="logintoken"]"#).unwrap();
-    static ref CLASS_LIST_ITEM_SELECTOR: Selector = Selector::parse("ul.unlist > li a").unwrap();
-    static ref LESSON_PLAN_LINK_SELECTOR: Selector =
-        Selector::parse(r#"a[title*="Lesson"]"#).unwrap();
-    static ref QUARTER_SELECTOR: Selector = Selector::parse(".aalink").unwrap();
-    static ref QUARTER_TEXT_SELECTOR: Selector = Selector::parse("span.instancename").unwrap();
-    static ref LESSON_PLAN_DATE_SELECTOR: Selector =
-        Selector::parse(".book_toc a,.book_toc strong,.menuwrapper a").unwrap();
-    static ref LESSON_PLAN_CONTENTS_SELECTOR: Selector = Selector::parse("[role='main']").unwrap();
-    static ref QUARTER_NAME_RE: Regex = Regex::new(r"Quarter \d").unwrap();
-}
 
 /// This is the URL of learn@vcs
 pub const BASE_URL: &str = "https://learn.vcs.net";
+
 // Within the lesson plan book page, scrape the selected dates
 #[tracing::instrument]
 async fn scrape_plans(
@@ -60,6 +31,10 @@ async fn scrape_plans(
     url: &str,
     dates: &TargetDate,
 ) -> Result<HashMap<String, Option<String>>> {
+    lazy_static! {
+        static ref LESSON_PLAN_DATE_SELECTOR: Selector =
+            Selector::parse(".book_toc a,.book_toc strong,.menuwrapper a").unwrap();
+    }
     let mut tasks = {
         let contents = fetch(&client, url).await?;
         let lesson_plans = Html::parse_document(&contents);
@@ -84,48 +59,26 @@ async fn scrape_plans(
         if links.is_empty() {
             return Ok(HashMap::new());
         }
-
-        let mut add_task = |date_name: String, plan_url: String| {
-            let client = client.clone();
-            let contents = contents.clone();
-            if &plan_url == url {
-                tasks.spawn(async move { (date_name, Some(parse_plan(contents))) });
-            } else {
-                tasks.spawn(async move { (date_name, scrape_plan(&client, &plan_url).await.ok()) });
-            }
-        };
-        match dates {
-            TargetDate::Latest => {
-                let (date_name, plan_url) = links.last().unwrap();
-                add_task(date_name.to_string(), plan_url.to_string());
-            }
-            TargetDate::Selected(dates) => {
-                links
-                    .iter()
-                    // For every date, match the text with the given date
-                    .filter(|(date_name, _)| {
-                        let Ok(class_day) = ClassDay::from_str(date_name) else {
-                            // TODO: Yearbook has its dates like `Quarter 3`
-                            tracing::warn!("Could not parse {date_name}");
-                            return false
-                        };
-                        for date in dates {
-                            if class_day.matches(date) {
-                                return true;
-                            }
-                        }
-                        false
-                    })
-                    .for_each(|(date_name, plan_url)| {
-                        add_task(date_name.to_string(), plan_url.to_string());
+        dates
+            .filter(&links)
+            .for_each(|(date_name, plan_url): (String, String)| {
+                let client = client.clone();
+                let contents = contents.clone();
+                if &plan_url == url {
+                    tasks.spawn(async move { (date_name, Some(utils::parse_plan(contents))) });
+                } else {
+                    tasks.spawn(async move {
+                        (
+                            date_name,
+                            fetch(&client, &plan_url)
+                                .await
+                                .and_then(|contents| Ok(utils::parse_plan(contents)))
+                                .ok(),
+                        )
                     });
-            }
-            TargetDate::All => {
-                links.iter().for_each(|(date_name, plan_url)| {
-                    add_task(date_name.to_string(), plan_url.to_string());
-                });
-            }
-        };
+                }
+            });
+
         tasks
     };
     let mut output = HashMap::new();
@@ -176,6 +129,13 @@ async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     _fetch(client, url, MAX_RETRIES).await
 }
 async fn get_quarter_urls(client: &reqwest::Client, url: &str) -> Result<HashMap<String, String>> {
+    lazy_static! {
+        static ref LESSON_PLAN_LINK_SELECTOR: Selector =
+            Selector::parse(r#"a[title*="Lesson"]"#).unwrap();
+        static ref QUARTER_SELECTOR: Selector = Selector::parse(".aalink").unwrap();
+        static ref QUARTER_TEXT_SELECTOR: Selector = Selector::parse("span.instancename").unwrap();
+        static ref QUARTER_NAME_RE: Regex = Regex::new(r"Quarter \d").unwrap();
+    }
     // TODO: Cache this function
     let contents = fetch(&client, url).await?;
     let link = {
@@ -208,39 +168,7 @@ async fn get_quarter_urls(client: &reqwest::Client, url: &str) -> Result<HashMap
         .collect::<_>();
     Ok(quarters)
 }
-fn filter_quarter_urls(
-    quarter_urls: HashMap<String, String>,
-    quarter: TargetQuarter,
-) -> HashMap<String, String> {
-    match quarter {
-        TargetQuarter::Latest => {
-            let mut output = HashMap::with_capacity(1);
-            let mut test_quarter = 4;
-            while test_quarter > 0 {
-                let name = format!("Quarter {test_quarter}");
-                match quarter_urls.get(&name) {
-                    Some(url) => {
-                        output.insert("latest".into(), url.into());
-                        break;
-                    }
-                    None => test_quarter -= 1,
-                }
-            }
-            output
-        }
-        TargetQuarter::Selected(quarter_nums) => {
-            let mut output = HashMap::with_capacity(quarter_nums.len());
-            for quarter_num in quarter_nums {
-                let name = format!("Quarter {quarter_num}");
-                if let Some(url) = quarter_urls.get(&name) {
-                    output.insert(name, url.into());
-                }
-            }
-            output
-        }
-        TargetQuarter::All => quarter_urls,
-    }
-}
+
 /// Given the teacher's learn@vcs page, scrape lesson plans
 #[tracing::instrument]
 async fn scrape_page(
@@ -251,7 +179,8 @@ async fn scrape_page(
     // quarter: date: contents
 ) -> Result<TeacherPage> {
     let quarter_urls = get_quarter_urls(&client, url).await?;
-    let filtered_quarters: HashMap<String, String> = filter_quarter_urls(quarter_urls, quarter);
+    let filtered_quarters: HashMap<String, String> =
+        utils::filter_quarter_urls(quarter_urls, quarter);
     let mut tasks = JoinSet::new();
     for (name, quarter_url) in filtered_quarters.iter() {
         let name = name.to_string().clone();
@@ -268,38 +197,7 @@ async fn scrape_page(
     }
     Ok(output)
 }
-fn parse_plan(contents: String) -> String {
-    Html::parse_document(&contents)
-        .select(&LESSON_PLAN_CONTENTS_SELECTOR)
-        .next()
-        .map(|element| element.inner_html())
-        .expect("Oh no, we need to fix the scrapers")
-}
-#[tracing::instrument]
-async fn scrape_plan(client: &reqwest::Client, url: &str) -> Result<String> {
-    Ok(parse_plan(fetch(client, url).await?))
-}
-/// Given the contents of BASE_URL, return the links and names of classes
-fn get_teacher_pages(contents: &str) -> Vec<(String, String)> {
-    let dom = Html::parse_document(contents);
-    // There's at least 8 classes
-    let mut output = Vec::with_capacity(8);
-    // We might remove this entirely and just ditch a class
-    // when a class doesn't have a "lesson plan" tab or when
-    // it's name doesn't have a "-"
-    for class_link in dom.select(&CLASS_LIST_ITEM_SELECTOR) {
-        let name = class_link.value().attr("title").unwrap().to_string();
 
-        // Otherwise it's not a class...
-        if !name.contains('-') {
-            continue;
-        }
-
-        let url = class_link.value().attr("href").unwrap().to_owned();
-        output.push((name, url));
-    }
-    output
-}
 /// Scrape all lesson plans
 #[tracing::instrument]
 pub async fn scrape(
@@ -308,6 +206,10 @@ pub async fn scrape(
     quarter: TargetQuarter,
     dates: TargetDate,
 ) -> Result<Output> {
+    lazy_static! {
+        static ref LOGIN_TOKEN_SELECTOR: Selector =
+            Selector::parse(r#"[name="logintoken"]"#).unwrap();
+    }
     let client = reqwest::Client::builder()
         .cookie_store(true)
         .build()
@@ -349,7 +251,7 @@ pub async fn scrape(
         .map_err(LearnAtVcsError::ReqwestError)?;
 
     let mut tasks = JoinSet::new();
-    for (name, url) in get_teacher_pages(&cached_homepage) {
+    for (name, url) in utils::get_teacher_pages(&cached_homepage) {
         let client = client.clone();
         let dates = dates.clone();
         let quarter = quarter.clone();
