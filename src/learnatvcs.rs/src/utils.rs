@@ -28,7 +28,7 @@ pub(crate) fn filter_quarter_urls(
         }
         TargetQuarter::Selected(quarter_nums) => {
             let mut output = HashMap::with_capacity(quarter_nums.len());
-            for quarter_num in quarter_nums {
+            for quarter_num in quarter_nums.iter() {
                 let name = format!("Quarter {quarter_num}");
                 if let Some(url) = quarter_urls.get(&name) {
                     output.insert(name, url.into());

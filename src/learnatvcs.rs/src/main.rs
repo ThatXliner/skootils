@@ -1,4 +1,5 @@
-use learnatvcs::{scrape, Date};
+use learnatvcs::scrape;
+
 use std::env;
 use std::fs;
 use std::io;
@@ -22,11 +23,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .finish();
     // use that subscriber to process traces emitted after this point
     tracing::subscriber::set_global_default(subscriber)?;
+
     let output = scrape(
         env::var(LEARNATVCS_USERNAME).expect("Need"),
         env::var(LEARNATVCS_PASSWORD).expect("Need"),
         learnatvcs::TargetQuarter::Latest,
-        learnatvcs::TargetDate::Selected(vec![Date::new(1, 20).unwrap()]),
+        learnatvcs::TargetDate::Latest,
+        // learnatvcs::dates![1 / 20],
     )
     .await?;
     let data = serde_json::to_string(&output)?;

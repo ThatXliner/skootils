@@ -2,15 +2,16 @@ use crate::datematcher::{ClassDay, Date};
 
 use std::iter;
 use std::str::FromStr;
+use std::sync::Arc;
 /// Choose a date to scrape
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TargetDate {
     /// Scrape latest dates
     Latest,
     /// Scrape all dates
     All,
     /// Scrape selected dates
-    Selected(Vec<Date>),
+    Selected(Arc<Vec<Date>>),
 }
 impl TargetDate {
     /// Filters `link` based on `self`
@@ -34,7 +35,7 @@ impl TargetDate {
                             tracing::warn!("Could not parse {date_name}");
                             return false
                         };
-                        for date in dates {
+                        for date in (*dates).iter() {
                             if class_day.matches(date) {
                                 return true;
                             }
@@ -49,12 +50,42 @@ impl TargetDate {
     }
 }
 /// Choose a quarter to scrape
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TargetQuarter {
     /// Scrape latest quarter
     Latest,
     /// Scrape all quarters
     All,
     /// Scrape selected quarters
-    Selected(Vec<usize>),
+    Selected(Arc<Vec<usize>>),
+}
+/// Shorthand for TargetDates::Selected(Arc::new(vec![Date::new(...)...]));
+/// ```
+/// # use std::sync::Arc;
+/// # use learnatvcs::{TargetDate, Date, dates};
+/// assert!(TargetDate::Selected(Arc::new(vec![Date::new(1, 20).unwrap()])) == dates!(1/20));
+/// ```
+#[macro_export]
+macro_rules! dates {
+    ($($month:literal / $day:literal),*) => {
+       {
+            use std::sync::Arc;
+            use learnatvcs::{TargetDate, Date};
+            TargetDate::Selected(Arc::new(vec![$(Date::new($month, $day).unwrap(),)*]))
+        }
+    };
+}
+/// Shorthand for TargetQuarter::Selected(Arc::new(vec![...]));
+/// ```
+/// # use std::sync::Arc;
+/// # use learnatvcs::{TargetQuarter, quarters};
+/// assert!(TargetQuarter::Selected(Arc::new(vec![1])) == quarters!(1));
+/// ```
+#[macro_export]
+macro_rules! quarters {
+    ($($x:expr),*) => {
+        {use std::sync::Arc;
+        use learnatvcs::TargetQuarter;
+        TargetQuarter::Selected(Arc::new(vec![$($x)*]))}
+    };
 }
