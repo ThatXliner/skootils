@@ -64,16 +64,13 @@ async fn scrape_plans(
             .for_each(|(date_name, plan_url): (String, String)| {
                 let client = client.clone();
                 let contents = contents.clone();
-                if &plan_url == url {
+                if plan_url == url {
                     tasks.spawn(async move { (date_name, Some(utils::parse_plan(contents))) });
                 } else {
                     tasks.spawn(async move {
                         (
                             date_name,
-                            fetch(&client, &plan_url)
-                                .await
-                                .and_then(|contents| Ok(utils::parse_plan(contents)))
-                                .ok(),
+                            fetch(&client, &plan_url).await.map(utils::parse_plan).ok(),
                         )
                     });
                 }
@@ -137,7 +134,7 @@ async fn get_quarter_urls(client: &reqwest::Client, url: &str) -> Result<HashMap
         static ref QUARTER_NAME_RE: Regex = Regex::new(r"Quarter \d").unwrap();
     }
     // TODO: Cache this function
-    let contents = fetch(&client, url).await?;
+    let contents = fetch(client, url).await?;
     let link = {
         // gets the link of the lesson plan tab
         Html::parse_document(&contents)
@@ -150,7 +147,7 @@ async fn get_quarter_urls(client: &reqwest::Client, url: &str) -> Result<HashMap
             .unwrap_or(url) // actually, an .unwrap would suffice
             .to_owned()
     };
-    let contents = fetch(&client, &link).await?;
+    let contents = fetch(client, &link).await?;
     let quarters = Html::parse_document(&contents);
     let quarters = quarters // shadowed on purpose
         .select(&QUARTER_SELECTOR)
