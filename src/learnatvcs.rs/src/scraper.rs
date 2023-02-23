@@ -251,7 +251,6 @@ pub async fn scrape(
     for (name, url) in utils::get_teacher_pages(&cached_homepage) {
         let client = client.clone();
         let dates = dates.clone();
-        let quarter = quarter.clone();
         tasks.spawn(async move { (name, scrape_page(client, &url, quarter, &dates).await.ok()) });
     }
     let mut output = HashMap::new();

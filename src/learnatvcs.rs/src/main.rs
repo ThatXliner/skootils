@@ -1,3 +1,4 @@
+use learnatvcs::quarters;
 use learnatvcs::scrape;
 
 use std::env;
@@ -28,6 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         env::var(LEARNATVCS_USERNAME).expect("Need"),
         env::var(LEARNATVCS_PASSWORD).expect("Need"),
         learnatvcs::TargetQuarter::Latest,
+        // quarters!(1, 2),
         learnatvcs::TargetDate::Latest,
         // learnatvcs::dates![1 / 20],
     )

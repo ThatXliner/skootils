@@ -50,14 +50,14 @@ impl TargetDate {
     }
 }
 /// Choose a quarter to scrape
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub enum TargetQuarter {
     /// Scrape latest quarter
     Latest,
     /// Scrape all quarters
     All,
     /// Scrape selected quarters
-    Selected(Arc<Vec<usize>>),
+    Selected(u8),
 }
 /// Shorthand for TargetDates::Selected(Arc::new(vec![Date::new(...)...]));
 /// ```
@@ -79,13 +79,14 @@ macro_rules! dates {
 /// ```
 /// # use std::sync::Arc;
 /// # use learnatvcs::{TargetQuarter, quarters};
-/// assert!(TargetQuarter::Selected(Arc::new(vec![1])) == quarters!(1));
+/// assert!(TargetQuarter::Selected(1) == quarters!(1));
+/// assert!(TargetQuarter::Selected(1 | 1 << 2) == quarters!(1, 3));
 /// ```
 #[macro_export]
 macro_rules! quarters {
     ($($x:expr),*) => {
         {use std::sync::Arc;
         use learnatvcs::TargetQuarter;
-        TargetQuarter::Selected(Arc::new(vec![$($x)*]))}
+        TargetQuarter::Selected(0_u8$( | 1 << ($x - 1))*)}
     };
 }
