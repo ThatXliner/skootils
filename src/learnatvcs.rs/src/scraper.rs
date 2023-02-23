@@ -183,8 +183,7 @@ async fn scrape_page(
     let filtered_quarters: HashMap<String, String> =
         utils::filter_quarter_urls(quarter_urls, quarter);
     let mut tasks = JoinSet::new();
-    for (name, quarter_url) in filtered_quarters.into_iter() {
-        let name = name;
+    for (name, quarter_url) in filtered_quarters {
         let client = client.clone();
         let dates = dates.clone();
 
