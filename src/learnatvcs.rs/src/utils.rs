@@ -40,12 +40,12 @@ pub(crate) fn filter_quarter_urls(
     }
 }
 
-pub(crate) fn parse_plan(contents: &str) -> String {
+pub(crate) fn parse_plan(contents: String) -> String {
     lazy_static! {
         static ref LESSON_PLAN_CONTENTS_SELECTOR: Selector =
             Selector::parse("[role='main']").unwrap();
     }
-    Html::parse_document(contents)
+    Html::parse_document(&contents)
         .select(&LESSON_PLAN_CONTENTS_SELECTOR)
         .next()
         .map(|element| element.inner_html())

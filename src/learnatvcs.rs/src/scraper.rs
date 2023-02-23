@@ -65,15 +65,12 @@ async fn scrape_plans(
                 let client = client.clone();
                 if plan_url == url {
                     let contents = contents.clone();
-                    tasks.spawn(async move { (date_name, Some(utils::parse_plan(&contents))) });
+                    tasks.spawn(async move { (date_name, Some(utils::parse_plan(contents))) });
                 } else {
                     tasks.spawn(async move {
                         (
                             date_name,
-                            fetch(&client, &plan_url)
-                                .await
-                                .map(|x| utils::parse_plan(&x))
-                                .ok(),
+                            fetch(&client, &plan_url).await.map(utils::parse_plan).ok(),
                         )
                     });
                 }
