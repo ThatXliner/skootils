@@ -70,8 +70,7 @@ macro_rules! dates {
     ($($month:literal / $day:literal),*) => {
        {
             use std::sync::Arc;
-            use learnatvcs::{TargetDate, Date};
-            TargetDate::Selected(Arc::new(vec![$(Date::new($month, $day).unwrap(),)*]))
+            $crate::TargetDate::Selected(Arc::new(vec![$($crate::Date::new($month, $day).unwrap(),)*]))
         }
     };
 }
@@ -85,8 +84,9 @@ macro_rules! dates {
 #[macro_export]
 macro_rules! quarters {
     ($($x:expr),*) => {
-        {use std::sync::Arc;
-        use learnatvcs::TargetQuarter;
-        TargetQuarter::Selected(0_u8$( | 1 << ($x - 1))*)}
+        {
+            use std::sync::Arc;
+            $crate::TargetQuarter::Selected(0_u8$( | 1 << ($x - 1))*)
+        }
     };
 }

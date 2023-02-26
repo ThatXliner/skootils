@@ -153,7 +153,7 @@ fn parse_date_capture(caps: regex::Captures) -> Result<ClassDay, DateError> {
             .unwrap_or_else(|| a_month_and_aday(a_month, b_month))
     });
     Ok(ClassDay {
-        a: Date::new(a_month, a_day).unwrap(),
+        a: Date::new(a_month, a_day)?,
         b: b_day,
     })
 }
