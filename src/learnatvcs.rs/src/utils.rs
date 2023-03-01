@@ -28,8 +28,8 @@ pub(crate) fn filter_quarter_urls(
         }
         TargetQuarter::Selected(quarter_nums) => {
             let mut output = HashMap::with_capacity(4);
-            for quarter_num in 0..4 {
-                if quarter_nums & 1 << quarter_num == 0 {
+            for quarter_num in 1..=4 {
+                if quarter_nums & 1 << quarter_num - 1 == 0 {
                     continue;
                 }
                 let name = format!("Quarter {quarter_num}");
