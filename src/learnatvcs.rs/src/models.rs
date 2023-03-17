@@ -59,7 +59,7 @@ pub enum TargetQuarter {
     /// Scrape selected quarters
     Selected(u8),
 }
-/// Shorthand for TargetDates::Selected(Arc::new(vec![Date::new(...)...]));
+/// Shorthand for `TargetDates::Selected(Arc::new(vec![Date::new(...)...]));`
 /// ```
 /// # use std::sync::Arc;
 /// # use learnatvcs::{TargetDate, Date, dates};
@@ -74,7 +74,7 @@ macro_rules! dates {
         }
     };
 }
-/// Shorthand for TargetQuarter::Selected(Arc::new(vec![...]));
+/// Shorthand for `TargetQuarter::Selected(Arc::new(vec![...]));`
 /// ```
 /// # use std::sync::Arc;
 /// # use learnatvcs::{TargetQuarter, quarters};

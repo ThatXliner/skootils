@@ -5,6 +5,7 @@
 #[macro_use]
 extern crate lazy_static;
 mod commands;
+mod scrape;
 
 fn main() {
     let context = tauri::generate_context!();
@@ -18,6 +19,7 @@ fn main() {
             commands::data_dir_exists,
             commands::add_teacher,
             commands::remove_teacher,
+            scrape::scrape_plans,
         ])
         .run(context)
         .expect("error while running tauri application");

@@ -22,6 +22,7 @@ directories = "4.0.1"
 lazy_static = "1.4.0"
 trash = "2.1.5"
 keyring = "1.2.0"
+learnatvcs = { path = "../../learnatvcs.rs"}
 
 [features]
 # by default Tauri runs in production mode

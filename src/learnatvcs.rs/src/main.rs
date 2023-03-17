@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output = scrape(
         env::var(LEARNATVCS_USERNAME).expect("Need"),
         env::var(LEARNATVCS_PASSWORD).expect("Need"),
-        learnatvcs::TargetQuarter::Latest,
+        learnatvcs::quarters!(3),
         // quarters!(1, 2),
         learnatvcs::TargetDate::Latest,
         // learnatvcs::dates![1 / 20],
