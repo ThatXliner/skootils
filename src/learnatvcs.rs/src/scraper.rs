@@ -8,7 +8,6 @@ use regex::Regex;
 use scraper::{Html, Selector};
 use std::cmp::max;
 use std::collections::HashMap;
-
 use tokio::task::JoinSet;
 use tokio::time::{sleep, Duration};
 
@@ -25,7 +24,7 @@ pub type QuarterOutput = HashMap<String, Option<String>>;
 pub const BASE_URL: &str = "https://learn.vcs.net";
 
 // Within the lesson plan book page, scrape the selected dates
-#[tracing::instrument]
+
 async fn scrape_plans(
     client: reqwest::Client,
     url: &str,
@@ -85,7 +84,7 @@ async fn scrape_plans(
     }
     Ok(output)
 }
-#[tracing::instrument]
+
 async fn fetch(client: &reqwest::Client, url: &str) -> Result<String> {
     const MAX_RETRIES: u8 = 5;
     const BACKOFF_BASE: u32 = 500;
@@ -167,7 +166,6 @@ async fn get_quarter_urls(client: &reqwest::Client, url: &str) -> Result<HashMap
 }
 
 /// Given the teacher's learn@vcs page, scrape lesson plans
-#[tracing::instrument]
 async fn scrape_page(
     client: reqwest::Client,
     url: &str,
@@ -183,8 +181,12 @@ async fn scrape_page(
     for (name, quarter_url) in filtered_quarters {
         let client = client.clone();
         let dates = dates.clone();
-
-        tasks.spawn(async move { (name, scrape_plans(client, &quarter_url, &dates).await.ok()) });
+        tasks.spawn(async move {
+            (
+                name.clone(),
+                scrape_plans(client, &quarter_url, &dates).await.ok(),
+            )
+        });
     }
 
     let mut output = HashMap::new();
@@ -196,7 +198,6 @@ async fn scrape_page(
 }
 
 /// Scrape all lesson plans
-#[tracing::instrument]
 pub async fn scrape(
     username: String,
     password: String,
@@ -207,6 +208,7 @@ pub async fn scrape(
         static ref LOGIN_TOKEN_SELECTOR: Selector =
             Selector::parse(r#"[name="logintoken"]"#).unwrap();
     }
+
     let client = reqwest::Client::builder()
         .cookie_store(true)
         .build()
@@ -220,16 +222,18 @@ pub async fn scrape(
         .text()
         .await
         .map_err(LearnAtVcsError::ReqwestError)?;
-    let dom = Html::parse_document(&doc);
+
     // get login token from BASE_URL
-    let login_token = dom
-        .select(&LOGIN_TOKEN_SELECTOR)
-        .next()
-        .unwrap()
-        .value()
-        .attr("value")
-        .unwrap()
-        .to_string();
+    let login_token = {
+        let dom = Html::parse_document(&doc);
+        dom.select(&LOGIN_TOKEN_SELECTOR)
+            .next()
+            .unwrap()
+            .value()
+            .attr("value")
+            .unwrap()
+            .to_string()
+    };
     let mut auth = HashMap::new();
     auth.insert("username", username);
     auth.insert("password", password);
@@ -246,12 +250,16 @@ pub async fn scrape(
         .text()
         .await
         .map_err(LearnAtVcsError::ReqwestError)?;
-
     let mut tasks = JoinSet::new();
     for (name, url) in utils::get_teacher_pages(&cached_homepage) {
         let client = client.clone();
         let dates = dates.clone();
-        tasks.spawn(async move { (name, scrape_page(client, &url, quarter, &dates).await.ok()) });
+        tasks.spawn(async move {
+            (
+                name.clone(),
+                scrape_page(client, &url, quarter, &dates).await.ok(),
+            )
+        });
     }
     let mut output = HashMap::new();
     while let Some(handle) = tasks.join_next().await {

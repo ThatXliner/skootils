@@ -1571,16 +1571,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "interprog"
-version = "0.1.0"
-dependencies = [
- "paste",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
 name = "ipnet"
 version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1711,7 +1701,6 @@ version = "0.1.0"
 dependencies = [
  "async-recursion",
  "futures",
- "interprog",
  "lazy_static",
  "rand 0.8.5",
  "regex",

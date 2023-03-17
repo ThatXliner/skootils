@@ -1,4 +1,3 @@
-use learnatvcs::quarters;
 use learnatvcs::scrape;
 
 use std::env;

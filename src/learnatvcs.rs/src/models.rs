@@ -1,10 +1,13 @@
+use serde::{Deserialize, Serialize};
+
 use crate::datematcher::{ClassDay, Date};
 
 use std::iter;
 use std::str::FromStr;
 use std::sync::Arc;
 /// Choose a date to scrape
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
 pub enum TargetDate {
     /// Scrape latest dates
     Latest,
@@ -50,7 +53,8 @@ impl TargetDate {
     }
 }
 /// Choose a quarter to scrape
-#[derive(Clone, Debug, PartialEq, Copy)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Copy)]
+#[serde(tag = "type")]
 pub enum TargetQuarter {
     /// Scrape latest quarter
     Latest,
