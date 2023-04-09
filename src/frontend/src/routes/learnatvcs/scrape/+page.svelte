@@ -2,11 +2,14 @@
 	/// Status: all done, a bit more surrounding styling
 	/// could be done. Need to cache (although that could be done in backend)
 	/// and keep command in store? prob not
+	import AccountInput from '$lib/AccountInput.svelte';
 	import { Command, type Child } from '@tauri-apps/api/shell';
+	import { invoke } from '@tauri-apps/api/tauri';
 	import { onMount } from 'svelte';
 	import Interprog from '$lib/Interprog.svelte';
-
+	// let credentials = invoke('')
 	let command;
+	let credentials;
 	let child: Promise<Child>;
 	let tasks: {
 		name: string;

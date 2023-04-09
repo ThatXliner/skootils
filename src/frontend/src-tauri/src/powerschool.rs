@@ -1,19 +1,19 @@
 use keyring;
 
+use app::paths;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
+use trash;
+
 #[derive(Serialize, Deserialize)]
 pub struct TeacherInfo {
     email: String,
     class_name: String,
     period: String,
 }
-
-use app::paths;
-use std::fs;
-use std::path::Path;
-use trash;
 
 fn read_json(file: &Path) -> Result<Value, String> {
     fs::read_to_string(file).map_or(Err("Could not read file".into()), |read| {
