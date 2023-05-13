@@ -10,36 +10,15 @@ exclude_patterns = [
 
 [[analyzers]]
 name = "javascript"
-enabled = true
 
 [[analyzers]]
 name = "rust"
-enabled = true
 
   [analyzers.meta]
   msrv = "1.57.0"
 
 [[analyzers]]
 name = "python"
-enabled = true
 
   [analyzers.meta]
   runtime_version = "3.x.x"
-  max_line_length = 100
-
-[[transformers]]
-name = "rustfmt"
-enabled = true
-
-[[transformers]]
-name = "prettier"
-enabled = true
-
-# DeepSource is contradicting itself...
-# [[transformers]]
-# name = "black"
-# enabled = true
-
-# [[transformers]]
-# name = "isort"
-# enabled = true
