@@ -4,21 +4,21 @@
 
 	import DOMPurify from 'dompurify'; // I did this because you never know
 
-	let output: { [key: string]: { [key: string]: string } } | null = null;
-	let dates: string[];
+	let output: { [key: string]: { [key: string]: { [key: string]: string } } } | null = null;
+	let classes: string[];
+	let selectedClass: string;
+	let selectedQuarter: string;
 	let selectedDate: string;
-	let selectedClassKey: string;
 	let mode: 'normal' | 'overview' = 'normal'; // @hmr:keep
-	let DATETYPE: string[] | null;
 
 	onMount(() => {
 		console.log(window.sessionStorage.getItem('output'));
 		output = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
 		if (output === null) return;
-		dates = Object.keys(output);
-		selectedDate = dates[0];
-		selectedClassKey = Object.keys(output[selectedDate])[0];
-		DATETYPE = JSON.parse(window.sessionStorage.getItem('config') ?? 'null');
+		classes = Object.keys(output);
+		selectedClass = classes[0];
+		selectedQuarter = Object.keys(output[selectedClass])[0];
+		selectedDate = Object.keys(output[selectedClass][selectedQuarter])[0];
 	});
 
 	function getContents(html: string) {
@@ -48,36 +48,61 @@
 			<span class="pl-4 font-semibold text-xl">Results</span>
 		</div>
 		<div class="navbar-center">
-			{#if DATETYPE === null}
-				<span class="btn btn-info">Latest</span>
-			{:else if dates.length == 1}
-				<span class="btn btn-info">{selectedDate}</span>
-			{:else}
+			<div class="space-x-4">
 				<div class="dropdown dropdown-hover">
-					<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
-						>{selectedDate}</label
-					>
-					<ul
-						id="date-picker"
-						tabindex="0"
-						class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
-					>
-						{#each dates as date}
-							<li>
-								<span
-									on:click={() => {
-										selectedDate = date;
-										// @ts-ignore
-										selectedClassKey = Object.keys(output[selectedDate])[0];
-										return false;
-									}}
-									class:active={date == selectedDate}>{date}</span
-								>
-							</li>
-						{/each}
-					</ul>
+					{#if Object.keys(output[selectedClass]).length == 1}
+						<span class="btn btn-accent">{selectedQuarter}</span>
+					{:else}
+						<label for="quarter-picker" tabindex="0" class="btn btn-ghost btn-outline"
+							>{selectedQuarter}</label
+						>
+						<ul
+							id="quarter-picker"
+							tabindex="0"
+							class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
+						>
+							{#each Object.keys(output[selectedClass]) as quarter}
+								<li>
+									<span
+										on:click={() => {
+											selectedQuarter = quarter;
+											// @ts-ignore
+											selectedDate = Object.keys(output[selectedQuarter])[0];
+											return false;
+										}}
+										class:active={quarter == selectedQuarter}>{quarter}</span
+									>
+								</li>
+							{/each}
+						</ul>{/if}
 				</div>
-			{/if}
+				<div class="dropdown dropdown-hover">
+					{#if Object.keys(output[selectedClass][selectedQuarter]).length == 1}<span
+							class="btn btn-accent">{selectedDate}</span
+						>
+					{:else}
+						<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
+							>{selectedDate}</label
+						>
+						<ul
+							id="date-picker"
+							tabindex="0"
+							class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
+						>
+							{#each Object.keys(output[selectedClass][selectedQuarter]) as date}
+								<li>
+									<span
+										on:click={() => {
+											selectedDate = date;
+											return false;
+										}}
+										class:active={date == selectedDate}>{date}</span
+									>
+								</li>
+							{/each}
+						</ul>{/if}
+				</div>
+			</div>
 		</div>
 		<div class="navbar-end">
 			<HomeButton />
@@ -88,18 +113,18 @@
 		{#if mode === 'normal'}
 			<ul class="min-w-fit min-h-screen bg-base-200 menu p-4">
 				<!-- <li class="menu-title"><span>View lesson plan</span></li> -->
-				{#each Object.keys(output[selectedDate]) as key}
+				{#each Object.keys(output) as key}
 					{@const className = key.split(/\s+-\s+/)[0]}
 					{@const teacher = key.split(/\s+-\s+/)[1]}
 					<!-- TODO: Add nested TOC thing -->
 					<li>
 						<span
 							on:click={() => {
-								selectedClassKey = key;
+								selectedClass = key;
 							}}
-							class:active={key == selectedClassKey}
+							class:active={key == selectedClass}
 							>{className}
-							<span class="text-xs pt-2 text-gray-{key == selectedClassKey ? '300' : '500'}"
+							<span class="text-xs pt-2 text-gray-{key == selectedClass ? '300' : '500'}"
 								>{teacher}</span
 							></span
 						>
@@ -127,7 +152,7 @@
 					<h3 class="text-2xl font-bold">Lesson plans</h3>
 					<p>Also highlights dates (beta)</p>
 					<article class="lesson-plan max-h-96 overflow-y-auto">
-						{@html DOMPurify.sanitize(output[selectedDate][selectedClassKey], {
+						{@html DOMPurify.sanitize(output[selectedClass][selectedQuarter][selectedDate], {
 							ADD_TAGS: ['iframe'],
 							ADD_ATTR: ['target']
 						})}
@@ -145,10 +170,10 @@
 					Show all detected assignments in one page because I haven't got an AI to do it yet.
 				</p>
 
-				{#each Object.keys(output[selectedDate]) as key}
-					{@const className = key.split(/\s+-\s+/)[0]}
-					{@const teacher = key.split(/\s+-\s+/)[1]}
-					{@const contents = getContents(output[selectedDate][key])}
+				{#each classes as klass}
+					{@const className = klass.split(/\s+-\s+/)[0]}
+					{@const teacher = klass.split(/\s+-\s+/)[1]}
+					{@const contents = getContents(output[klass][selectedQuarter][selectedDate])}
 					<div class="ml-3 p-3">
 						<span class="text-xl"
 							>{className} <span class="text-xs pt-2 text-gray-500">{teacher}</span></span
