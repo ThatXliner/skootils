@@ -7,7 +7,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 /// Choose a date to scrape
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", content = "dates")]
 pub enum TargetDate {
     /// Scrape latest dates
     Latest,
@@ -54,7 +54,7 @@ impl TargetDate {
 }
 /// Choose a quarter to scrape
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Copy)]
-#[serde(tag = "type")]
+#[serde(tag = "type", content = "quarter")]
 pub enum TargetQuarter {
     /// Scrape latest quarter
     Latest,
