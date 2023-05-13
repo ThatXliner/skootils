@@ -3,23 +3,30 @@
 	import { onMount } from 'svelte';
 
 	import DOMPurify from 'dompurify'; // I did this because you never know
+	import { writable, type Writable } from 'svelte/store';
 
 	let output: { [key: string]: { [key: string]: { [key: string]: string } } } | null = null;
+	let config: { dates: [number, number][] | 'Latest'; quarter: 'Latest' | number } | null = null;
 	let classes: string[];
-	let selectedClass: string;
+	let selectedClass: Writable<string>;
 	let selectedQuarter: string;
 	let selectedDate: string;
 	let mode: 'normal' | 'overview' = 'normal'; // @hmr:keep
 
 	onMount(() => {
-		console.log(window.sessionStorage.getItem('output'));
 		output = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
+		config = JSON.parse(window.sessionStorage.getItem('config') ?? 'null');
 		if (output === null) return;
+		if (config === null) return;
+		console.log(output);
 		classes = Object.keys(output);
-		selectedClass = classes[0];
-		selectedQuarter = Object.keys(output[selectedClass])[0];
-		selectedDate = Object.keys(output[selectedClass][selectedQuarter])[0];
+		selectedClass = writable(classes[0]);
 	});
+	$: $selectedClass && output != undefined && onClassChange();
+	function onClassChange() {
+		selectedQuarter = Object.keys(output[$selectedClass])[0];
+		selectedDate = Object.keys(output[$selectedClass][selectedQuarter])[0];
+	}
 
 	function getContents(html: string) {
 		function recursiveNextSibling(element: Element): string {
@@ -50,8 +57,8 @@
 		<div class="navbar-center">
 			<div class="space-x-4">
 				<div class="dropdown dropdown-hover">
-					{#if Object.keys(output[selectedClass]).length == 1}
-						<span class="btn btn-accent">{selectedQuarter}</span>
+					{#if Object.keys(output[$selectedClass]).length == 1}
+						<span class="btn btn-accent">{Object.keys(output[$selectedClass])[0]}</span>
 					{:else}
 						<label for="quarter-picker" tabindex="0" class="btn btn-ghost btn-outline"
 							>{selectedQuarter}</label
@@ -61,7 +68,7 @@
 							tabindex="0"
 							class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
 						>
-							{#each Object.keys(output[selectedClass]) as quarter}
+							{#each Object.keys(output[$selectedClass]) as quarter}
 								<li>
 									<span
 										on:click={() => {
@@ -77,8 +84,8 @@
 						</ul>{/if}
 				</div>
 				<div class="dropdown dropdown-hover">
-					{#if Object.keys(output[selectedClass][selectedQuarter]).length == 1}<span
-							class="btn btn-accent">{selectedDate}</span
+					{#if Object.keys(output[$selectedClass][selectedQuarter]).length == 1}<span
+							class="btn btn-accent">{Object.keys(output[$selectedClass][selectedQuarter])[0]}</span
 						>
 					{:else}
 						<label for="date-picker" tabindex="0" class="btn btn-ghost btn-outline"
@@ -89,7 +96,7 @@
 							tabindex="0"
 							class="bg-base-100 dropdown-content menu p-2 shadow rounded-box w-max"
 						>
-							{#each Object.keys(output[selectedClass][selectedQuarter]) as date}
+							{#each Object.keys(output[$selectedClass][selectedQuarter]) as date}
 								<li>
 									<span
 										on:click={() => {
@@ -120,11 +127,11 @@
 					<li>
 						<span
 							on:click={() => {
-								selectedClass = key;
+								$selectedClass = key;
 							}}
-							class:active={key == selectedClass}
+							class:active={key == $selectedClass}
 							>{className}
-							<span class="text-xs pt-2 text-gray-{key == selectedClass ? '300' : '500'}"
+							<span class="text-xs pt-2 text-gray-{key == $selectedClass ? '300' : '500'}"
 								>{teacher}</span
 							></span
 						>
@@ -152,7 +159,7 @@
 					<h3 class="text-2xl font-bold">Lesson plans</h3>
 					<p>Also highlights dates (beta)</p>
 					<article class="lesson-plan max-h-96 overflow-y-auto">
-						{@html DOMPurify.sanitize(output[selectedClass][selectedQuarter][selectedDate], {
+						{@html DOMPurify.sanitize(output[$selectedClass][selectedQuarter][selectedDate], {
 							ADD_TAGS: ['iframe'],
 							ADD_ATTR: ['target']
 						})}
