@@ -67,31 +67,32 @@
 		return calMatrix;
 	}
 	let calendarMatrices = [...Array(12).keys()].map((month) => generateCalendarMatrix(month));
-	// Also todo: multi-month support
+	// Also TODO: multi-month support
 	let selected: boolean[][][] = [...Array(12).keys()].map((month) =>
 		[...Array(calendarMatrices[month].length).keys()].map(() => {
 			return [...Array(calendarMatrices[month][0].length).keys()].map(() => false);
 		})
 	);
-	export let selectedDates: string[] = [];
-	let dateForrest: { [key: string]: { day: number; raw: [number, number, number] }[] } = {};
+	export let selectedDates: [number, number][] = [];
+	// a forest is a group of trees
+	let dateForest: { [key: string]: { day: number; raw: [number, number, number] }[] } = {};
 	$: {
 		let sel = [];
-		dateForrest = {};
+		dateForest = {};
 		for (let [month, calendarMatrix] of calendarMatrices.entries()) {
 			const monthName = monthFormatter.format(MONTHS[month]);
 
 			for (let [i, row] of calendarMatrix.entries()) {
 				for (let [j, column] of row.entries()) {
 					if (selected[month][i][j]) {
-						if (!(monthName in dateForrest)) {
-							dateForrest[monthName] = [];
+						if (!(monthName in dateForest)) {
+							dateForest[monthName] = [];
 						}
-						dateForrest[monthName] = [
-							...dateForrest[monthName],
+						dateForest[monthName] = [
+							...dateForest[monthName],
 							{ day: column.value, raw: [month, i, j] }
-						];
-						sel.push(`${monthName} ${column.value}`);
+						]; // [month, day]
+						sel.push([month, column.value]);
 					}
 				}
 			}
@@ -184,11 +185,11 @@
 		</div>
 		<div class="divider divider-horizontal" />
 		<div class="w-56">
-			{#if Object.entries(dateForrest).length == 0}
+			{#if Object.entries(dateForest).length == 0}
 				<AlertWarning message="No dates selected" />
 			{:else}
 				<ul class="menu h-fit max-h-64 overflow-y-auto p-2 shadow-lg rounded-box">
-					{#each Object.entries(dateForrest) as [month, days]}
+					{#each Object.entries(dateForest) as [month, days]}
 						<!-- {#if days.length > 0} -->
 						<li class="menu-title">
 							<span>{month}</span>

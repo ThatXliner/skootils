@@ -10,17 +10,17 @@
 	import { writable, type Writable } from 'svelte/store';
 
 	let dateType: 'latest' | 'custom' = 'latest';
-	let dateList: string[] = [];
+	let dateList: [number, number][] = [];
 	let quarter: string;
 	type Credentials = { username: string; password: string } | null;
 	let credentials: Writable<Credentials> = writable(null);
-	let getCredentials: Promise<Credentials>;
+	let getCredentials: Promise<void>;
 	onMount(() => {
 		getCredentials = invoke('get_credentials').then((result) => {
 			$credentials = JSON.parse(result || 'null');
 		});
 	});
-	let scraper = null;
+	let scraper: ReturnType<typeof invoke> | null = null;
 </script>
 
 {#await getCredentials then}
@@ -95,6 +95,9 @@
 
 		<btn
 			class="my-5 btn btn-primary"
+			on:keydown={(event) => {
+				event.target.click();
+			}}
 			on:click={() => {
 				scraper = invoke('scrape_plans', {
 					...$credentials,
@@ -102,6 +105,13 @@
 					dates: { type: dateType == 'latest' ? 'Latest' : dateList }
 				}).then((output) => {
 					window.sessionStorage.setItem('output', JSON.stringify(output));
+					window.sessionStorage.setItem(
+						'config',
+						JSON.stringify({
+							quarter: quarter === 'Latest' ? 'Latest' : parseInt(quarter),
+							dates: dateType == 'latest' ? 'Latest' : dateList
+						})
+					);
 					window.location.assign('/learnatvcs/results');
 				});
 			}}
