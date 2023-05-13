@@ -12,6 +12,7 @@
 	let DATETYPE: string[] | null;
 
 	onMount(() => {
+		console.log(window.sessionStorage.getItem('output'));
 		output = JSON.parse(window.sessionStorage.getItem('output') ?? 'null');
 		if (output === null) return;
 		dates = Object.keys(output);

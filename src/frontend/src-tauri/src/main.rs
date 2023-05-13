@@ -18,6 +18,8 @@ fn main() {
             powerschool::add_teacher,
             powerschool::remove_teacher,
             learnatvcs::scrape_plans,
+            learnatvcs::get_credentials,
+            learnatvcs::set_credentials,
         ])
         .run(context)
         .expect("error while running tauri application");
