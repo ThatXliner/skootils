@@ -1,49 +1,71 @@
 <script lang="ts">
+	import AssignmentInput from './AssignmentInput.svelte';
 	import AlertError from './AlertError.svelte';
+	import WeightPicker from './WeightPicker.svelte';
 
 	export let currentScore: number;
-	export let assignmentCount: number;
-	let artificialAssignments: number[] = [];
-	let got = 0;
-	$: if (got < 0) {
-		got = 0;
-	}
+	export let assignments: { score: { total: number; recieved?: number }; type: string }[];
+	$: categories = [...new Set(assignments.map((t) => t.type))];
 
-	let total = 5;
+	let weights: { [key: string]: number } | null = null;
+	let artificialAssignments: { score: { total: number; recieved: number }; type: string }[] = [];
 	function sum(x: number[]): number {
 		let output = 0;
 		for (let item of x) {
-			output += item;
+			output += +item;
 		}
 		return output;
 	}
-	$: currentGrade = currentScore;
+	function calculateScore(
+		assignments: { score: { recieved: number; total: number }; type: string }[],
+		weights: { [key: string]: number } | null
+	) {
+		if (weights === null) {
+			// unweighted
+			return (
+				sum(assignments.map((e) => e.score.recieved)) / sum(assignments.map((e) => e.score.total))
+			);
+		}
+		let output = 0;
+		for (let [category, weight] of Object.entries(weights)) {
+			const totalAssignments = assignments.filter((e) => e.type === category);
+			const totalEarned = sum(totalAssignments.map((e) => e.score.recieved));
+			const totalPoints = sum(totalAssignments.map((e) => e.score.total));
+			const categoryAverage = totalEarned / totalPoints || 1;
+			output += categoryAverage * weight;
+		}
+		return output;
+	}
+	// todo: semester support
 	$: newScore =
-		(currentGrade * assignmentCount + sum(artificialAssignments)) /
-		(assignmentCount + artificialAssignments.length);
+		calculateScore(
+			// @ts-ignore
+			assignments.filter((e) => e.score.recieved !== null).concat(artificialAssignments),
+			weights
+		) * 100;
 </script>
 
-<div class="flex justify-around">
-	<span class="p-3 bg-red-300 rounded-box">Current grade: <b>{currentGrade}%</b></span>
-	<span class="p-3 bg-blue-300 rounded-box">
-		<!-- 2 decimal points -->
-		Calculated grade: <b>{parseFloat(newScore.toPrecision(4))}%</b>
-	</span>
-</div>
-
-<div class="my-3">
+<div class="space-y-3">
+	<div class="flex justify-around text-black">
+		<span class="p-3 bg-red-300 rounded-box">Current grade: <b>{currentScore}%</b></span>
+		<span class="p-3 bg-blue-300 rounded-box">
+			<!-- 2 decimal points -->
+			Calculated grade: <b>{parseFloat(newScore.toPrecision(4))}%</b>
+		</span>
+	</div>
+	<WeightPicker {categories} bind:weights />
 	{#if artificialAssignments.length > 0}
 		<div
 			class="bg-base-200 mx-auto shadow-lg p-2 rounded-box max-h-40 overflow-y-auto flex flex-wrap w-full"
 		>
-			{#each artificialAssignments as score, i}
+			{#each artificialAssignments as given, i}
+				{@const type = given.type}
 				<span
-					class="bg-info shadow-md p-2 m-1 rounded w-fit"
+					class="bg-info shadow-md p-2 m-1 rounded w-fit dark:text-black"
 					on:click={() => {
-						artificialAssignments.splice(i, 1);
-						artificialAssignments = artificialAssignments;
+						artificialAssignments = artificialAssignments.filter((_, index) => index != i);
 					}}
-					>{score}%<svg
+					>{given.score.recieved}/{given.score.total} ({type})<svg
 						xmlns="http://www.w3.org/2000/svg"
 						class="h-5 w-5 inline"
 						viewBox="0 0 20 20"
@@ -61,23 +83,13 @@
 	{:else}
 		<AlertError message="Please enter some theoretical scores" extraClasses="mx-auto" />
 	{/if}
-</div>
-
-<div class="bg-base-300 rounded-box p-3 w-fit mx-auto">
-	<h2 class="text-lg font-bold mb-1">Add assignment</h2>
-	<input class="rounded bg-base-200 w-20 p-2 text-lg" type="number" min="0" bind:value={got} />
-	<span class="font-bold">out of</span>
-	<input class="rounded bg-base-200 w-20 p-2 text-lg" type="number" min="1" bind:value={total} />
 	<button
-		class="mx-2 float-right btn btn-primary"
+		class="mx-auto mt-3 btn btn-error"
+		disabled={artificialAssignments.length == 0}
 		on:click={() => {
-			artificialAssignments = [...artificialAssignments, (got / total) * 100];
-		}}>Add</button
+			artificialAssignments = [];
+		}}>Clear all</button
 	>
+
+	<AssignmentInput bind:categories bind:artificialAssignments unweighted={weights === null} />
 </div>
-<button
-	class="mx-auto mt-3 btn btn-error"
-	on:click={() => {
-		artificialAssignments = [];
-	}}>Clear all</button
->

@@ -18,6 +18,8 @@
 		}
 	};
 	let chosen: string[] = [];
+	let item_count: number = 'X';
+	let size: string = 'X';
 	let notifId: number | null = null;
 	function clearNotif(cancelled: boolean) {
 		if (notifId === null) return;
@@ -43,8 +45,9 @@
 	<div class="modal-box">
 		<h3 class="font-bold text-lg">Confirm</h3>
 		<p class="py-4">
-			Are you <b>sure</b> you want to wipe X items permanently? It will be gone forever! (You will reclaim
-			X megabytes of storage)
+			Are you <b>sure</b> you want to wipe {item_count} items permanently? It will be gone forever! (You
+			will reclaim
+			{size} of storage)
 		</p>
 		<div class="modal-action">
 			<label for="my-modal" class="btn btn-neutral">Cancel</label>
@@ -78,7 +81,7 @@
 						d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 					/></svg
 				>
-				<span>Wiped X items</span> |
+				<span>Wiped {item_count} items</span> |
 				<button
 					class="link link-primary"
 					on:click={() => {

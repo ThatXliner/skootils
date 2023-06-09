@@ -75,7 +75,7 @@
 		email: string;
 		quarter_info: {
 			name: string;
-			overall_grade: { name: string; percent: number };
+			overall_grade: { name: string; percent: string };
 			scores: {
 				due_date: string;
 				description?: string;
@@ -166,6 +166,7 @@
 		quarters = Object.keys(data);
 		$currentQuarter = quarters[0];
 	});
+	// $: console.log($selectedClass?.quarter_info?.scores);
 </script>
 
 {#if data === null}
@@ -173,37 +174,41 @@
 {:else}
 	<!-- Modal stuff -->
 	<input type="checkbox" id="my-modal" class="modal-toggle" />
+	{#if $selectedClass !== undefined}
+		<div class="modal">
+			<div class="modal-box">
+				<h3 class="font-bold text-lg">{$selectedClass.class_name}</h3>
+				<details>
+					<summary>Grade history this quarter</summary>
+					<div class="h-full w-full">
+						<canvas bind:this={_quarterChartElement} width="400" height="300" />
+					</div>
+				</details>
+				{#if $selectedClass?.quarter_info.overall_grade.percent != '[ i ]'}
+					<details>
+						<!-- TODO -->
+						<summary
+							>What if? <div
+								class="tooltip tooltip-right"
+								data-tip="Calculations may be incorrect because we are currently disregarding possible weighting"
+							>
+								<span class="badge badge-warning">Beta</span>
+							</div></summary
+						>
+						{#key $selectedClass}
+							<WhatIf
+								currentScore={parseInt($selectedClass.quarter_info.overall_grade.percent)}
+								assignments={$selectedClass.quarter_info.scores}
+							/>
+						{/key}
+					</details>{/if}
 
-	<div class="modal">
-		<div class="modal-box">
-			<h3 class="font-bold text-lg">{$selectedClass?.class_name}</h3>
-			<details>
-				<summary>Grade history this quarter</summary>
-				<div class="h-full w-full">
-					<canvas bind:this={_quarterChartElement} width="400" height="300" />
+				<div class="modal-action">
+					<label for="my-modal" class="btn">Done</label>
 				</div>
-			</details>
-			<details>
-				<!-- TODO -->
-				<summary
-					>What if? <div
-						class="tooltip tooltip-right"
-						data-tip="Calculations may be incorrect because we are currently disregarding possible weighting"
-					>
-						<span class="badge badge-warning">Beta</span>
-					</div></summary
-				>
-				<WhatIf
-					currentScore={$selectedClass?.quarter_info.overall_grade.percent}
-					assignmentCount={$selectedClass?.quarter_info.scores.length}
-				/>
-			</details>
-
-			<div class="modal-action">
-				<label for="my-modal" class="btn">Done</label>
 			</div>
 		</div>
-	</div>
+	{/if}
 	<!-- Actual content -->
 	<div class="navbar border-b-2">
 		<div class="navbar-start">

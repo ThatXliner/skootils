@@ -158,9 +158,7 @@ class PowerSchool:
                 "recieved": score.get("scorepoints"),
             },
             # these two does not exist when it's extra credit or extempted
-            "percent": score.get(
-                "scorepercent"  # , int(score["actualscoreentered"]) * 100
-            ),
+            "percent": int(score["scorepercent"]) if "scorepercent" in score else None,
             "grade": score.get("scorelettergrade"),  # A+, B-, etc.
         }
 
