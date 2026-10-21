@@ -18,6 +18,7 @@ homepage = "https://github.com/ThatXliner/learnatvcs"
 # keywords = ["awesome", "project"]  # Maximum of 5 keywords
 
 [tool.poetry.dependencies]
+certifi = ">=2026.10.19"
 python = "^3.9"
 attrs = "^22.2.0"
 beautifulsoup4 = "^4.11.2"

@@ -1,11 +1,13 @@
 """A fairly fast API for PowerSchool"""
 import asyncio
 import re
+import ssl
 from dataclasses import dataclass, field
 from functools import reduce
 from typing import Dict, List, Optional
 
 import aiohttp
+import certifi
 import interprog
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -33,7 +35,11 @@ class PowerSchool:
     _class_to_sectionid: Dict[str, int] = field(default_factory=dict)
 
     async def __aenter__(self) -> "PowerSchool":
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(
+                ssl=ssl.create_default_context(cafile=certifi.where())
+            )
+        )
         async with self.session.post(
             self.url + "/guardian/home.html",
             data={"account": self.username, "pw": self.password},
